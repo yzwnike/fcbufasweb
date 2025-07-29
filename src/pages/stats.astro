@@ -202,10 +202,15 @@ const formation = {
     }
   ]
   
-  document.addEventListener('DOMContentLoaded', () => {
+function initializePlayerStats() {
     const fieldPlayers = document.querySelectorAll('.field-player')
     const statsContainer = document.getElementById('player-stats')
     let currentSelectedPlayer = null
+    
+    // Evitar reinicializar si ya está inicializado
+    if (statsContainer && statsContainer.hasAttribute('data-initialized')) {
+      return
+    }
     
     console.log('Stats container found:', statsContainer) // Debug
     console.log('Field players found:', fieldPlayers.length) // Debug
@@ -294,6 +299,11 @@ const formation = {
       }
     })
     
+    // Marcar como inicializado
+    if (statsContainer) {
+      statsContainer.setAttribute('data-initialized', 'true')
+    }
+    
     fieldPlayers.forEach(player => {
       // Para desktop: mouseenter/mouseleave (solo si no hay jugador seleccionado)
       player.addEventListener('mouseenter', () => {
@@ -328,5 +338,24 @@ const formation = {
         }
       })
     })
+}
+
+  // Ejecutar inmediatamente si el DOM ya está listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializePlayerStats)
+  } else {
+    initializePlayerStats()
+  }
+  
+  // Soporte para navegación SPA y View Transitions
+  // Reinicializar cuando se navega a esta página
+  document.addEventListener('astro:page-load', initializePlayerStats)
+  
+  // Fallback para navegación con history API
+  window.addEventListener('popstate', () => {
+    // Solo reinicializar si estamos en la página de stats
+    if (window.location.pathname.includes('/stats')) {
+      setTimeout(initializePlayerStats, 100)
+    }
   })
 </script>
