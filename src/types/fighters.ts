@@ -51,7 +51,6 @@ export interface Fighters {
   position: string
   country: string
   gallery?: boolean
-  versus: fighterId
   socials: Social[]
   clips: Clips[]
   workout?: {
@@ -59,4 +58,8 @@ export interface Fighters {
     thumbnail: string
   }
   bio: string
+  goles?: number
+  asistencias?: number
+  partidos?: number
+  valor?: number
 }

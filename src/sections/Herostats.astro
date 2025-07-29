@@ -1,6 +1,6 @@
 ---
 import { FIGHTERS } from '@/consts/fighters'
-import SelectYourBoxer from '@/components/Boxers/SelectYourBoxer.astro'
+import SelectYourBoxerstats from '@/components/Boxers/SelectYourBoxer.astro'
 
 const selectedBoxerId = Astro.url.searchParams.get('luchador') ?? FIGHTERS[0].id
 const selectedBoxer = FIGHTERS.find((boxer) => boxer.id === selectedBoxerId) ?? FIGHTERS[0]
@@ -9,50 +9,25 @@ const selectedBoxer = FIGHTERS.find((boxer) => boxer.id === selectedBoxerId) ?? 
 <section class="relative flex min-h-screen w-full">
   <div class="mask-fade-bottom absolute inset-0 w-full bg-black opacity-10"></div>
 
-  <div class="relative flex w-full flex-col items-center justify-center p-4 text-center sm:p-8">
-    <div id="landing" class="absolute top-0 flex w-full flex-col items-center py-8 sm:py-16">
+  <div class="relative flex w-full flex-col items-right p-8 text-center">
+    <div id="landing" class="relative top-0 flex w-full flex-col items-right py-16">
       <h3
-        class="text-theme-seashell animate-fade-in animate-delay-300 mt-2 text-xs font-medium leading-[100%] tracking-wide sm:mt-4 sm:text-base"
+        class="text-theme-seashell animate-fade-in animate-delay-300 tracking mt-4 text-xs font-medium leading-[100%] sm:text-base"
       >
-        EN SEPTIEMBRE <br /> COMIENZA LA LIGA!
       </h3>
       <figure class="animate-fade-in relative">
-        <img
-          class="relative z-20 h-auto w-32 sm:w-48 md:w-64 lg:w-72"
-          src="/images/logo.webp"
-          fetchpriority="high"
-          alt="La Velada del Año V"
-          decoding="async"
-        />
-        <div
-          class="absolute left-1/2 top-1/2 z-0 size-48 sm:size-64 -translate-x-1/2 -translate-y-1/2 bg-pink-400/80 blur-2xl"
-        ></div>
+        </div>
       </figure>
 
-      <div class="relative z-10 mt-2 sm:mt-0">
-        <h3 class="text-theme-seashell animate-fade-in animate-delay-500 z-0 font-medium">
-          <a
-            href="https://www.google.es/maps/place/Escola+Garb%C3%AD+Pere+Verg%C3%A9s+Esplugues/@41.37935,2.0939611,16z/data=!3m1!4b1!4m6!3m5!1s0x12a499062f9ac875:0x3cc20323cde70dad!8m2!3d41.379346!4d2.096536!16s%2Fg%2F122dls27?entry=ttu&g_ep=EgoyMDI1MDcxNS4xIKXMDSoASAFQAw%3D%3D"
-            rel="noopener noreferrer"
-            target="_blank"
-            class="animate-fade-in animate-delay-700 hover:scale-110 z-50 inline-block text-xs font-medium leading-snug tracking-wide transition sm:text-base"
-          >
-            Estadio<br />Escola Garbí,<br />Esplugues, Barcelona
+      <div class="relative z-10">
+        <h3 class="text-theme-seashell animate-fade-in animate-delay-500 z-0 mt-0 font-medium">
           </a>
         </h3>
         <div class="absolute -inset-2 -z-10 h-full w-full bg-orange-400/80 blur-2xl"></div>
-        <a
-          href="https://www.instagram.com/fcbufasteam/"
-          rel="noopener noreferrer"
-          target="_blank"
-          class="animate-fade-in animate-delay-700 z-10 mt-2 inline-block text-xs font-medium leading-snug tracking-wide transition hover:scale-110 sm:text-base"
-        >
-          instagram:<br />fcbufasteam
-        </a>
       </div>
     </div>
-    <SelectYourBoxer boxers={FIGHTERS} selectedBoxer={selectedBoxer} />
   </div>
+  <SelectYourBoxerstats boxers={FIGHTERS} selectedBoxer={selectedBoxer} />
 </section>
 
 <style>

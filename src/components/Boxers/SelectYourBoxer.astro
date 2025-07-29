@@ -1,7 +1,7 @@
 ---
 import BoxerCard from '@/components/BoxerCard.astro'
 import BoxerBigImages from '@/components/Boxers/BoxerBigImages.astro'
-import ColumnBoxers from '@/components/Boxers/ColumnBoxers.astro'
+import MobilePlayerCard from '@/components/MobilePlayerCard.astro'
 import type { Fighters } from '@/types/fighters'
 import HorizontalScroll from '@/components/Icons/HorizontalScroll.astro'
 import { getBoxerById, getBoxerVersusById } from '@/lib/get-boxers'
@@ -14,34 +14,24 @@ interface Props {
 
 const { boxers, selectedBoxer } = Astro.props
 
-const firstRow = boxers.slice(0, 6)
-const leftRow = firstRow.slice(0, 3)
-const rightRow = firstRow.slice(3)
+const firstRow = boxers.slice(0, 4)
+const leftRow = firstRow.slice(0, 2)
+const rightRow = firstRow.slice(2)
 
-const secondRow = boxers.slice(6)
+const secondRow = boxers.slice(4)
 const leftSecondRow = secondRow.slice(0, 4)
-const rightSecondRow = secondRow.slice(4, 8)
+const rightSecondRow = secondRow.slice(4, 10)
 
-let groupBoxersByVersus = boxers.reduce(
-  (acc, boxer) => {
-    const { id, versus } = boxer
-    if (acc[versus]) {
-      acc[versus].push(id)
-    } else {
-      acc[versus] = [id]
-    }
-    return acc
-  },
-  {} as Record<string, string[]>,
+// Para móviles, mostrar todos los jugadores con estadísticas (incluir a Alex y Dani)
+const playersWithStats = boxers.filter(player => 
+  player.goles !== undefined
 )
 
-groupBoxersByVersus = removeMirroredPairs(groupBoxersByVersus)
-
-// Ordenar para que el combate principal sea el primero
+// Ordenar para que marcos sea el primero
 const mobileBoxers = [
-  Object.keys(groupBoxersByVersus).find((boxerId) => boxerId === 'marcos'),
-  ...Object.keys(groupBoxersByVersus).filter((boxerId) => boxerId !== 'marcos'),
-]
+  playersWithStats.find(player => player.id === 'marcos'),
+  ...playersWithStats.filter(player => player.id !== 'marcos'),
+].filter(Boolean)
 
 const animationDelay = [500, 700, 800]
 const reverseDelay = [...animationDelay].reverse()
@@ -55,12 +45,12 @@ const reverseDelaySecondRow = [...animationDelaySecondRow].reverse()
 
   <div
     id="fighters-selection-container"
-    class="relative flex h-full w-full max-w-6xl flex-col items-center justify-end gap-8 sm:p-4"
+    class="relative flex h-full w-full max-w-6xl flex-col items-center justify-end gap-4 p-2 sm:gap-8 sm:p-4"
   >
     <div
-      class="hidden w-full flex-wrap justify-center gap-4 px-0 sm:justify-between sm:px-4 md:flex"
+      class="hidden w-full flex-wrap justify-center gap-2 px-0 sm:gap-4 sm:justify-between sm:px-4 md:flex"
     >
-      <div class="flex flex-wrap justify-start gap-4">
+      <div class="flex flex-wrap justify-start gap-2 sm:gap-4">
         {
           leftRow.map(({ id, name, versus }, index) => (
             <div
@@ -72,7 +62,7 @@ const reverseDelaySecondRow = [...animationDelaySecondRow].reverse()
         }
       </div>
 
-      <div class="hidden flex-wrap justify-end gap-4 md:flex">
+      <div class="hidden flex-wrap justify-end gap-2 sm:gap-4 md:flex">
         {
           rightRow.map(({ id, name, versus }, index) => (
             <div
@@ -85,8 +75,8 @@ const reverseDelaySecondRow = [...animationDelaySecondRow].reverse()
       </div>
     </div>
 
-    <div class="hidden flex-wrap justify-center gap-4 sm:justify-between md:flex">
-      <div class="flex flex-wrap justify-start gap-4">
+    <div class="hidden flex-wrap justify-center gap-2 sm:gap-4 sm:justify-between md:flex">
+      <div class="flex flex-wrap justify-start gap-2 sm:gap-4">
         {
           leftSecondRow.map(({ id, name, versus }, index) => (
             <div class={`animate-fade-in-up animate-delay-${animationDelaySecondRow[index]}`}>
@@ -95,7 +85,7 @@ const reverseDelaySecondRow = [...animationDelaySecondRow].reverse()
           ))
         }
       </div>
-      <div class="hidden flex-wrap justify-end gap-4 md:flex">
+      <div class="hidden flex-wrap justify-end gap-2 sm:gap-4 md:flex">
         {
           rightSecondRow.map(({ id, name, versus }, index) => (
             <div class={`animate-fade-in-up animate-delay-${reverseDelaySecondRow[index]}`}>
@@ -106,32 +96,33 @@ const reverseDelaySecondRow = [...animationDelaySecondRow].reverse()
       </div>
     </div>
   </div>
-  <div class="-mt-20 flex flex-col items-center justify-center md:mt-32 md:hidden">
-    <div class="mt-8 w-full max-w-[100vw] overflow-x-scroll">
+  <div class="-mt-16 flex flex-col items-center justify-center sm:-mt-20 md:mt-32 md:hidden">
+    <!-- Mensaje de instrucción -->
+    <div class="mb-2 px-4 text-center">
+      <p class="text-theme-seashell text-sm font-medium opacity-80 animate-fade-in animate-delay-300">
+        Desliza y selecciona tu jugador favorito
+      </p>
+    </div>
+    <div class="mt-4 w-full max-w-[100vw] overflow-x-scroll sm:mt-8">
       <div
-        class="fadeout-horizontal no-scrollbar flex snap-x snap-mandatory gap-12 overflow-x-scroll py-2 pr-[40%]"
+        class="fadeout-horizontal no-scrollbar flex snap-x snap-mandatory gap-8 sm:gap-12 overflow-x-scroll py-2 pr-[30%] sm:pr-[40%]"
       >
         {
           mobileBoxers
-            .filter((boxerId): boxerId is string => boxerId !== undefined)
-            .map((boxerId, index) => {
-              const boxer = getBoxerById(boxerId)
-              return (
-                <div
-                  class:list={`w-fit flex-shrink-0 snap-center px-2 ${index === 0 ? 'ml-[75%]' : ''} `}
-                >
-                  <ColumnBoxers
-                    boxer={boxer}
-                    versus={getBoxerVersusById(boxer.versus)}
-                    selectedBoxer={selectedBoxer}
-                  />
-                </div>
-              )
-            })
+            .filter((boxer): boxer is Fighters => boxer !== undefined)
+            .map((boxer, index) => (
+              <div
+                class:list={`w-fit flex-shrink-0 snap-center px-1 sm:px-2 ${index === 0 ? 'ml-[60%] sm:ml-[75%]' : ''} `}
+              >
+                <MobilePlayerCard
+                  player={boxer}
+                />
+              </div>
+            ))
         }
       </div>
     </div>
-    <HorizontalScroll class:list={['text-theme-seashell w-16 pt-2 opacity-80']} />
+    <HorizontalScroll class:list={['text-theme-seashell w-12 sm:w-16 pt-1 sm:pt-2 opacity-80']} />
   </div>
 </>
 

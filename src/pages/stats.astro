@@ -1,0 +1,332 @@
+---
+import Layout from '../layouts/Layout.astro'
+import PlayerStats from '../components/PlayerStats.astro'
+import FieldPlayer from '../components/FieldPlayer.astro'
+import { FIGHTERS } from '../consts/fighters'
+
+const title = 'Estadísticas y Jugadores - FC Bufas'
+const description = 'Conoce a los jugadores y estadísticas del equipo FC Bufas para la temporada 2025/26.'
+const canonical = 'https://www.fcbufasweb.vercel.app/stats'
+
+// Filtrar jugadores con estadísticas (incluir todos)
+const playersWithStats = FIGHTERS.filter(player => 
+  player.goles !== undefined
+)
+
+// Definir formación 1-4-4-1 (sin contar portero son 10 jugadores)
+const formation = {
+  // Portero
+  'yazawa': { top: '85%', left: '50%' },
+  
+  // Defensa (4 jugadores)
+  'albert': { top: '68%', left: '15%' },      // Lateral izquierdo (LI)
+  'mister': { top: '68%', left: '35%' },      // Defensa central (DFC)
+  'proximamente2': { top: '68%', left: '65%' }, // Defensa central (DFC)
+  'pablo': { top: '68%', left: '85%' },       // Lateral derecho (LD)
+  
+  // Centrocampo (4 jugadores)
+  'proximamente1': { top: '45%', left: '15%' }, // Medio izquierdo (MI)
+  'javo': { top: '45%', left: '40%' },        // Medio centro (MC)
+  'mario': { top: '45%', left: '60%' },       // Medio centro (MC)
+  'aznar': { top: '45%', left: '85%' },       // Medio derecho (MD)
+  
+  // Delantero (1 jugador)
+  'marcos': { top: '20%', left: '50%' },      // Delantero centro (DC)
+}
+---
+
+<Layout title={title} description={description} canonical={canonical}>
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 py-8">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-6">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">Estadísticas FC Bufas</h1>
+        <p class="text-gray-600 text-lg">Temporada 2025/26</p>
+      </div>
+      
+      <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Panel de estadísticas (móvil arriba, desktop izquierda) -->
+        <div class="lg:w-80 flex-shrink-0 order-2 lg:order-1">
+          <PlayerStats player={null} />
+        </div>
+        
+        <!-- Campo de fútbol -->
+        <div class="flex-1 order-1 lg:order-2">
+          <div class="field-container relative w-full aspect-[3/4] md:aspect-[4/3] bg-cover bg-center rounded-xl overflow-hidden shadow-2xl">
+            <!-- Overlay para mejorar visibilidad -->
+            <div class="absolute inset-0 bg-black/10"></div>
+            
+            <!-- Jugadores en formación -->
+            {Object.entries(formation).map(([playerId, position]) => {
+              const player = playersWithStats.find(p => p.id === playerId)
+              return player ? (
+                <FieldPlayer player={player} position={position} />
+              ) : null
+            })}
+            
+            <!-- Título de la formación -->
+            <div class="absolute top-1 left-2 md:top-4 md:left-4 bg-white/90 backdrop-blur-sm px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-lg">
+              <h3 class="text-sm md:text-lg font-bold text-gray-900">Formación 1-4-4-1</h3>
+              <p class="text-xs md:text-sm text-gray-600">FC Bufas 2025/26</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .field-container {
+    background-image: url('/campo.webp');
+  }
+  
+  @media (max-width: 768px) {
+    .field-container {
+      background-image: url('/campovertical.webp');
+    }
+  }
+</style>
+
+<script>
+  // Datos de jugadores embebidos para evitar problemas de importación
+  const FIGHTERS_DATA = [
+    {
+      id: 'albert',
+      name: 'Albert',
+      realName: 'Albert Rodríguez',
+      position: 'MI',
+      bio: 'Albert es un jugador veterano de FC Bufas, con su esfuerzo y detalles en el campo se destaca no solo en banda sino en varias funciones con su multiposicionalidad, puedes verlo en cualquier parte del campo.',
+      goles: 4,
+      asistencias: 7,
+      partidos: 12,
+      valor: 25
+    },
+    {
+      id: 'javo',
+      name: 'Javo',
+      realName: 'Javo Ayesta',
+      position: 'MC',
+      bio: 'Javo es un centrocampista proveniente de Picacachorras FC, fue traspasado en la temporada 2025-26 por la cifra de 65M de euros(€)',
+      goles: 8,
+      asistencias: 12,
+      partidos: 15,
+      valor: 65
+    },
+    {
+      id: 'pablo',
+      name: 'Pablo',
+      realName: 'Pablo Vehí Roca',
+      position: 'LD',
+      bio: 'Presente en el primer equipo y uno de los co-fundadores del FC Bufas, clave en su posición y fiel al equipo de sus sueños.',
+      goles: 2,
+      asistencias: 8,
+      partidos: 14,
+      valor: 22
+    },
+    {
+      id: 'yazawa',
+      name: 'Yazawa',
+      realName: 'Nico Vehi (Yazawa)',
+      position: 'POR',
+      bio: 'Fundador, capitán y presidente de FC Bufas, sin la ayuda de los jugadores veteranos no habría llegado tan lejos, el equipo sigue manteniendose con la portería bien firme gracias a su presencia.',
+      goles: 0,
+      asistencias: 2,
+      partidos: 15,
+      valor: 18
+    },
+    {
+      id: 'mister',
+      name: 'Mister',
+      realName: 'Marc Sánchez (Míster)',
+      position: 'DFC',
+      bio: 'Central veterano de FC Bufas, Míster es un jugador con gran experiencia y liderazgo en el campo. Su presencia en la defensa es fundamental para el equipo, y su capacidad para organizar la línea defensiva lo convierte en un jugador clave.',
+      goles: 3,
+      asistencias: 1,
+      partidos: 13,
+      valor: 28
+    },
+    {
+      id: 'mario',
+      name: 'Mario',
+      realName: 'Mario Roca',
+      position: 'MC',
+      bio: 'Miembro veterano de FC Bufas, uno de los jugadores mas carismaticos y creativos con el balón, se ha ganado el cariño de la afición con su visión de juego y su capacidad para crear jugadas de peligro.',
+      goles: 6,
+      asistencias: 9,
+      partidos: 14,
+      valor: 32
+    },
+    {
+      id: 'marcos',
+      name: 'Marcos',
+      realName: 'Marcos López',
+      position: 'DC',
+      bio: 'Uno de los últimos fichajes de FC Bufas, Marcos es un jugador con gran proyección. Con su llegada al equipo, se espera que aporte su calidad y su capacidad goleadora para ayudar al equipo a alcanzar sus objetivos.',
+      goles: 5,
+      asistencias: 3,
+      partidos: 11,
+      valor: 29
+    },
+    {
+      id: 'aznar',
+      name: 'Aznar',
+      realName: 'Paul Aznar',
+      position: 'DC',
+      bio: 'El jugador con mas ganas y resistencia en el campo, Aznar es un jugador que siempre da el 100% en cada partido. Su dedicación y esfuerzo lo convierten en un jugador clave para el equipo.',
+      goles: 1,
+      asistencias: 4,
+      partidos: 13,
+      valor: 20
+    },
+    {
+      id: 'proximamente1',
+      name: 'Alex',
+      realName: 'Alejandro Martínez',
+      position: 'MI',
+      bio: 'Fichaje prometedor para el medio campo izquierdo, Alex destaca por su velocidad y regate. Su juventud y ganas de triunfar lo convierten en una apuesta de futuro para el FC Bufas.',
+      goles: 3,
+      asistencias: 5,
+      partidos: 8,
+      valor: 12
+    },
+    {
+      id: 'proximamente2',
+      name: 'Dani',
+      realName: 'Daniel García',
+      position: 'DFC',
+      bio: 'Nuevo fichaje en defensa central, Dani aporta solidez y experiencia a la línea defensiva del FC Bufas. Su llegada refuerza la plantilla con su físico imponente y su capacidad de liderazgo.',
+      goles: 2,
+      asistencias: 1,
+      partidos: 8,
+      valor: 15
+    }
+  ]
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const fieldPlayers = document.querySelectorAll('.field-player')
+    const statsContainer = document.getElementById('player-stats')
+    let currentSelectedPlayer = null
+    
+    console.log('Stats container found:', statsContainer) // Debug
+    console.log('Field players found:', fieldPlayers.length) // Debug
+    
+    function updatePlayerStats(playerId) {
+      const player = FIGHTERS_DATA.find(f => f.id === playerId)
+      console.log('Updating stats for:', playerId, player) // Debug
+      if (!player || !statsContainer) {
+        console.log('Missing player or container:', { player, statsContainer }) // Debug
+        return
+      }
+      
+      statsContainer.innerHTML = `
+        <div class="space-y-4">
+          <div class="text-center">
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">${player.name}</h3>
+            <p class="text-gray-600 text-sm">${player.realName}</p>
+            <p class="text-gray-500 text-sm">${player.position}</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-orange-50 rounded-lg p-4 text-center">
+              <div class="text-2xl font-bold text-orange-600">${player.goles}</div>
+              <div class="text-sm text-gray-600">Goles</div>
+            </div>
+            
+            <div class="bg-blue-50 rounded-lg p-4 text-center">
+              <div class="text-2xl font-bold text-blue-600">${player.asistencias}</div>
+              <div class="text-sm text-gray-600">Asistencias</div>
+            </div>
+            
+            <div class="bg-green-50 rounded-lg p-4 text-center">
+              <div class="text-2xl font-bold text-green-600">${player.partidos}</div>
+              <div class="text-sm text-gray-600">Partidos</div>
+            </div>
+            
+            <div class="bg-purple-50 rounded-lg p-4 text-center">
+              <div class="text-2xl font-bold text-purple-600">${player.valor}M€</div>
+              <div class="text-sm text-gray-600">Valor</div>
+            </div>
+          </div>
+          
+          <div class="mt-4">
+            <h4 class="font-semibold text-gray-900 mb-2">Biografía</h4>
+            <p class="text-gray-700 text-sm leading-relaxed">${player.bio}</p>
+          </div>
+        </div>
+      `
+    }
+    
+    function resetStats() {
+      if (!statsContainer) return
+      statsContainer.innerHTML = `
+        <div class="text-center py-8">
+          <div class="text-6xl mb-4">⚽</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Estadísticas FC Bufas</h3>
+          <p class="text-gray-600">Pasa el cursor sobre un jugador para ver sus estadísticas</p>
+        </div>
+      `
+    }
+    
+    function selectPlayer(playerId, playerElement) {
+      // Deseleccionar jugador anterior
+      if (currentSelectedPlayer) {
+        currentSelectedPlayer.classList.remove('selected')
+      }
+      
+      // Seleccionar nuevo jugador
+      currentSelectedPlayer = playerElement
+      playerElement.classList.add('selected')
+      updatePlayerStats(playerId)
+    }
+    
+    function deselectPlayer() {
+      if (currentSelectedPlayer) {
+        currentSelectedPlayer.classList.remove('selected')
+        currentSelectedPlayer = null
+      }
+      resetStats()
+    }
+    
+    // Click en el campo para deseleccionar
+    document.querySelector('.field-container').addEventListener('click', (e) => {
+      if (e.target.classList.contains('field-container') || e.target.classList.contains('bg-black/10')) {
+        deselectPlayer()
+      }
+    })
+    
+    fieldPlayers.forEach(player => {
+      // Para desktop: mouseenter/mouseleave (solo si no hay jugador seleccionado)
+      player.addEventListener('mouseenter', () => {
+        if (!currentSelectedPlayer) {
+          const playerId = player.getAttribute('data-player-id')
+          if (playerId) {
+            updatePlayerStats(playerId)
+          }
+        }
+      })
+      
+      player.addEventListener('mouseleave', () => {
+        if (!currentSelectedPlayer) {
+          resetStats()
+        }
+      })
+      
+      // Click para seleccionar/deseleccionar
+      player.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const playerId = player.getAttribute('data-player-id')
+        
+        if (playerId) {
+          if (currentSelectedPlayer === player) {
+            // Si es el mismo jugador, deseleccionar
+            deselectPlayer()
+          } else {
+            // Seleccionar nuevo jugador
+            selectPlayer(playerId, player)
+          }
+        }
+      })
+    })
+  })
+</script>

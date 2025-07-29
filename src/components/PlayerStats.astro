@@ -1,0 +1,56 @@
+---
+import type { Fighters } from '@/types/fighters'
+
+interface Props {
+  player: Fighters | null
+}
+
+const { player } = Astro.props
+---
+
+<div id="player-stats" class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border">
+  {player ? (
+    <div class="space-y-4">
+      <div class="text-center">
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">{player.name}</h3>
+        <p class="text-gray-600 text-sm">{player.realName}</p>
+        <p class="text-gray-500 text-sm">{player.position}</p>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-orange-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-orange-600">{player.goles ?? 0}</div>
+          <div class="text-sm text-gray-600">Goles</div>
+        </div>
+        
+        <div class="bg-blue-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-blue-600">{player.asistencias ?? 0}</div>
+          <div class="text-sm text-gray-600">Asistencias</div>
+        </div>
+        
+        <div class="bg-green-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-green-600">{player.partidos ?? 0}</div>
+          <div class="text-sm text-gray-600">Partidos</div>
+        </div>
+        
+        <div class="bg-purple-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-600">{player.valor ?? 0}M€</div>
+          <div class="text-sm text-gray-600">Valor</div>
+        </div>
+      </div>
+      
+      {player.bio && (
+        <div class="mt-4">
+          <h4 class="font-semibold text-gray-900 mb-2">Biografía</h4>
+          <p class="text-gray-700 text-sm leading-relaxed">{player.bio}</p>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="text-center py-8">
+      <div class="text-6xl mb-4">⚽</div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">Estadísticas FC Bufas</h3>
+      <p class="text-gray-600">Pasa el cursor sobre un jugador para ver sus estadísticas</p>
+    </div>
+  )}
+</div>

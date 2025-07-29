@@ -44,6 +44,11 @@ export const FIGHTERS: Fighters[] = [
       videoID: 'dj-4LLi5cck',
       thumbnail: '/images/fighters/workoutThumbnails/perxitaa-thumbnail.webp',
     },
+    goles: 4,
+    asistencias: 7,
+    partidos: 12,
+    valor: 25,
+    dorsal: 11,
   },
   {
     // https://www.biografia.de/abby/
@@ -78,6 +83,11 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.instagram.com/p/DMNlVwvoxoO/?img_index=1',
       },
     ],
+    goles: 8,
+    asistencias: 12,
+    partidos: 15,
+    valor: 65,
+    dorsal: 8,
   },
   {
     // https://www.biografia.de/pablo/
@@ -113,6 +123,11 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/_A0QFge7TlI?si=lBVhjXJ2Zn7cbrch&amp;clip=Ugkxu-CzMHs-3zLGaFFCGIh-tcPMjImucfAT&amp;clipt=EOnqLRjv0y4',
       },
     ],
+    goles: 2,
+    asistencias: 8,
+    partidos: 14,
+    valor: 22,
+    dorsal: 6,
   },
   {
     // https://www.biografia.de/yazawa/
@@ -169,17 +184,25 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/aOKOUIx8mPU?si=xe0_jPqJ7lBEMNDx&amp;clip=UgkxVZqXUgbXM15VuQBnVAg38-8W2PnL8oqT&amp;clipt=EJDeAxiYhQQ&autoplay=1',
       },
     ],
+    goles: 0,
+    asistencias: 2,
+    partidos: 15,
+    valor: 18,
+    dorsal: 7,
   },
   {
     // https://www.biografia.de/viruzz/
     id: 'proximamente2',
-    name: 'Próximo Fichaje',
-    realName: '',
-    bio: '',
+    name: 'Dani',
+    realName: 'Daniel García',
+    bio: 'Nuevo fichaje en defensa central, Dani aporta solidez y experiencia a la línea defensiva del FC Bufas. Su llegada refuerza la plantilla con su físico imponente y su capacidad de liderazgo.',
     gender: 'masculino',
-    birthDate: new Date(2000, 1, 1),
-    country: 'por',
-    city: '',
+    birthDate: new Date(2004, 6, 15),
+    height: 1.89,
+    age: 20,
+    position: 'DFC',
+    country: 'es',
+    city: 'Madrid, España',
     
     gallery: true,
     socials: [
@@ -198,11 +221,15 @@ export const FIGHTERS: Fighters[] = [
     ],
     clips: [
       {
-        text: 'Cual será el próximo fichaje?...',
+        text: 'La defensa está más sólida que nunca',
         url: 'https://www.youtube.com/embed/t7r5O_5B-E0?si=1tlrUUKM-18eZlen&amp;clip=UgkxW9ZMSp3ZrKKJGaU3qR9kK2njuf0fgO-w&amp;clipt=EPPv0wQY-5bUBA',
       },
-      
     ],
+    goles: 2,
+    asistencias: 1,
+    partidos: 8,
+    valor: 15,
+    dorsal: 4,
   },
   {
     // https://www.biografia.de/mister-flores/
@@ -237,6 +264,11 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/qdS_XOZ5kyU?si=ma0Sdomx1JJOyld1&amp;clip=Ugkxd-wfH9H1C-ZaiGBlFn3hZeAk9qQWK48w&amp;clipt=EKjUAhiw-wI',
       },
     ],
+    goles: 3,
+    asistencias: 1,
+    partidos: 13,
+    valor: 28,
+    dorsal: 5,
   },
   {
     // https://laletrade.com/biografias/youtuber/espanol/22589-mario
@@ -271,6 +303,11 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/cfpvro5tD7g?si=rjaM5jJdImEtefJ6&amp;clip=UgkxuoAS_mblPPU-wtj4bH3GiLXmVRBAow2b&amp;clipt=EImsAhjj2gI',
       },
     ],
+    goles: 6,
+    asistencias: 9,
+    partidos: 14,
+    valor: 32,
+    dorsal: 10,
   },
   {
     // https://www.biografia.de/marcos/
@@ -305,6 +342,11 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/cfpvro5tD7g?si=ZcMgqxaAfHxRQb96&amp;clip=UgkxQ5sj8mAkLsReNNl3UPmr5g6CkSbZyERl&amp;clipt=EKjXAhiw_gI',
       },
     ],
+    goles: 5,
+    asistencias: 3,
+    partidos: 11,
+    valor: 29,
+    dorsal: 9,
   },
   {
     // https://www.biografia.de/aznar/
@@ -350,18 +392,31 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/qdS_XOZ5kyU?si=D8fgVfCSRy_SwZHv&amp;clip=UgkxEmtFin7L3_YLiJW_OyRkmeZtFj53PnkT&amp;clipt=EPWwAhj91wI',
       },
     ],
+    goles: 1,
+    asistencias: 4,
+    partidos: 13,
+    valor: 20,
+    dorsal: 14,
   },
   {
     // https://laletrade.com/biografias/youtuber/19752-carlos-belcast
     id: 'proximamente1',
-    name: 'Próximo Fichaje',
-    bio: '',
-    realName: '',
+    name: 'Alex',
+    bio: 'Fichaje prometedor para el medio campo izquierdo, Alex destaca por su velocidad y regate. Su juventud y ganas de triunfar lo convierten en una apuesta de futuro para el FC Bufas.',
+    realName: 'Alejandro Martínez',
     gender: 'masculino',
-    birthDate: new Date(2000, 1, 1),
+    birthDate: new Date(2006, 2, 10),
+    height: 1.75,
+    age: 18,
+    position: 'MI',
     gallery: true,
-    country: 'por',
-    city: '',
+    country: 'es',
+    city: 'Valencia, España',
+    goles: 3,
+    asistencias: 5,
+    partidos: 8,
+    valor: 12,
+    dorsal: 17,
     socials: [
       {
         id: 'instagram',
@@ -378,7 +433,7 @@ export const FIGHTERS: Fighters[] = [
     ],
     clips: [
       {
-        text: 'Cual será',
+        text: 'La banda izquierda tiene nuevo dueño',
         url: 'https://www.youtube.com/embed/NbaFxQiuFek?si=_zo9rym4J9nuprTz&amp;clip=UgkxA55s3XmbPCzb0W3fcV3a5ynwEsfrpWnY&amp;clipt=EMD-DBjIpQ0',
       },
     ],

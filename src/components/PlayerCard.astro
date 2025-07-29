@@ -1,0 +1,50 @@
+---
+import type { Fighters } from '@/types/fighters'
+
+interface Props {
+  player: Fighters
+}
+
+const { player } = Astro.props
+
+// Solo mostrar jugadores que tengan estadísticas y no sean "próximos fichajes"
+const shouldShow = player.goles !== undefined && !player.id.includes('proximamente')
+if (!shouldShow) return null
+---
+
+<div 
+  class="player-card bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl border-2 border-transparent hover:border-orange-400"
+  data-player-id={player.id}
+>
+  <div class="relative">
+    <img 
+      src={`/images/fighters/cards/${player.id}.webp`} 
+      alt={player.name}
+      class="w-full h-40 object-contain"
+      loading="lazy"
+    />
+    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+      <h3 class="text-white font-bold text-sm">{player.name}</h3>
+      <p class="text-white/80 text-xs">{player.position}</p>
+    </div>
+  </div>
+  
+  <div class="p-3">
+    <div class="grid grid-cols-2 gap-2 text-xs">
+      <div class="text-center">
+        <div class="font-bold text-lg text-orange-600">{player.goles ?? 0}</div>
+        <div class="text-gray-500">Goles</div>
+      </div>
+      <div class="text-center">
+        <div class="font-bold text-lg text-blue-600">{player.asistencias ?? 0}</div>
+        <div class="text-gray-500">Asist.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .player-card:hover {
+    transform: translateY(-4px);
+  }
+</style>
