@@ -62,4 +62,10 @@ export interface Fighters {
   asistencias?: number
   partidos?: number
   valor?: number
+  valorTotal?: number
+  historialValores?: {
+    fecha: Date
+    valor: number
+  }[]
+  dorsal?: number
 }

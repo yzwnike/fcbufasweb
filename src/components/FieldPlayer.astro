@@ -25,9 +25,9 @@ if (!shouldShow) return null
     <!-- Avatar del jugador -->
     <div class="player-avatar w-14 h-14 sm:w-20 sm:h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white">
       <img 
-        src={`/images/fighters/cards/${player.id}.webp`} 
+        src={`/images/fighters/big/${player.id}.webp`} 
         alt={player.name}
-        class="w-full h-full object-cover"
+        class="w-full h-full object-cover scale-125" style="object-position: center 20%;"
         loading="lazy"
       />
     </div>

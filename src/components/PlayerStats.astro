@@ -25,7 +25,7 @@ const { player } = Astro.props
         
         <div class="bg-blue-50 rounded-lg p-4 text-center">
           <div class="text-2xl font-bold text-blue-600">{player.asistencias ?? 0}</div>
-          <div class="text-sm text-gray-600">Asistencias</div>
+          <div class="text-xs text-gray-600 text-center w-full">Asistencias</div>
         </div>
         
         <div class="bg-green-50 rounded-lg p-4 text-center">
@@ -43,6 +43,21 @@ const { player } = Astro.props
         <div class="mt-4">
           <h4 class="font-semibold text-gray-900 mb-2">Biografía</h4>
           <p class="text-gray-700 text-sm leading-relaxed">{player.bio}</p>
+        </div>
+      )}
+      
+      {player.valorTotal && (
+        <div class="mt-4">
+          <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border border-yellow-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="font-semibold text-gray-900 mb-1">💰 Valor Total</h4>
+                <p class="text-2xl font-bold text-yellow-600">{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(player.valorTotal)}</p>
+                <p class="text-xs text-gray-600 mt-1">Valor de mercado actual</p>
+              </div>
+              <div class="text-4xl opacity-20">💎</div>
+            </div>
+          </div>
         </div>
       )}
     </div>

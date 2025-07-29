@@ -14,31 +14,53 @@ const playersWithStats = FIGHTERS.filter(player =>
 )
 
 // Definir formación 1-4-4-1 (sin contar portero son 10 jugadores)
-const formation = {
+// Posiciones para móvil
+const formationMobile = {
   // Portero
   'yazawa': { top: '85%', left: '50%' },
   
   // Defensa (4 jugadores)
   'albert': { top: '68%', left: '15%' },      // Lateral izquierdo (LI)
   'mister': { top: '68%', left: '35%' },      // Defensa central (DFC)
-  'proximamente2': { top: '68%', left: '65%' }, // Defensa central (DFC)
+  'perma': { top: '68%', left: '65%' }, // Defensa central (DFC)
   'pablo': { top: '68%', left: '85%' },       // Lateral derecho (LD)
   
   // Centrocampo (4 jugadores)
-  'proximamente1': { top: '45%', left: '15%' }, // Medio izquierdo (MI)
+  'fan': { top: '45%', left: '15%' }, // Medio izquierdo (MI)
   'javo': { top: '45%', left: '40%' },        // Medio centro (MC)
   'mario': { top: '45%', left: '60%' },       // Medio centro (MC)
-  'aznar': { top: '45%', left: '85%' },       // Medio derecho (MD)
+  'nicou': { top: '45%', left: '85%' },       // Medio derecho (MD)
   
   // Delantero (1 jugador)
   'marcos': { top: '20%', left: '50%' },      // Delantero centro (DC)
 }
+
+// Posiciones para desktop (subidas un poco)
+const formationDesktop = {
+  // Portero
+  'yazawa': { top: '80%', left: '50%' },
+  
+  // Defensa (4 jugadores)
+  'albert': { top: '63%', left: '15%' },      // Lateral izquierdo (LI)
+  'mister': { top: '63%', left: '35%' },      // Defensa central (DFC)
+  'perma': { top: '63%', left: '65%' }, // Defensa central (DFC)
+  'pablo': { top: '63%', left: '85%' },       // Lateral derecho (LD)
+  
+  // Centrocampo (4 jugadores)
+  'fan': { top: '40%', left: '15%' }, // Medio izquierdo (MI)
+  'javo': { top: '40%', left: '40%' },        // Medio centro (MC)
+  'mario': { top: '40%', left: '60%' },       // Medio centro (MC)
+  'nicou': { top: '40%', left: '85%' },       // Medio derecho (MD)
+  
+  // Delantero (1 jugador)
+  'marcos': { top: '15%', left: '50%' },      // Delantero centro (DC)
+}
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
-  <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 py-8">
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 py-2">
     <div class="container mx-auto px-4">
-      <div class="text-center mb-6">
+      <div class="text-center mb-3">
         <h1 class="text-4xl font-bold text-gray-900 mb-2">Estadísticas FC Bufas</h1>
         <p class="text-gray-600 text-lg">Temporada 2025/26</p>
       </div>
@@ -55,13 +77,25 @@ const formation = {
             <!-- Overlay para mejorar visibilidad -->
             <div class="absolute inset-0 bg-black/10"></div>
             
-            <!-- Jugadores en formación -->
-            {Object.entries(formation).map(([playerId, position]) => {
-              const player = playersWithStats.find(p => p.id === playerId)
-              return player ? (
-                <FieldPlayer player={player} position={position} />
-              ) : null
-            })}
+            <!-- Jugadores en formación (móvil) -->
+            <div class="md:hidden">
+              {Object.entries(formationMobile).map(([playerId, position]) => {
+                const player = playersWithStats.find(p => p.id === playerId)
+                return player ? (
+                  <FieldPlayer player={player} position={position} />
+                ) : null
+              })}
+            </div>
+            
+            <!-- Jugadores en formación (desktop) -->
+            <div class="hidden md:block">
+              {Object.entries(formationDesktop).map(([playerId, position]) => {
+                const player = playersWithStats.find(p => p.id === playerId)
+                return player ? (
+                  <FieldPlayer player={player} position={position} />
+                ) : null
+              })}
+            </div>
             
             <!-- Título de la formación -->
             <div class="absolute top-1 left-2 md:top-4 md:left-4 bg-white/90 backdrop-blur-sm px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-lg">
@@ -99,7 +133,8 @@ const formation = {
       goles: 4,
       asistencias: 7,
       partidos: 12,
-      valor: 25
+      valor: 25,
+      valorTotal: 25000000
     },
     {
       id: 'javo',
@@ -110,7 +145,8 @@ const formation = {
       goles: 8,
       asistencias: 12,
       partidos: 15,
-      valor: 65
+      valor: 65,
+      valorTotal: 65000000
     },
     {
       id: 'pablo',
@@ -121,7 +157,8 @@ const formation = {
       goles: 2,
       asistencias: 8,
       partidos: 14,
-      valor: 22
+      valor: 22,
+      valorTotal: 22000000
     },
     {
       id: 'yazawa',
@@ -132,7 +169,8 @@ const formation = {
       goles: 0,
       asistencias: 2,
       partidos: 15,
-      valor: 18
+      valor: 18,
+      valorTotal: 18000000
     },
     {
       id: 'mister',
@@ -143,7 +181,8 @@ const formation = {
       goles: 3,
       asistencias: 1,
       partidos: 13,
-      valor: 28
+      valor: 28,
+      valorTotal: 28000000
     },
     {
       id: 'mario',
@@ -154,7 +193,8 @@ const formation = {
       goles: 6,
       asistencias: 9,
       partidos: 14,
-      valor: 32
+      valor: 32,
+      valorTotal: 32000000
     },
     {
       id: 'marcos',
@@ -165,40 +205,44 @@ const formation = {
       goles: 5,
       asistencias: 3,
       partidos: 11,
-      valor: 29
+      valor: 29,
+      valorTotal: 29000000
     },
     {
-      id: 'aznar',
-      name: 'Aznar',
-      realName: 'Paul Aznar',
-      position: 'DC',
-      bio: 'El jugador con mas ganas y resistencia en el campo, Aznar es un jugador que siempre da el 100% en cada partido. Su dedicación y esfuerzo lo convierten en un jugador clave para el equipo.',
+      id: 'nicou',
+      name: 'Nico',
+      realName: 'Nico Uriburu',
+      position: 'MD',
+      bio: 'Nueva inegración en la plantilla. Jugador que se espera que siempre de el 100% en cada partido. Su dedicación y esfuerzo lo convierten en un jugador clave para el equipo.',
       goles: 1,
       asistencias: 4,
       partidos: 13,
-      valor: 20
+      valor: 20,
+      valorTotal: 20000000
     },
     {
-      id: 'proximamente1',
-      name: 'Alex',
-      realName: 'Alejandro Martínez',
+      id: 'fan',
+      name: 'Fan',
+      realName: 'Fan Xu',
       position: 'MI',
-      bio: 'Fichaje prometedor para el medio campo izquierdo, Alex destaca por su velocidad y regate. Su juventud y ganas de triunfar lo convierten en una apuesta de futuro para el FC Bufas.',
+      bio: 'Fichaje prometedor para el medio campo izquierdo, Fan destaca por su velocidad y regate. Sus ganas de triunfar lo convierten en una apuesta de futuro para el FC Bufas.',
       goles: 3,
       asistencias: 5,
       partidos: 8,
-      valor: 12
+      valor: 12,
+      valorTotal: 12000000
     },
     {
-      id: 'proximamente2',
-      name: 'Dani',
-      realName: 'Daniel García',
+      id: 'perma',
+      name: 'Perma',
+      realName: 'Marc Permanyer',
       position: 'DFC',
-      bio: 'Nuevo fichaje en defensa central, Dani aporta solidez y experiencia a la línea defensiva del FC Bufas. Su llegada refuerza la plantilla con su físico imponente y su capacidad de liderazgo.',
+      bio: 'Nuevo fichaje en defensa central, Perma aporta solidez y experiencia a la línea defensiva del FC Bufas. Su llegada refuerza la plantilla con su físico imponente y su capacidad de liderazgo.',
       goles: 2,
       asistencias: 1,
       partidos: 8,
-      valor: 15
+      valor: 15,
+      valorTotal: 15000000
     }
   ]
   
@@ -239,7 +283,7 @@ function initializePlayerStats() {
             
             <div class="bg-blue-50 rounded-lg p-4 text-center">
               <div class="text-2xl font-bold text-blue-600">${player.asistencias}</div>
-              <div class="text-sm text-gray-600">Asistencias</div>
+              <div class="text-xs text-gray-600 text-center w-full">Asistencias</div>
             </div>
             
             <div class="bg-green-50 rounded-lg p-4 text-center">
@@ -253,10 +297,22 @@ function initializePlayerStats() {
             </div>
           </div>
           
-          <div class="mt-4">
+<div class="mt-4">
             <h4 class="font-semibold text-gray-900 mb-2">Biografía</h4>
             <p class="text-gray-700 text-sm leading-relaxed">${player.bio}</p>
           </div>
+          
+          <div class="mt-4">
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border border-yellow-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-semibold text-gray-900 mb-1">💰 Valor Total</h4>
+                  <p class="text-2xl font-bold text-yellow-600">${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(player.valorTotal)}</p>
+                  <p class="text-xs text-gray-600 mt-1">Valor de mercado actual</p>
+                </div>
+                <div class="text-4xl opacity-20">💎</div>
+              </div>
+            </div>
         </div>
       `
     }

@@ -1,0 +1,371 @@
+---
+import Layout from '@/layouts/Layout.astro'
+import { FIGHTERS } from '@/consts/fighters'
+
+const { id } = Astro.params
+if (!id) return Astro.redirect('/404')
+
+const fighter = FIGHTERS.find((fighter) => fighter.id === id)
+if (!fighter) return Astro.redirect('/404')
+
+const title = `${fighter.name} - Valor de Mercado | FC Bufas`
+const description = `Consulta el valor de mercado actual y la evolución histórica de ${fighter.name} (${fighter.realName}). Estadísticas, gráficos y análisis completo.`
+const canonical = `https://www.fcbufasweb.vercel.app/valores-mercado/${id}`
+
+const historial = fighter.historialValores || []
+const tendencia = historial.length >= 2 
+  ? historial[historial.length - 1].valor - historial[historial.length - 2].valor
+  : 0
+const tendenciaPercent = historial.length >= 2
+  ? ((tendencia / historial[historial.length - 2].valor) * 100).toFixed(1)
+  : '0'
+
+export const prerender = true
+
+export const getStaticPaths = () => {
+  return FIGHTERS.filter(fighter => fighter.valorTotal).map((fighter) => ({
+    params: { id: fighter.id },
+  }))
+}
+---
+
+<Layout title={title} description={description} canonical={canonical}>
+  <div class="relative z-10 min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 pt-24">
+    <div class="container mx-auto px-4">
+      <!-- Header del jugador -->
+      <div class="bg-white rounded-xl shadow-xl overflow-hidden mb-8">
+        <div class="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-6">
+          <div class="flex items-center justify-between">
+            <a href="/valores-mercado" class="text-white hover:text-green-200 transition-colors">
+              ← Volver a Valores de Mercado
+            </a>
+          </div>
+        </div>
+        
+        <div class="p-8">
+          <div class="flex flex-col md:flex-row items-center gap-8">
+            <!-- Imagen del jugador -->
+            <div class="flex-shrink-0">
+              <img 
+                src={`/images/fighters/big/${fighter.id}.webp`} 
+                alt={fighter.name} 
+                class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-green-200 shadow-lg"
+              />
+            </div>
+            
+            <!-- Información básica -->
+            <div class="flex-grow text-center md:text-left">
+              <h1 class="text-4xl font-bold text-gray-900 mb-2">{fighter.name}</h1>
+              <p class="text-xl text-gray-600 mb-4">{fighter.realName}</p>
+              
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="text-center">
+                  <div class="text-sm text-gray-500">Posición</div>
+                  <div class="font-semibold text-blue-600">{fighter.position}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-sm text-gray-500">Edad</div>
+                  <div class="font-semibold">{fighter.age} años</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-sm text-gray-500">Dorsal</div>
+                  <div class="font-semibold text-green-600">#{fighter.dorsal}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-sm text-gray-500">Nacionalidad</div>
+                  <div class="font-semibold">{fighter.country.toUpperCase()}</div>
+                </div>
+              </div>
+              
+              <!-- Valor actual -->
+              <div class="bg-green-100 rounded-lg p-6 mb-6">
+                <div class="text-center">
+                  <div class="text-sm text-green-700 mb-2">💰 Valor de Mercado Actual</div>
+                  <div class="text-3xl font-bold text-green-800">
+                    {new Intl.NumberFormat('es-ES', { 
+                      style: 'currency', 
+                      currency: 'EUR', 
+                      minimumFractionDigits: 0, 
+                      maximumFractionDigits: 0 
+                    }).format(fighter.valorTotal || 0)}
+                  </div>
+                  {tendencia !== 0 && (
+                    <div class={`flex items-center justify-center mt-2 text-lg ${
+                      tendencia > 0 
+                        ? 'text-green-600' 
+                        : tendencia < 0 
+                          ? 'text-red-600' 
+                          : 'text-gray-500'
+                    }`}>
+                      {tendencia > 0 ? '📈' : tendencia < 0 ? '📉' : '➡️'}
+                      <span class="ml-2 font-medium">
+                        {tendencia > 0 ? '+' : ''}{tendenciaPercent}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas del jugador -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+          <div class="text-3xl font-bold text-blue-600">{fighter.goles || 0}</div>
+          <div class="text-gray-600">⚽ Goles</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+          <div class="text-3xl font-bold text-green-600">{fighter.asistencias || 0}</div>
+          <div class="text-gray-600">🎯 Asistencias</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+          <div class="text-3xl font-bold text-purple-600">{fighter.partidos || 0}</div>
+          <div class="text-gray-600">🏟️ Partidos</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de evolución -->
+      {historial.length > 0 && (
+        <div class="bg-white rounded-xl shadow-xl p-8 mb-8">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">📊 Evolución del Valor de Mercado</h2>
+          
+          <!-- Canvas para el gráfico -->
+          <div class="relative">
+            <canvas id="valorChart" width="800" height="400" class="w-full h-64 md:h-80"></canvas>
+          </div>
+          
+          <!-- Información adicional del gráfico -->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div class="bg-blue-50 rounded-lg p-4">
+              <div class="text-lg font-bold text-blue-600">
+                {new Intl.NumberFormat('es-ES', { 
+                  style: 'currency', 
+                  currency: 'EUR', 
+                  minimumFractionDigits: 0, 
+                  maximumFractionDigits: 0 
+                }).format(Math.min(...historial.map(h => h.valor)))}
+              </div>
+              <div class="text-sm text-blue-700">Valor Mínimo</div>
+            </div>
+            <div class="bg-green-50 rounded-lg p-4">
+              <div class="text-lg font-bold text-green-600">
+                {new Intl.NumberFormat('es-ES', { 
+                  style: 'currency', 
+                  currency: 'EUR', 
+                  minimumFractionDigits: 0, 
+                  maximumFractionDigits: 0 
+                }).format(Math.max(...historial.map(h => h.valor)))}
+              </div>
+              <div class="text-sm text-green-700">Valor Máximo</div>
+            </div>
+            <div class="bg-purple-50 rounded-lg p-4">
+              <div class="text-lg font-bold text-purple-600">
+                {historial.length}
+              </div>
+              <div class="text-sm text-purple-700">Actualizaciones</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Biografía -->
+      {fighter.bio && (
+        <div class="bg-white rounded-xl shadow-xl p-8">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">📝 Biografía</h2>
+          <p class="text-gray-700 leading-relaxed text-lg">{fighter.bio}</p>
+        </div>
+      )}
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ historialValores: historial }}>
+  // Pasar datos al script del cliente
+  window.historialValores = historialValores;
+  
+  function drawChart() {
+    const canvas = document.getElementById('valorChart');
+    if (!canvas) {
+      console.log('Canvas no encontrado, reintentando...');
+      setTimeout(drawChart, 100);
+      return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('No se pudo obtener el contexto 2D del canvas');
+      return;
+    }
+
+    // Obtener datos del historial
+    const historialData = window.historialValores || [];
+    
+    if (historialData.length === 0) {
+      console.log('No hay datos históricos disponibles');
+      return;
+    }
+
+    console.log('Dibujando gráfico con', historialData.length, 'puntos de datos');
+
+    // Configurar el canvas
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * 2; // Para mejor resolución
+    canvas.height = rect.height * 2;
+    ctx.scale(2, 2);
+    
+    const width = rect.width;
+    const height = rect.height;
+    const padding = 60;
+    
+    // Preparar datos
+    const valores = historialData.map(h => h.valor);
+    const fechas = historialData.map(h => new Date(h.fecha));
+    
+    const minValor = Math.min(...valores);
+    const maxValor = Math.max(...valores);
+    const rangoValor = maxValor - minValor || 1; // Evitar división por cero
+    
+    // Función para convertir valor a coordenada Y
+    const valorToY = (valor) => {
+      return height - padding - ((valor - minValor) / rangoValor) * (height - 2 * padding);
+    };
+    
+    // Función para convertir índice a coordenada X
+    const indexToX = (index) => {
+      return padding + (index / Math.max(valores.length - 1, 1)) * (width - 2 * padding);
+    };
+    
+    // Limpiar canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Dibujar grid
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    
+    // Grid horizontal
+    for (let i = 0; i <= 5; i++) {
+      const y = padding + (i / 5) * (height - 2 * padding);
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(width - padding, y);
+      ctx.stroke();
+    }
+    
+    // Grid vertical
+    for (let i = 0; i < valores.length; i++) {
+      const x = indexToX(i);
+      ctx.beginPath();
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, height - padding);
+      ctx.stroke();
+    }
+    
+    // Dibujar área bajo la curva
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+    ctx.beginPath();
+    ctx.moveTo(indexToX(0), height - padding);
+    
+    for (let i = 0; i < valores.length; i++) {
+      ctx.lineTo(indexToX(i), valorToY(valores[i]));
+    }
+    
+    ctx.lineTo(indexToX(valores.length - 1), height - padding);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Dibujar línea principal
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    
+    for (let i = 0; i < valores.length; i++) {
+      const x = indexToX(i);
+      const y = valorToY(valores[i]);
+      
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    
+    ctx.stroke();
+    
+    // Dibujar puntos
+    for (let i = 0; i < valores.length; i++) {
+      const x = indexToX(i);
+      const y = valorToY(valores[i]);
+      
+      // Punto principal
+      ctx.fillStyle = '#16a34a';
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Borde del punto
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    
+    // Etiquetas del eje Y (valores)
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'right';
+    
+    for (let i = 0; i <= 5; i++) {
+      const valor = minValor + (rangoValor * i / 5);
+      const y = height - padding - (i / 5) * (height - 2 * padding);
+      const valorFormatted = (valor / 1000000).toFixed(0) + 'M€';
+      ctx.fillText(valorFormatted, padding - 10, y + 4);
+    }
+    
+    // Etiquetas del eje X (fechas)
+    ctx.textAlign = 'center';
+    for (let i = 0; i < fechas.length; i++) {
+      const x = indexToX(i);
+      const fecha = fechas[i].toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      ctx.fillText(fecha, x, height - padding + 20);
+    }
+    
+    console.log('Gráfico dibujado exitosamente');
+  }
+
+  // Función para inicializar el gráfico
+  function initChart() {
+    console.log('Inicializando gráfico...');
+    // Múltiples intentos para asegurar que se dibuje
+    setTimeout(() => drawChart(), 10);
+    setTimeout(() => drawChart(), 100);
+    setTimeout(() => drawChart(), 500);
+  }
+  
+  // Ejecutar inmediatamente si el DOM está listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initChart);
+  } else {
+    initChart();
+  }
+  
+  // También ejecutar cuando la página se carga completamente
+  window.addEventListener('load', initChart);
+  
+  // Hacer la función disponible globalmente
+  window.drawChart = drawChart;
+</script>
+
+<style>
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  @media (max-width: 768px) {
+    canvas {
+      height: 250px;
+    }
+  }
+</style>
+</Layout>

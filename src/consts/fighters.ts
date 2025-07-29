@@ -18,7 +18,7 @@ export const FIGHTERS: Fighters[] = [
     height: 1.76,
     age: 20,
     city: 'Barcelona, España',
-    position: "MI",
+    position: "LI",
     country: 'es',
     gallery: true,
     socials: [
@@ -48,6 +48,11 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 7,
     partidos: 12,
     valor: 25,
+    valorTotal: 30000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 35000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 30000000 }
+    ],
     dorsal: 11,
   },
   {
@@ -87,6 +92,11 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 12,
     partidos: 15,
     valor: 65,
+    valorTotal: 60000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 60000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 60000000 }
+    ],
     dorsal: 8,
   },
   {
@@ -127,6 +137,11 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 8,
     partidos: 14,
     valor: 22,
+    valorTotal: 40000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 42000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 40000000 }
+    ],
     dorsal: 6,
   },
   {
@@ -188,17 +203,22 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 2,
     partidos: 15,
     valor: 18,
+    valorTotal: 42000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 45000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 42000000 }
+    ],
     dorsal: 7,
   },
   {
     // https://www.biografia.de/viruzz/
-    id: 'proximamente2',
-    name: 'Dani',
-    realName: 'Daniel García',
-    bio: 'Nuevo fichaje en defensa central, Dani aporta solidez y experiencia a la línea defensiva del FC Bufas. Su llegada refuerza la plantilla con su físico imponente y su capacidad de liderazgo.',
+    id: 'perma',
+    name: 'Perma',
+    realName: 'Marc Pemanyer',
+    bio: 'Nuevo fichaje en defensa central, Perma aporta solidez y experiencia a la línea defensiva del FC Bufas. Su llegada refuerza la plantilla con su físico imponente y su capacidad de liderazgo.',
     gender: 'masculino',
     birthDate: new Date(2004, 6, 15),
-    height: 1.89,
+    height: 1.80,
     age: 20,
     position: 'DFC',
     country: 'es',
@@ -229,6 +249,11 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 1,
     partidos: 8,
     valor: 15,
+    valorTotal: 55000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 55000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 55000000 }
+    ],
     dorsal: 4,
   },
   {
@@ -268,6 +293,11 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 1,
     partidos: 13,
     valor: 28,
+    valorTotal: 48000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 50000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 48000000 }
+    ],
     dorsal: 5,
   },
   {
@@ -307,6 +337,11 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 9,
     partidos: 14,
     valor: 32,
+    valorTotal: 97000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 85000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 97000000 }
+    ],
     dorsal: 10,
   },
   {
@@ -346,41 +381,35 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 3,
     partidos: 11,
     valor: 29,
+    valorTotal: 51000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 57000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 51000000 }
+    ],
     dorsal: 9,
   },
   {
-    // https://www.biografia.de/aznar/
-    id: 'aznar',
-    name: 'Aznar',
-    bio: 'El jugador con mas ganas y resistencia en el campo, Aznar es un jugador que siempre da el 100% en cada partido. Su dedicación y esfuerzo lo convierten en un jugador clave para el equipo.',
-    realName: 'Paul Aznar',
+    // https://www.biografia./nico/
+    id: 'nicou',
+    name: 'Nico',
+    bio: 'Nico es un jugador que siempre da el 100% en cada partido. Su dedicación y esfuerzo lo convierten en un jugador clave para el equipo.',
+    realName: 'Nico Uriburu',
     gender: 'masculino',
     birthDate: new Date(2005, 3, 28),
     height: 1.73,
     age: 20,
-    position: "DC",
-    country: 'fra',
+    position: "MD",
+    country: 'es',
     gallery: true,
-    city: 'Francia',
+    city: 'España',
     socials: [
       {
         id: 'instagram',
         name: 'Instagram',
-        url: 'https://www.instagram.com/paul_aznar/',
-        label: 'Visitar perfil de Aznar en Instagram',
+        url: 'https://www.instagram.com/nicouriburuu/',
+        label: 'Visitar perfil de Nico en Instagram',
         image: {
           logo: Instagram,
-          width: 200,
-          height: 200,
-        },
-      },
-      {
-        id: 'x',
-        name: 'X',
-        url: 'https://x.com/AznatePaul',
-        label: 'Visitar perfil de Aznar en X',
-        image: {
-          logo: X,
           width: 200,
           height: 200,
         },
@@ -388,7 +417,7 @@ export const FIGHTERS: Fighters[] = [
     ],
     clips: [
       {
-        text: 'Oye banda, este año se prende!',
+        text: 'Este año se prende!',
         url: 'https://www.youtube.com/embed/qdS_XOZ5kyU?si=D8fgVfCSRy_SwZHv&amp;clip=UgkxEmtFin7L3_YLiJW_OyRkmeZtFj53PnkT&amp;clipt=EPWwAhj91wI',
       },
     ],
@@ -396,34 +425,43 @@ export const FIGHTERS: Fighters[] = [
     asistencias: 4,
     partidos: 13,
     valor: 20,
+    valorTotal: 56000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 56000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 56000000 }
+    ],
     dorsal: 14,
   },
   {
     // https://laletrade.com/biografias/youtuber/19752-carlos-belcast
-    id: 'proximamente1',
-    name: 'Alex',
-    bio: 'Fichaje prometedor para el medio campo izquierdo, Alex destaca por su velocidad y regate. Su juventud y ganas de triunfar lo convierten en una apuesta de futuro para el FC Bufas.',
-    realName: 'Alejandro Martínez',
+    id: 'fan',
+    name: 'Fan',
+    bio: 'Fichaje prometedor para el medio campo izquierdo, Fan destaca por su velocidad y regate. Sus ganas de triunfar lo convierten en una apuesta de futuro para el FC Bufas.',
+    realName: 'Fan Xu',
     gender: 'masculino',
     birthDate: new Date(2006, 2, 10),
     height: 1.75,
     age: 18,
     position: 'MI',
     gallery: true,
-    country: 'es',
-    city: 'Valencia, España',
+    country: 'fra',
+    city: 'China',
     goles: 3,
     asistencias: 5,
     partidos: 8,
     valor: 12,
-    dorsal: 17,
+    valorTotal: 48000000,
+    historialValores: [
+      { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 48000000 },
+      { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 48000000 }
+    ],
+    dorsal: 2,
     socials: [
       {
         id: 'instagram',
         name: 'Instagram',
-        url: '',
-        label: 'Visitar perfil de Carlos en Instagram',
-        followers: '5.1M',
+        url: 'https://www.instagram.com/fan.xu_/',
+        label: 'Visitar perfil de Fan en Instagram',
         image: {
           logo: Instagram,
           width: 200,
