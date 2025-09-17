@@ -33,7 +33,10 @@ const isActive = (path: string) => pathname === path
 </div>
 
 <header
-  class="fixed top-0 z-50 mx-auto flex h-20 w-full select-none items-center text-white md:overflow-hidden"
+  class:list={[
+    "fixed top-0 z-50 mx-auto flex h-20 w-full select-none items-center md:overflow-hidden",
+    pathname === '/' ? "text-white" : "text-black header-with-bg"
+  ]}
 >
   <div class="relative flex justify-between px-6 py-4 md:w-full">
     <a href="/" class="cursor-pointer transition duration-300 hover:scale-110 md:hidden">
@@ -47,7 +50,7 @@ const isActive = (path: string) => pathname === path
     </div>
     <nav
       id="navContent"
-      class="bg-theme-french-mauve/90 invisible fixed right-0 top-0 mx-auto h-[100vh] max-w-6xl translate-x-full items-center justify-between space-y-2 px-6 pt-14 text-xs font-light backdrop-blur-2xl md:visible md:relative md:flex md:!h-fit md:w-full md:translate-x-0 md:space-y-0 md:bg-transparent md:py-4 md:backdrop-blur-none lg:text-sm"
+      class="bg-black/90 invisible fixed right-0 top-0 mx-auto h-[100vh] max-w-6xl translate-x-full items-center justify-between space-y-2 px-6 pt-14 text-xs font-light backdrop-blur-2xl md:visible md:relative md:flex md:!h-fit md:w-full md:translate-x-0 md:space-y-0 md:bg-transparent md:py-4 md:backdrop-blur-none lg:text-sm"
     >
       <div
         class:list={[
@@ -59,7 +62,10 @@ const isActive = (path: string) => pathname === path
           href="/stats"
           class="group relative inline-block w-fit py-1 leading-relaxed tracking-wider"
         >
-          <span class="text-black py-1">Estadísticas</span>
+          <span class:list={[
+            "py-1 font-medium",
+            pathname === '/' ? "text-white" : "text-white md:text-black"
+          ]}>Estadísticas</span>
           <div class="relative mt-1 h-[2px] w-full overflow-hidden">
             <div
               class:list={[
@@ -81,19 +87,22 @@ const isActive = (path: string) => pathname === path
           href="/calendario"
           class="group relative inline-block w-fit py-1 leading-relaxed tracking-wider"
         >
-          <span class="text-black py-1">VER CALENDARIO</span>
+          <span class:list={[
+            "py-1 font-medium",
+            pathname === '/' ? "text-white" : "text-white md:text-black"
+          ]}>VER CALENDARIO</span>
           <div class="relative mt-1 h-[2px] w-full overflow-hidden">
             <div
               class:list={[
                 'absolute bottom-0 left-0 h-full bg-orange-400 transition-all duration-300 ease-out',
-                isActive('/combates') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+                isActive('/calendario') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
               ]}
             >
             </div>
             <div
               class:list={[
                 'absolute bottom-0 right-0 h-full bg-black transition-all duration-300 ease-out',
-                isActive('/combates') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+                isActive('/calendario') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
               ]}
             >
             </div>
@@ -103,7 +112,10 @@ const isActive = (path: string) => pathname === path
           href="/valores-mercado"
           class="group relative inline-block w-fit py-1 leading-relaxed tracking-wider"
         >
-          <span class="text-black py-1">VALORES DE MERCADO</span>
+          <span class:list={[
+            "py-1 font-medium",
+            pathname === '/' ? "text-white" : "text-white md:text-black"
+          ]}>VALORES DE MERCADO</span>
           <div class="relative mt-1 h-[2px] w-full overflow-hidden">
             <div
               class:list={[
@@ -140,32 +152,32 @@ const isActive = (path: string) => pathname === path
         )
       }
 
-      <div>
-        <a
-          href="https://www.entradas.com/artist/la-velada-del-ano/la-velada-del-ano-v-3883352/?affiliate=LVL"
-          class:list={[
-            'w-fut group relative flex-col items-end py-1 leading-relaxed tracking-wider md:text-right',
-            shouldShowLogo ? 'md:w-1/3' : 'md:flex-grow',
-          ]}
-          rel="noopener noreferrer"
-          target="_blank"
-          title="Comprar entradas para La Velada V"
-        >
-            </div>
-          </div>
-        </a>
+      <div class:list={[
+        'hidden md:block',
+        shouldShowLogo ? 'md:w-1/3' : 'md:flex-grow',
+      ]}>
+        <!-- Espacio vacío para balancear el layout -->
       </div>
     </nav>
   </div>
 </header>
 
 <style>
+  /* Header por defecto (página de inicio) */
   header {
     background: transparent;
     animation: header-blur-scroll 0.3s linear both;
     animation-timeline: scroll();
     animation-range: 0 250px;
     border-bottom: 1px solid transparent;
+  }
+
+  /* Header con fondo naranja (otras páginas) */
+  header.header-with-bg {
+    background: rgba(255, 165, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.1);
   }
 
   @keyframes header-blur-scroll {
@@ -179,6 +191,29 @@ const isActive = (path: string) => pathname === path
       background: rgba(0, 0, 0, 0.5);
       padding-bottom: var(--spacing-6);
       border-bottom-color: black;
+    }
+  }
+
+  /* Animación específica para páginas con fondo naranja */
+  header.header-with-bg {
+    animation: header-blur-scroll-orange 0.3s linear both;
+    animation-timeline: scroll();
+    animation-range: 0 250px;
+  }
+
+  @keyframes header-blur-scroll-orange {
+    0% {
+      backdrop-filter: blur(8px);
+      background: rgba(255, 165, 0, 0.4);
+      border-bottom-color: rgba(255, 107, 53, 0.2);
+    }
+
+    100% {
+      backdrop-filter: blur(12px);
+      background: rgba(255, 140, 0, 0.7);
+      padding-bottom: var(--spacing-6);
+      border-bottom-color: rgba(255, 107, 53, 0.5);
+      box-shadow: 0 8px 32px rgba(255, 107, 53, 0.2);
     }
   }
 

@@ -1,11 +1,9 @@
 ---
-import Countdown from '@/sections/Countdown.astro'
 import Hero from '@/sections/Hero.astro'
-import Entradas from '@/sections/Entradas.astro'
 import Layout from '@/layouts/Layout.astro'
-import Presentation from '@/sections/Presentation.astro'
-import FAQ from '@/components/FAQ.astro'
-import PorraHome from '@/sections/PorraHome.astro'
+import { FIGHTERS } from '../consts/fighters'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 const title = 'Web Oficial FC Bufas - Estreno Temporada 2025/26'
 const description =
@@ -13,13 +11,3098 @@ const description =
 const canonical = 'https://www.fcbufasweb.vercel.app/'
 
 export const prerender = true
+
+// Datos para las nuevas secciones - Pretemporada
+const teamStats = {
+  partidos: 0,
+  victorias: 0,
+  empates: 0,
+  derrotas: 0,
+  golesFavor: 0,
+  golesContra: 0
+}
+
+// Próximo partido
+const nextMatch = {
+  jornada: 'J1',
+  fecha: new Date('2025-09-17T23:15:00+02:00'),
+  rival: 'Pitis FC',
+  campo: 'Garbí',
+  imagen: '/images/equipos/equipovacio.png'
+}
+
+// Últimos partidos - Sin partidos oficiales jugados aún
+const lastResults = []
+
+// Jugadores destacados - Top 4 por variación de mercado
+const topPlayers = FIGHTERS
+  .filter(f => f.valorTotal !== undefined && f.historialValores && f.historialValores.length >= 2)
+  .sort((a, b) => {
+    // Calcular variación porcentual del valor de mercado
+    const historialA = a.historialValores || []
+    const historialB = b.historialValores || []
+    
+    const variacionA = historialA.length >= 2 
+      ? Math.abs((historialA[historialA.length - 1].valor - historialA[0].valor) / historialA[0].valor * 100)
+      : 0
+    const variacionB = historialB.length >= 2 
+      ? Math.abs((historialB[historialB.length - 1].valor - historialB[0].valor) / historialB[0].valor * 100)
+      : 0
+    
+    // Si hay empate en variación, desempatar por valor base
+    if (Math.abs(variacionA - variacionB) < 0.1) {
+      return (b.valorTotal || 0) - (a.valorTotal || 0)
+    }
+    
+    return variacionB - variacionA
+  })
+  .slice(0, 4)
+
+// Formatear fecha
+const formatDate = (date: Date) => {
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit'
+  }
+  return date.toLocaleDateString('es-ES', options)
+}
+
+// Formatear hora
+const formatTime = (date: Date) => {
+  return date.toLocaleTimeString('es-ES', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  }) + 'h'
+}
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
+  <!-- Fondo espectacular con partículas y efectos -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none" id="background-container">
+    <!-- Gradiente base animado -->
+    <div class="animated-bg absolute inset-0"></div>
+    
+    <!-- Sistema de partículas -->
+    <div class="particles-layer absolute inset-0">
+      <!-- Partículas flotantes grandes -->
+      <div class="floating-particle particle-1" data-speed="0.5"></div>
+      <div class="floating-particle particle-2" data-speed="0.3"></div>
+      <div class="floating-particle particle-3" data-speed="0.7"></div>
+      <div class="floating-particle particle-4" data-speed="0.4"></div>
+      <div class="floating-particle particle-5" data-speed="0.6"></div>
+      <div class="floating-particle particle-6" data-speed="0.8"></div>
+      
+      <!-- Partículas medianas con brillo -->
+      <div class="glowing-particle glow-1"></div>
+      <div class="glowing-particle glow-2"></div>
+      <div class="glowing-particle glow-3"></div>
+      <div class="glowing-particle glow-4"></div>
+      <div class="glowing-particle glow-5"></div>
+      <div class="glowing-particle glow-6"></div>
+      <div class="glowing-particle glow-7"></div>
+      <div class="glowing-particle glow-8"></div>
+      
+      <!-- Estrellas pequeñas -->
+      <div class="star-particle star-1"></div>
+      <div class="star-particle star-2"></div>
+      <div class="star-particle star-3"></div>
+      <div class="star-particle star-4"></div>
+      <div class="star-particle star-5"></div>
+      <div class="star-particle star-6"></div>
+      <div class="star-particle star-7"></div>
+      <div class="star-particle star-8"></div>
+      <div class="star-particle star-9"></div>
+      <div class="star-particle star-10"></div>
+      <div class="star-particle star-11"></div>
+      <div class="star-particle star-12"></div>
+      
+      <!-- Efectos de luz ambiental -->
+      <div class="ambient-light light-1"></div>
+      <div class="ambient-light light-2"></div>
+      <div class="ambient-light light-3"></div>
+      <div class="ambient-light light-4"></div>
+      
+      <!-- Ondas de energía -->
+      <div class="energy-wave wave-1"></div>
+      <div class="energy-wave wave-2"></div>
+      <div class="energy-wave wave-3"></div>
+    </div>
+    
+    <!-- Canvas para partículas dinámicas -->
+    <canvas id="particle-canvas" class="absolute inset-0 w-full h-full"></canvas>
+    
+    <!-- Overlay sutil para legibilidad -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30"></div>
+  </div>
+  
   <Hero />
-  <PorraHome />
-  <Entradas />
-  <Countdown timestamp={1758252000000} />
-  <Presentation />
-  <FAQ />
+  
+  <!-- Sección de Estadísticas -->
+  <section class="relative py-20 bg-gradient-to-br from-slate-50 to-orange-50 overflow-hidden">
+    <!-- Fondo futbolístico animado -->
+    <div class="absolute inset-0 football-field-bg">
+      <!-- Patrón de césped -->
+      <div class="grass-pattern absolute inset-0 opacity-10"></div>
+      
+      <!-- Líneas de campo -->
+      <div class="field-lines absolute inset-0">
+        <div class="center-line"></div>
+        <div class="center-circle"></div>
+        <div class="penalty-area-left"></div>
+        <div class="penalty-area-right"></div>
+      </div>
+      
+      <!-- Balones animados -->
+      <div class="football-ball ball-1"></div>
+      <div class="football-ball ball-2"></div>
+      <div class="football-ball ball-3"></div>
+      <div class="football-ball ball-4"></div>
+      <div class="football-ball ball-5"></div>
+      
+      <!-- Jugadores silueta -->
+      <div class="player-silhouettes">
+        <div class="player-silhouette player-1"></div>
+        <div class="player-silhouette player-2"></div>
+        <div class="player-silhouette player-3"></div>
+      </div>
+      
+      <!-- Porterías -->
+      <div class="football-goals">
+        <div class="goal goal-left"></div>
+        <div class="goal goal-right"></div>
+      </div>
+      
+      <!-- Efectos de movimiento -->
+      <div class="ball-trail trail-1"></div>
+      <div class="ball-trail trail-2"></div>
+      <div class="ball-trail trail-3"></div>
+      
+      <!-- Overlay sutil -->
+      <div class="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/60"></div>
+    </div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900 mb-4">Temporada 2025/26</h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">Los números que definen nuestro rendimiento en la liga profesional Tiki Taka</p>
+      </div>
+      
+      <!-- Grid responsive mejorado - Mostrar todos los elementos -->
+      <div class="stats-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 max-w-6xl mx-auto" style="opacity: 1; visibility: visible;">
+        <div class="stats-card bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" style="opacity: 1; transform: none;">
+          <div class="text-2xl sm:text-3xl font-black text-blue-600 mb-2" data-counter="{teamStats.partidos}">{teamStats.partidos}</div>
+          <div class="text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide">Partidos</div>
+        </div>
+        
+        <div class="stats-card bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" style="opacity: 1; transform: none;">
+          <div class="text-2xl sm:text-3xl font-black text-green-600 mb-2" data-counter="{teamStats.victorias}">{teamStats.victorias}</div>
+          <div class="text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide">Victorias</div>
+        </div>
+        
+        <div class="stats-card bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" style="opacity: 1; transform: none;">
+          <div class="text-2xl sm:text-3xl font-black text-yellow-600 mb-2" data-counter="{teamStats.empates}">{teamStats.empates}</div>
+          <div class="text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide">Empates</div>
+        </div>
+        
+        <div class="stats-card bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" style="opacity: 1; transform: none;">
+          <div class="text-2xl sm:text-3xl font-black text-red-600 mb-2" data-counter="{teamStats.derrotas}">{teamStats.derrotas}</div>
+          <div class="text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide">Derrotas</div>
+        </div>
+        
+        <div class="stats-card bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" style="opacity: 1; transform: none;">
+          <div class="text-2xl sm:text-3xl font-black text-orange-600 mb-2" data-counter="{teamStats.golesFavor}">{teamStats.golesFavor}</div>
+          <div class="text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide">Goles a favor</div>
+        </div>
+        
+        <div class="stats-card bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" style="opacity: 1; transform: none;">
+          <div class="text-2xl sm:text-3xl font-black text-purple-600 mb-2" data-counter="{teamStats.golesContra}">{teamStats.golesContra}</div>
+          <div class="text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide">Goles en contra</div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- Sección Próximo Partido -->
+  <section class="relative py-20 bg-gradient-to-br from-gray-900 to-black text-white overflow-hidden">
+    <!-- Fondo de estadio nocturno animado -->
+    <div class="absolute inset-0 stadium-night-bg">
+      <!-- Patrón de césped nocturno -->
+      <div class="night-grass-pattern absolute inset-0 opacity-15"></div>
+      
+      <!-- Focos de estadio -->
+      <div class="stadium-lights">
+        <div class="spotlight spot-1"></div>
+        <div class="spotlight spot-2"></div>
+        <div class="spotlight spot-3"></div>
+        <div class="spotlight spot-4"></div>
+      </div>
+      
+      <!-- Balones brillantes -->
+      <div class="glowing-football glow-ball-1"></div>
+      <div class="glowing-football glow-ball-2"></div>
+      <div class="glowing-football glow-ball-3"></div>
+      
+      <!-- Partículas de estadio -->
+      <div class="stadium-particles">
+        <div class="crowd-particle crowd-1"></div>
+        <div class="crowd-particle crowd-2"></div>
+        <div class="crowd-particle crowd-3"></div>
+        <div class="crowd-particle crowd-4"></div>
+        <div class="crowd-particle crowd-5"></div>
+        <div class="crowd-particle crowd-6"></div>
+      </div>
+      
+      <!-- Efectos de humo/vapor -->
+      <div class="stadium-smoke smoke-1"></div>
+      <div class="stadium-smoke smoke-2"></div>
+      <div class="stadium-smoke smoke-3"></div>
+      
+      <!-- Overlay de ambiente nocturno -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
+    </div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="text-center mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 px-2">⚽ Próximo Enfrentamiento</h2>
+        <p class="text-base sm:text-lg lg:text-xl text-gray-300 px-4">No te pierdas nuestro siguiente partido en casa</p>
+      </div>
+      
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="match-card bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 hover:bg-white/15 transition-all duration-300">
+          <!-- Header con jornada y fecha -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <div class="bg-gradient-to-r from-orange-400 to-red-400 text-black px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider inline-flex justify-center sm:justify-start">
+              {nextMatch.jornada} - Liga Tiki Taka
+            </div>
+            <div class="text-center sm:text-right">
+              <div class="text-xl sm:text-2xl font-bold">{formatDate(nextMatch.fecha)}</div>
+              <div class="text-orange-400 font-bold text-lg sm:text-xl">{formatTime(nextMatch.fecha)}</div>
+            </div>
+          </div>
+          
+          <!-- Teams display -->
+          <div class="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-4">
+            <!-- FC Bufas -->
+            <div class="text-center flex-shrink-0">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4">
+                <img src="/images/logo.webp" alt="FC Bufas" class="w-full h-full object-contain drop-shadow-lg" />
+              </div>
+              <div class="text-lg sm:text-xl font-bold">FC BUFAS</div>
+              <div class="text-orange-400 text-sm">Local</div>
+            </div>
+            
+            <!-- VS Section -->
+            <div class="text-center px-4 sm:px-6 lg:px-8 flex-shrink-0">
+              <div class="text-4xl sm:text-5xl lg:text-6xl font-black text-orange-400 mb-2">VS</div>
+              <div class="text-gray-300 text-xs sm:text-sm flex items-center justify-center flex-wrap">
+                <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="whitespace-nowrap">Estadio {nextMatch.campo}</span>
+              </div>
+            </div>
+            
+            <!-- Rival -->
+            <div class="text-center flex-shrink-0">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4">
+                <img src={nextMatch.imagen} alt={nextMatch.rival} class="w-full h-full object-contain drop-shadow-lg opacity-90" />
+              </div>
+              <div class="text-lg sm:text-xl font-bold whitespace-nowrap">{nextMatch.rival}</div>
+              <div class="text-gray-300 text-sm">Visitante</div>
+            </div>
+          </div>
+          
+          <div class="text-center mt-8">
+            <a href="/calendario" class="inline-flex items-center bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform duration-300 shadow-lg">
+              Ver todos los partidos →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Sección Últimos Resultados -->
+  <section class="relative py-20 bg-black overflow-hidden" id="video-scroll-section">
+    <!-- Video de fondo controlado por scroll -->
+    <div class="absolute inset-0 w-full h-full">
+      <!-- Fallback estático mientras se carga el video -->
+      <div id="video-fallback" class="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800">
+        <div class="absolute inset-0 opacity-20">
+          <div class="w-full h-full bg-gradient-to-r from-orange-500/10 to-red-500/10"></div>
+        </div>
+      </div>
+      
+      <video 
+        id="scroll-video"
+        class="w-full h-full object-cover"
+        muted="true"
+        playsinline="true"
+        preload="auto"
+        poster=""
+        webkit-playsinline="true"
+        x5-playsinline="true"
+        disablePictureInPicture="true"
+        controlslist="nodownload nofullscreen noremoteplayback"
+        style="opacity: 0; transition: opacity 1s ease-in-out;"
+      >
+        <source src="/video.mp4" type="video/mp4">
+        <source src="/video2.webm" type="video/webm">
+        Tu navegador no soporta el elemento video.
+      </video>
+      
+      <!-- Overlay sutil para legibilidad del texto -->
+      <div class="absolute inset-0 bg-black/40"></div>
+    </div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-white mb-4">📊 Últimos Partidos</h2>
+        <p class="text-xl text-gray-300 max-w-2xl mx-auto">Resultados de los últimos enfrentamientos oficiales del FC Bufas</p>
+      </div>
+      
+      {lastResults.length > 0 ? (
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          {lastResults.map((match, index) => (
+            <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-l-orange-400">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-sm text-gray-500 font-medium">{match.fecha}</div>
+                <div class:list={[
+                  "px-2 py-1 rounded-full text-xs font-bold uppercase",
+                  match.tipo === 'victoria' ? "bg-green-100 text-green-800" :
+                  match.tipo === 'empate' ? "bg-yellow-100 text-yellow-800" :
+                  "bg-red-100 text-red-800"
+                ]}>
+                  {match.tipo === 'victoria' ? 'V' : match.tipo === 'empate' ? 'E' : 'D'}
+                </div>
+              </div>
+              
+              <div class="text-center mb-4">
+                <div class="font-medium text-gray-900 mb-2">FC Bufas vs</div>
+                <div class="font-bold text-lg text-gray-800 mb-3">{match.rival}</div>
+                <div class:list={[
+                  "text-3xl font-black",
+                  match.tipo === 'victoria' ? "text-green-600" :
+                  match.tipo === 'empate' ? "text-yellow-600" :
+                  "text-red-600"
+                ]}>
+                  {match.resultado}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <!-- Estado sin partidos jugados -->
+        <div class="max-w-2xl mx-auto text-center">
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-12 shadow-lg border border-white/20">
+            <div class="w-24 h-24 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center">
+              <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">Sin Partidos Jugados</h3>
+            <p class="text-gray-300 text-lg mb-6">Aún no hemos disputado ningún partido oficial esta temporada.</p>
+            <div class="bg-orange-500/20 border border-orange-400/30 rounded-lg p-4 mb-6">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-orange-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-orange-300 font-medium">El primer partido será el {formatDate(nextMatch.fecha)} contra {nextMatch.rival}</span>
+              </div>
+            </div>
+            <a href="/calendario" class="inline-flex items-center bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full font-bold hover:scale-105 transition-transform duration-300 shadow-lg">
+              Ver Calendario Completo →
+            </a>
+          </div>
+        </div>
+      )}
+      
+      {lastResults.length === 0 && (
+        <div class="text-center mt-12">
+          <div class="inline-flex items-center bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg">
+            🚀 ¡Temporada 2025/26 a punto de comenzar!
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+  
+  <!-- Sección Jugadores Destacados -->
+  <section class="relative py-20 bg-gradient-to-br from-slate-900 to-gray-900 text-white">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">📈 Jugadores en Alza</h2>
+        <p class="text-xl text-gray-300 max-w-2xl mx-auto">Los futbolistas con mayor variación en su valor de mercado</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+        {topPlayers.map((player, index) => (
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 group">
+            <div class="text-center mb-6">
+              <div class="relative w-24 h-24 mx-auto mb-4">
+                <img 
+                  src={`/images/fighters/big/${player.id}.webp`} 
+                  alt={player.name}
+                  class="w-full h-full rounded-full object-cover border-4 border-orange-400 group-hover:border-orange-300 transition-colors duration-300"
+                />
+                <div class="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-400 to-red-400 text-black rounded-full flex items-center justify-center text-sm font-bold">
+                  #{index + 1}
+                </div>
+              </div>
+              <h3 class="text-xl font-bold mb-1">{player.name}</h3>
+              <p class="text-orange-400 text-sm font-medium">{player.position}</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div class="text-center">
+                <div class="text-2xl font-black text-orange-400">0</div>
+                <div class="text-xs text-gray-400 uppercase tracking-wide">Goles</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-black text-blue-400">0</div>
+                <div class="text-xs text-gray-400 uppercase tracking-wide">Asist.</div>
+              </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+              <div class="bg-white/20 rounded-lg p-3">
+                <div class="text-sm text-gray-300 mb-1">Valor de mercado</div>
+                <div class="text-lg font-bold text-green-400">
+                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(player.valorTotal || 0)}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div class="text-center mt-12">
+        <a href="/stats" class="inline-flex items-center bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform duration-300 shadow-lg">
+          Ver todos los jugadores →
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Sección CTA Final -->
+  <section class="relative py-20 bg-gradient-to-r from-orange-500 to-red-500 text-white">
+    <div class="container mx-auto px-4 text-center">
+      <h2 class="text-4xl font-bold mb-6">🔥 Únete a la Familia FC Bufas</h2>
+      <p class="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+        Sé parte de la historia del equipo más prometedor de la Liga Tiki Taka
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a href="/stats" class="bg-white text-orange-500 px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform duration-300 shadow-lg">
+          📊 Ver Estadísticas
+        </a>
+        <a href="/calendario" class="bg-black/20 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform duration-300">
+          ⚽ Ver Calendario
+        </a>
+        <a href="/valores-mercado" class="bg-black/20 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform duration-300">
+          💰 Valores Mercado
+        </a>
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<style>
+  /* Fondo animado base */
+  .animated-bg {
+    background: linear-gradient(-45deg, #000000, #1a0d00, #ff4500, #ff6b35, #2d1810, #000000, #4a2c17);
+    background-size: 400% 400%;
+    animation: gradientFlow 20s ease infinite;
+  }
+  
+  @keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 100% 50%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  /* Partículas flotantes grandes */
+  .floating-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.6), rgba(255, 69, 0, 0.3), transparent);
+    filter: blur(1px);
+    animation: floatAnimation 25s linear infinite;
+  }
+  
+  .particle-1 { width: 120px; height: 120px; top: 10%; left: 15%; animation-delay: 0s; }
+  .particle-2 { width: 80px; height: 80px; top: 60%; right: 20%; animation-delay: 5s; }
+  .particle-3 { width: 150px; height: 150px; top: 30%; right: 10%; animation-delay: 10s; }
+  .particle-4 { width: 100px; height: 100px; bottom: 25%; left: 25%; animation-delay: 15s; }
+  .particle-5 { width: 90px; height: 90px; top: 70%; left: 60%; animation-delay: 20s; }
+  .particle-6 { width: 110px; height: 110px; bottom: 40%; right: 40%; animation-delay: 8s; }
+  
+  /* Partículas con brillo */
+  .glowing-particle {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 140, 0, 0.8), rgba(255, 69, 0, 0.4), transparent);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.6), 0 0 40px rgba(255, 69, 0, 0.3);
+    animation: glowPulse 3s ease-in-out infinite alternate;
+  }
+  
+  .glow-1 { top: 20%; left: 10%; animation-delay: 0s; }
+  .glow-2 { top: 45%; right: 15%; animation-delay: 0.5s; }
+  .glow-3 { bottom: 30%; left: 20%; animation-delay: 1s; }
+  .glow-4 { top: 65%; left: 70%; animation-delay: 1.5s; }
+  .glow-5 { bottom: 15%; right: 25%; animation-delay: 2s; }
+  .glow-6 { top: 35%; left: 40%; animation-delay: 2.5s; }
+  .glow-7 { bottom: 60%; left: 80%; animation-delay: 0.3s; }
+  .glow-8 { top: 80%; right: 45%; animation-delay: 1.8s; }
+  
+  /* Estrellas pequeñas */
+  .star-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #ffffff, 0 0 12px rgba(255, 107, 53, 0.5);
+    animation: starTwinkle 2s ease-in-out infinite alternate;
+  }
+  
+  .star-1 { top: 15%; left: 25%; animation-delay: 0s; }
+  .star-2 { top: 40%; right: 30%; animation-delay: 0.2s; }
+  .star-3 { bottom: 35%; left: 15%; animation-delay: 0.4s; }
+  .star-4 { top: 70%; left: 45%; animation-delay: 0.6s; }
+  .star-5 { bottom: 20%; right: 20%; animation-delay: 0.8s; }
+  .star-6 { top: 25%; left: 60%; animation-delay: 1s; }
+  .star-7 { bottom: 50%; left: 75%; animation-delay: 1.2s; }
+  .star-8 { top: 85%; right: 35%; animation-delay: 1.4s; }
+  .star-9 { top: 55%; left: 85%; animation-delay: 1.6s; }
+  .star-10 { bottom: 45%; right: 60%; animation-delay: 1.8s; }
+  .star-11 { top: 30%; left: 5%; animation-delay: 0.1s; }
+  .star-12 { bottom: 10%; left: 50%; animation-delay: 1.3s; }
+  
+  /* Luces ambientales */
+  .ambient-light {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.15), rgba(255, 69, 0, 0.1), transparent);
+    filter: blur(60px);
+    animation: ambientPulse 8s ease-in-out infinite;
+  }
+  
+  .light-1 { width: 400px; height: 400px; top: -100px; left: -100px; animation-delay: 0s; }
+  .light-2 { width: 500px; height: 500px; bottom: -150px; right: -150px; animation-delay: 2s; }
+  .light-3 { width: 350px; height: 350px; top: 30%; left: 50%; transform: translateX(-50%); animation-delay: 4s; }
+  .light-4 { width: 300px; height: 300px; bottom: 20%; left: 20%; animation-delay: 6s; }
+  
+  /* Ondas de energía */
+  .energy-wave {
+    position: absolute;
+    border: 2px solid rgba(255, 107, 53, 0.3);
+    border-radius: 50%;
+    animation: waveExpand 4s ease-out infinite;
+  }
+  
+  .wave-1 { width: 100px; height: 100px; top: 20%; left: 30%; animation-delay: 0s; }
+  .wave-2 { width: 150px; height: 150px; bottom: 30%; right: 25%; animation-delay: 1.5s; }
+  .wave-3 { width: 80px; height: 80px; top: 60%; left: 70%; animation-delay: 3s; }
+  
+  /* Animaciones */
+  @keyframes floatAnimation {
+    0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.3; }
+    25% { transform: translateY(-30px) rotate(90deg) scale(1.1); opacity: 0.5; }
+    50% { transform: translateY(-15px) rotate(180deg) scale(0.9); opacity: 0.2; }
+    75% { transform: translateY(-40px) rotate(270deg) scale(1.2); opacity: 0.4; }
+  }
+  
+  @keyframes glowPulse {
+    0% { transform: scale(1); opacity: 0.6; box-shadow: 0 0 20px rgba(255, 107, 53, 0.6), 0 0 40px rgba(255, 69, 0, 0.3); }
+    100% { transform: scale(1.5); opacity: 1; box-shadow: 0 0 30px rgba(255, 107, 53, 1), 0 0 60px rgba(255, 69, 0, 0.6); }
+  }
+  
+  @keyframes starTwinkle {
+    0% { opacity: 0.4; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.5); }
+  }
+  
+  @keyframes ambientPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.2); }
+  }
+  
+  @keyframes waveExpand {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+  
+  /* Efecto de paralaje para las secciones */
+  .relative {
+    z-index: 10;
+  }
+  
+  /* Mejora de las cards con glassmorphism */
+  .bg-white\/10 {
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .bg-white {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 107, 53, 0.1);
+  }
+  
+  /* Canvas styling */
+  #particle-canvas {
+    mix-blend-mode: screen;
+  }
+  
+  /* === FONDOS FUTBOLÍSTICOS === */
+  
+  /* Fondo de campo de fútbol */
+  .football-field-bg {
+    background: linear-gradient(90deg, 
+      rgba(34, 139, 34, 0.1) 0%, 
+      rgba(0, 100, 0, 0.15) 25%,
+      rgba(34, 139, 34, 0.1) 50%,
+      rgba(0, 100, 0, 0.15) 75%,
+      rgba(34, 139, 34, 0.1) 100%);
+  }
+  
+  /* Patrón de césped */
+  .grass-pattern {
+    background-image: 
+      repeating-linear-gradient(90deg, 
+        rgba(34, 139, 34, 0.3) 0px, 
+        rgba(34, 139, 34, 0.3) 10px, 
+        rgba(0, 128, 0, 0.4) 10px, 
+        rgba(0, 128, 0, 0.4) 20px),
+      repeating-linear-gradient(0deg, 
+        rgba(34, 139, 34, 0.2) 0px, 
+        rgba(34, 139, 34, 0.2) 5px, 
+        rgba(0, 100, 0, 0.3) 5px, 
+        rgba(0, 100, 0, 0.3) 10px);
+  }
+  
+  /* Líneas de campo */
+  .field-lines .center-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-50%);
+  }
+  
+  .field-lines .center-circle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100px;
+    height: 100px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .field-lines .penalty-area-left {
+    position: absolute;
+    left: 0;
+    top: 30%;
+    width: 80px;
+    height: 40%;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-left: none;
+  }
+  
+  .field-lines .penalty-area-right {
+    position: absolute;
+    right: 0;
+    top: 30%;
+    width: 80px;
+    height: 40%;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-right: none;
+  }
+  
+  /* Balones de fútbol animados */
+  .football-ball {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle at 30% 30%, 
+      #ffffff 20%, 
+      #e0e0e0 21%, 
+      #d0d0d0 40%, 
+      #c0c0c0 60%, 
+      #a0a0a0 100%);
+    border-radius: 50%;
+    box-shadow: 
+      inset -5px -5px 15px rgba(0, 0, 0, 0.3),
+      2px 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0.7;
+  }
+  
+  .football-ball::before {
+    content: '';
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    width: 50%;
+    height: 50%;
+    background: #333;
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  }
+  
+  .ball-1 { top: 20%; left: 10%; }
+  .ball-2 { top: 70%; right: 15%; }
+  .ball-3 { bottom: 30%; left: 30%; }
+  .ball-4 { top: 40%; right: 40%; }
+  .ball-5 { bottom: 20%; right: 20%; }
+  
+  /* Estelas de balones */
+  .ball-trail {
+    position: absolute;
+    width: 200px;
+    height: 4px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(255, 107, 53, 0.6) 20%, 
+      rgba(255, 69, 0, 0.8) 60%, 
+      transparent 100%);
+    border-radius: 2px;
+    opacity: 0;
+  }
+  
+  .trail-1 { top: 25%; left: 5%; transform: rotate(-15deg); }
+  .trail-2 { bottom: 40%; right: 10%; transform: rotate(25deg); }
+  .trail-3 { top: 60%; left: 25%; transform: rotate(-10deg); }
+  
+  /* === FONDO ESTADIO NOCTURNO === */
+  
+  .stadium-night-bg {
+    background: linear-gradient(45deg, 
+      rgba(0, 20, 0, 0.8) 0%, 
+      rgba(0, 40, 0, 0.6) 25%,
+      rgba(20, 60, 20, 0.4) 50%,
+      rgba(0, 40, 0, 0.6) 75%,
+      rgba(0, 20, 0, 0.8) 100%);
+  }
+  
+  /* Patrón de césped nocturno */
+  .night-grass-pattern {
+    background-image: 
+      repeating-linear-gradient(90deg, 
+        rgba(0, 100, 0, 0.3) 0px, 
+        rgba(0, 100, 0, 0.3) 8px, 
+        rgba(0, 80, 0, 0.5) 8px, 
+        rgba(0, 80, 0, 0.5) 16px),
+      repeating-linear-gradient(45deg, 
+        rgba(50, 150, 50, 0.1) 0px, 
+        rgba(50, 150, 50, 0.1) 20px, 
+        rgba(30, 120, 30, 0.2) 20px, 
+        rgba(30, 120, 30, 0.2) 40px);
+  }
+  
+  /* Focos de estadio */
+  .spotlight {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+      rgba(255, 255, 200, 0.4) 0%, 
+      rgba(255, 255, 255, 0.2) 30%, 
+      rgba(255, 255, 255, 0.1) 60%, 
+      transparent 100%);
+    filter: blur(5px);
+  }
+  
+  .spot-1 { 
+    width: 300px; height: 300px; 
+    top: -50px; left: -50px; 
+    animation: spotlightPulse 4s ease-in-out infinite;
+  }
+  .spot-2 { 
+    width: 400px; height: 400px; 
+    top: -100px; right: -100px; 
+    animation: spotlightPulse 4s ease-in-out infinite 0.5s;
+  }
+  .spot-3 { 
+    width: 250px; height: 250px; 
+    bottom: -50px; left: 20%; 
+    animation: spotlightPulse 4s ease-in-out infinite 1s;
+  }
+  .spot-4 { 
+    width: 350px; height: 350px; 
+    bottom: -100px; right: 30%; 
+    animation: spotlightPulse 4s ease-in-out infinite 1.5s;
+  }
+  
+  @keyframes spotlightPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.1); }
+  }
+  
+  /* Balones brillantes */
+  .glowing-football {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle at 30% 30%, 
+      #ffffff 15%, 
+      #f0f0f0 20%, 
+      #e0e0e0 50%, 
+      #d0d0d0 80%, 
+      #a0a0a0 100%);
+    border-radius: 50%;
+    box-shadow: 
+      0 0 20px rgba(255, 255, 255, 0.8),
+      0 0 40px rgba(255, 107, 53, 0.6),
+      inset -8px -8px 20px rgba(0, 0, 0, 0.3);
+    animation: glowingBallFloat 6s ease-in-out infinite;
+  }
+  
+  .glowing-football::before {
+    content: '';
+    position: absolute;
+    top: 30%;
+    left: 30%;
+    width: 40%;
+    height: 40%;
+    background: #222;
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  }
+  
+  .glow-ball-1 { top: 15%; left: 20%; animation-delay: 0s; }
+  .glow-ball-2 { bottom: 25%; right: 25%; animation-delay: 2s; }
+  .glow-ball-3 { top: 60%; left: 60%; animation-delay: 4s; }
+  
+  @keyframes glowingBallFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+    25% { transform: translateY(-30px) rotate(90deg); opacity: 0.8; }
+    50% { transform: translateY(-15px) rotate(180deg); opacity: 0.7; }
+    75% { transform: translateY(-40px) rotate(270deg); opacity: 0.9; }
+  }
+  
+  /* Partículas de multitud */
+  .crowd-particle {
+    position: absolute;
+    width: 3px;
+    height: 15px;
+    background: linear-gradient(to top, 
+      rgba(255, 107, 53, 0.8), 
+      rgba(255, 69, 0, 0.6), 
+      transparent);
+    border-radius: 50%;
+    animation: crowdCheer 3s ease-in-out infinite;
+  }
+  
+  .crowd-1 { top: 10%; left: 5%; animation-delay: 0s; }
+  .crowd-2 { top: 15%; left: 15%; animation-delay: 0.5s; }
+  .crowd-3 { top: 8%; right: 10%; animation-delay: 1s; }
+  .crowd-4 { top: 20%; right: 20%; animation-delay: 1.5s; }
+  .crowd-5 { top: 12%; left: 50%; animation-delay: 2s; }
+  .crowd-6 { top: 18%; right: 40%; animation-delay: 2.5s; }
+  
+  @keyframes crowdCheer {
+    0%, 100% { transform: scaleY(1) scaleX(1); opacity: 0.4; }
+    25% { transform: scaleY(1.5) scaleX(1.2); opacity: 0.8; }
+    50% { transform: scaleY(0.8) scaleX(0.9); opacity: 0.6; }
+    75% { transform: scaleY(1.8) scaleX(1.4); opacity: 1; }
+  }
+  
+  /* Efectos de humo */
+  .stadium-smoke {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+      rgba(255, 255, 255, 0.1) 0%, 
+      rgba(200, 200, 200, 0.08) 40%, 
+      transparent 70%);
+    filter: blur(20px);
+    animation: smokeRise 8s ease-in-out infinite;
+  }
+  
+  .smoke-1 {
+    width: 150px; height: 150px;
+    bottom: 0; left: 30%;
+    animation-delay: 0s;
+  }
+  .smoke-2 {
+    width: 200px; height: 200px;
+    bottom: 0; right: 40%;
+    animation-delay: 2s;
+  }
+  .smoke-3 {
+    width: 120px; height: 120px;
+    bottom: 0; left: 60%;
+    animation-delay: 4s;
+  }
+  
+  @keyframes smokeRise {
+    0% { transform: translateY(0) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-100px) scale(1.5); opacity: 0.3; }
+    100% { transform: translateY(-200px) scale(2); opacity: 0; }
+  }
+  
+  /* === MEJORAS CAMPO DE FÚTBOL === */
+  
+  /* Siluetas de jugadores */
+  .player-silhouette {
+    position: absolute;
+    width: 20px;
+    height: 40px;
+    background: linear-gradient(to bottom, 
+      rgba(0, 0, 0, 0.6) 0%, 
+      rgba(0, 0, 0, 0.4) 30%, 
+      rgba(0, 0, 0, 0.7) 70%, 
+      rgba(0, 0, 0, 0.5) 100%);
+    border-radius: 50% 50% 0 0;
+    opacity: 0.3;
+    animation: playerRun 8s ease-in-out infinite;
+  }
+  
+  .player-1 { top: 40%; left: 25%; animation-delay: 0s; }
+  .player-2 { top: 60%; right: 30%; animation-delay: 2s; }
+  .player-3 { bottom: 35%; left: 60%; animation-delay: 4s; }
+  
+  @keyframes playerRun {
+    0%, 100% { transform: translateX(0) scaleX(1); }
+    25% { transform: translateX(30px) scaleX(0.8); }
+    50% { transform: translateX(15px) scaleX(1.1); }
+    75% { transform: translateX(-20px) scaleX(0.9); }
+  }
+  
+  /* Porterías */
+  .goal {
+    position: absolute;
+    width: 60px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    border-bottom: none;
+    top: 45%;
+    opacity: 0.6;
+  }
+  
+  .goal-left {
+    left: 0;
+    border-right: none;
+  }
+  
+  .goal-right {
+    right: 0;
+    border-left: none;
+  }
+  
+  /* === FONDO GRADAS ESTADIO === */
+  
+  .stadium-stands-bg {
+    background: linear-gradient(180deg, 
+      rgba(100, 100, 100, 0.25) 0%, 
+      rgba(150, 150, 150, 0.2) 15%,
+      rgba(200, 200, 200, 0.15) 30%,
+      rgba(180, 180, 180, 0.12) 45%,
+      rgba(160, 160, 160, 0.1) 60%,
+      rgba(140, 140, 140, 0.08) 75%,
+      rgba(120, 120, 120, 0.05) 90%,
+      rgba(100, 100, 100, 0.03) 100%);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Niveles de gradas - ahora más grandes y visibles */
+  .stand-tier {
+    position: absolute;
+    width: 100%;
+    height: 150px;
+    background: linear-gradient(90deg, 
+      rgba(120, 120, 120, 0.3) 0%, 
+      rgba(140, 140, 140, 0.4) 10%,
+      rgba(160, 160, 160, 0.5) 20%,
+      rgba(180, 180, 180, 0.6) 30%,
+      rgba(200, 200, 200, 0.7) 40%,
+      rgba(220, 220, 220, 0.6) 50%,
+      rgba(200, 200, 200, 0.7) 60%,
+      rgba(180, 180, 180, 0.6) 70%,
+      rgba(160, 160, 160, 0.5) 80%,
+      rgba(140, 140, 140, 0.4) 90%,
+      rgba(120, 120, 120, 0.3) 100%);
+    border-bottom: 3px solid rgba(100, 100, 100, 0.4);
+    animation: stadiumTierPulse 8s ease-in-out infinite;
+    box-shadow: inset 0 0 30px rgba(255, 107, 53, 0.1);
+  }
+  
+  .stand-top { top: 0; opacity: 0.9; height: 180px; }
+  .stand-middle { top: 150px; opacity: 0.85; height: 170px; }
+  .stand-bottom { top: 300px; opacity: 0.8; height: 160px; }
+  
+  /* Nueva animación para gradas */
+  @keyframes stadiumTierPulse {
+    0%, 100% { transform: scaleY(1); opacity: inherit; }
+    50% { transform: scaleY(1.05); opacity: calc(var(--tier-opacity, 0.8) * 1.1); }
+  }
+  
+  /* Banners del estadio */
+  .banner {
+    position: absolute;
+    padding: 8px 20px;
+    background: linear-gradient(45deg, 
+      rgba(255, 107, 53, 0.9), 
+      rgba(255, 69, 0, 0.8));
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    transform: rotate(-5deg);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: bannerWave 6s ease-in-out infinite;
+  }
+  
+  .banner-1 { top: 30px; left: 20%; animation-delay: 0s; }
+  .banner-2 { top: 50px; right: 25%; animation-delay: 2s; }
+  .banner-3 { top: 100px; left: 60%; animation-delay: 4s; }
+  
+  @keyframes bannerWave {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50% { transform: rotate(3deg) scale(1.05); }
+  }
+  
+  /* Banderas */
+  .flag {
+    position: absolute;
+    width: 30px;
+    height: 20px;
+    background: linear-gradient(45deg, 
+      #ff4500 0%, #ff6b35 50%, #ff4500 100%);
+    border-radius: 2px;
+    animation: flagWave 3s ease-in-out infinite;
+  }
+  
+  .flag-1 { top: 40px; left: 10%; animation-delay: 0s; }
+  .flag-2 { top: 80px; right: 15%; animation-delay: 1s; }
+  .flag-3 { top: 60px; left: 80%; animation-delay: 2s; }
+  
+  @keyframes flagWave {
+    0%, 100% { transform: skew(0deg, 0deg); }
+    25% { transform: skew(5deg, 2deg); }
+    75% { transform: skew(-3deg, -1deg); }
+  }
+  
+  /* Sección de multitud animada mejorada */
+  .crowd-section {
+    position: absolute;
+    height: 35px;
+    background: repeating-linear-gradient(90deg, 
+      rgba(255, 107, 53, 0.7) 0px, 
+      rgba(255, 107, 53, 0.7) 2px, 
+      rgba(255, 69, 0, 0.6) 2px, 
+      rgba(255, 69, 0, 0.6) 4px,
+      rgba(200, 50, 20, 0.5) 4px,
+      rgba(200, 50, 20, 0.5) 6px,
+      rgba(150, 40, 15, 0.4) 6px,
+      rgba(150, 40, 15, 0.4) 8px,
+      rgba(100, 30, 10, 0.3) 8px,
+      rgba(100, 30, 10, 0.3) 10px);
+    animation: crowdCheer2 3s ease-in-out infinite;
+    border-radius: 3px;
+    box-shadow: 0 3px 10px rgba(255, 107, 53, 0.4);
+    border-top: 2px solid rgba(255, 140, 0, 0.3);
+  }
+  
+  .section-1 { top: 10px; left: 0; width: 25%; animation-delay: 0s; }
+  .section-2 { top: 30px; left: 20%; width: 30%; animation-delay: 0.5s; }
+  .section-3 { top: 50px; left: 40%; width: 35%; animation-delay: 1s; }
+  .section-4 { top: 70px; left: 65%; width: 30%; animation-delay: 1.5s; }
+  .section-5 { top: 90px; left: 0; width: 100%; animation-delay: 2s; }
+  
+  @keyframes crowdCheer2 {
+    0%, 100% { transform: scaleY(1) scaleX(1); opacity: 0.6; }
+    20% { transform: scaleY(2.2) scaleX(1.1); opacity: 0.9; }
+    40% { transform: scaleY(1.3) scaleX(0.95); opacity: 0.7; }
+    60% { transform: scaleY(2.8) scaleX(1.15); opacity: 1; }
+    80% { transform: scaleY(1.5) scaleX(1.05); opacity: 0.8; }
+  }
+  
+  /* Confeti mejorado */
+  .confetti {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: linear-gradient(45deg, 
+      rgba(255, 107, 53, 0.95), 
+      rgba(255, 69, 0, 0.9),
+      rgba(255, 140, 0, 0.85),
+      rgba(255, 215, 0, 0.8),
+      rgba(255, 165, 0, 0.75));
+    border-radius: 50%;
+    animation: confettiFall 3s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.7), 0 0 40px rgba(255, 69, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .confetti-1 { top: -30px; left: 5%; animation-delay: 0s; }
+  .confetti-2 { top: -40px; left: 20%; animation-delay: 0.3s; }
+  .confetti-3 { top: -35px; left: 35%; animation-delay: 0.6s; }
+  .confetti-4 { top: -45px; left: 50%; animation-delay: 0.9s; }
+  .confetti-5 { top: -32px; left: 65%; animation-delay: 1.2s; }
+  .confetti-6 { top: -38px; left: 80%; animation-delay: 1.5s; }
+  
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg) scale(0); opacity: 0; }
+    10% { transform: translateY(30px) rotate(72deg) scale(1.2); opacity: 1; }
+    25% { transform: translateY(100px) rotate(180deg) scale(1); opacity: 0.9; }
+    50% { transform: translateY(200px) rotate(360deg) scale(0.8); opacity: 0.8; }
+    75% { transform: translateY(300px) rotate(540deg) scale(1.1); opacity: 0.6; }
+    90% { transform: translateY(380px) rotate(680deg) scale(0.9); opacity: 0.3; }
+    100% { transform: translateY(450px) rotate(720deg) scale(0); opacity: 0; }
+  }
+  
+  /* Scoreboards digitales */
+  .scoreboard {
+    position: absolute;
+    top: 15px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, 
+      rgba(0, 0, 0, 0.8), 
+      rgba(20, 20, 20, 0.9));
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid rgba(0, 255, 0, 0.3);
+    border-radius: 4px;
+    box-shadow: 
+      0 0 10px rgba(0, 255, 0, 0.5),
+      inset 0 0 10px rgba(0, 0, 0, 0.5);
+    animation: scoreboardGlow 3s ease-in-out infinite;
+  }
+  
+  .scoreboard-left { left: 20px; }
+  .scoreboard-right { right: 20px; }
+  
+  @keyframes scoreboardGlow {
+    0%, 100% { 
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.5);
+      color: #00ff00;
+    }
+    50% { 
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.8), inset 0 0 15px rgba(0, 50, 0, 0.3);
+      color: #00ff88;
+    }
+  }
+  
+  /* === ELEMENTOS ADICIONALES DEL ESTADIO === */
+  
+  /* Banderas adicionales */
+  .flag-4 { top: 120px; left: 30%; animation-delay: 3s; }
+  .flag-5 { top: 140px; right: 35%; animation-delay: 4s; }
+  .flag-6 { top: 160px; left: 70%; animation-delay: 2.5s; }
+  .flag-7 { top: 180px; right: 50%; animation-delay: 3.5s; }
+  
+  /* Reflectores del estadio */
+  .stadium-light {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, 
+      rgba(255, 255, 200, 0.5) 0%, 
+      rgba(255, 255, 255, 0.3) 30%, 
+      rgba(255, 255, 100, 0.2) 60%, 
+      transparent 100%);
+    border-radius: 50%;
+    animation: stadiumLightPulse 5s ease-in-out infinite;
+    filter: blur(3px);
+    box-shadow: 0 0 50px rgba(255, 255, 200, 0.4);
+  }
+  
+  .stadium-light.light-1 {
+    top: 50px; left: 10%;
+    animation-delay: 0s;
+  }
+  .stadium-light.light-2 {
+    top: 80px; right: 10%;
+    animation-delay: 1.5s;
+  }
+  .stadium-light.light-3 {
+    top: 150px; left: 60%;
+    animation-delay: 3s;
+  }
+  .stadium-light.light-4 {
+    top: 200px; right: 40%;
+    animation-delay: 4.5s;
+  }
+  
+  @keyframes stadiumLightPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.2); }
+  }
+  
+  /* Multitud extendida */
+  .section-6 { top: 110px; left: 10%; width: 22%; animation-delay: 2.5s; }
+  .section-7 { top: 130px; left: 35%; width: 28%; animation-delay: 3s; }
+  .section-8 { top: 150px; left: 55%; width: 25%; animation-delay: 3.5s; }
+  .section-9 { top: 170px; left: 75%; width: 20%; animation-delay: 4s; }
+  .section-10 { top: 190px; left: 0; width: 100%; animation-delay: 4.5s; }
+  
+  /* Confeti adicional */
+  .confetti-7 { top: -25px; left: 10%; animation-delay: 1.8s; }
+  .confetti-8 { top: -42px; left: 30%; animation-delay: 2.1s; }
+  .confetti-9 { top: -36px; left: 60%; animation-delay: 2.4s; }
+  .confetti-10 { top: -48px; left: 85%; animation-delay: 2.7s; }
+  
+  /* Efectos de ambiente */
+  .stadium-glow {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+      rgba(255, 107, 53, 0.3) 0%, 
+      rgba(255, 69, 0, 0.2) 40%, 
+      rgba(255, 140, 0, 0.1) 70%, 
+      transparent 100%);
+    filter: blur(40px);
+    animation: stadiumGlowPulse 6s ease-in-out infinite;
+  }
+  
+  .stadium-glow.glow-1 {
+    width: 200px; height: 200px;
+    top: 100px; left: 20%;
+    animation-delay: 0s;
+  }
+  .stadium-glow.glow-2 {
+    width: 250px; height: 250px;
+    top: 150px; right: 15%;
+    animation-delay: 2s;
+  }
+  .stadium-glow.glow-3 {
+    width: 180px; height: 180px;
+    top: 200px; left: 60%;
+    animation-delay: 4s;
+  }
+  
+  @keyframes stadiumGlowPulse {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+  
+  /* Marcadores de tiempo */
+  .time-display, .season-display {
+    position: absolute;
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-weight: 900;
+    color: rgba(255, 107, 53, 0.3);
+    font-size: 48px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    animation: timeDisplayFloat 8s ease-in-out infinite;
+    user-select: none;
+    pointer-events: none;
+  }
+  
+  .time-display {
+    top: 50px;
+    left: 5%;
+    transform: rotate(-15deg);
+    animation-delay: 0s;
+  }
+  
+  .season-display {
+    bottom: 100px;
+    right: 5%;
+    transform: rotate(10deg);
+    animation-delay: 4s;
+    font-size: 36px;
+  }
+  
+  @keyframes timeDisplayFloat {
+    0%, 100% { opacity: 0.2; transform: rotate(-15deg) translateY(0); }
+    50% { opacity: 0.4; transform: rotate(-15deg) translateY(-20px); }
+  }
+  
+  /* Patrones de césped extendidos */
+  .grass-texture {
+    position: absolute;
+    width: 300px;
+    height: 100px;
+    background: repeating-linear-gradient(45deg, 
+      rgba(34, 139, 34, 0.1) 0px, 
+      rgba(34, 139, 34, 0.1) 4px, 
+      rgba(0, 100, 0, 0.15) 4px, 
+      rgba(0, 100, 0, 0.15) 8px,
+      rgba(50, 150, 50, 0.08) 8px,
+      rgba(50, 150, 50, 0.08) 12px);
+    border-radius: 10px;
+    animation: grassTextureWave 12s ease-in-out infinite;
+    opacity: 0.6;
+  }
+  
+  .grass-texture.texture-1 {
+    top: 300px; left: 10%;
+    animation-delay: 0s;
+    transform: rotate(-5deg);
+  }
+  .grass-texture.texture-2 {
+    top: 250px; right: 20%;
+    animation-delay: 4s;
+    transform: rotate(8deg);
+  }
+  .grass-texture.texture-3 {
+    bottom: 200px; left: 50%;
+    animation-delay: 8s;
+    transform: rotate(-3deg);
+  }
+  
+  @keyframes grassTextureWave {
+    0%, 100% { opacity: 0.4; transform: rotate(var(--rotation, 0deg)) scale(1); }
+    50% { opacity: 0.7; transform: rotate(var(--rotation, 0deg)) scale(1.05); }
+  }
+  
+  /* === ELEMENTOS ADICIONALES EXTENDIDOS === */
+  
+  /* Banderas adicionales inferiores */
+  .flag-8 { top: 250px; left: 15%; animation-delay: 5s; }
+  .flag-9 { top: 300px; right: 25%; animation-delay: 5.5s; }
+  .flag-10 { top: 350px; left: 55%; animation-delay: 6s; }
+  .flag-11 { top: 400px; right: 10%; animation-delay: 6.5s; }
+  
+  /* Reflectores adicionales inferiores */
+  .stadium-light.light-5 {
+    top: 300px; left: 25%;
+    animation-delay: 6s;
+  }
+  .stadium-light.light-6 {
+    top: 350px; right: 30%;
+    animation-delay: 7s;
+  }
+  .stadium-light.light-7 {
+    top: 400px; left: 70%;
+    animation-delay: 8s;
+  }
+  .stadium-light.light-8 {
+    top: 450px; right: 60%;
+    animation-delay: 9s;
+  }
+  
+  /* Multitud extendida - niveles inferiores */
+  .section-11 { top: 220px; left: 5%; width: 30%; animation-delay: 5s; }
+  .section-12 { top: 240px; left: 40%; width: 25%; animation-delay: 5.5s; }
+  .section-13 { top: 270px; left: 70%; width: 28%; animation-delay: 6s; }
+  .section-14 { top: 300px; left: 15%; width: 35%; animation-delay: 6.5s; }
+  .section-15 { top: 330px; left: 55%; width: 40%; animation-delay: 7s; }
+  .section-16 { top: 360px; left: 0; width: 50%; animation-delay: 7.5s; }
+  .section-17 { top: 390px; left: 30%; width: 45%; animation-delay: 8s; }
+  .section-18 { top: 420px; left: 0; width: 100%; animation-delay: 8.5s; }
+  
+  /* Confeti adicional extendido */
+  .confetti-11 { top: -28px; left: 15%; animation-delay: 3s; }
+  .confetti-12 { top: -44px; left: 40%; animation-delay: 3.3s; }
+  .confetti-13 { top: -32px; left: 65%; animation-delay: 3.6s; }
+  .confetti-14 { top: -50px; left: 90%; animation-delay: 3.9s; }
+  .confetti-15 { top: -46px; left: 75%; animation-delay: 4.2s; }
+  
+  /* Efectos de ambiente adicionales */
+  .stadium-glow.glow-4 {
+    width: 220px; height: 220px;
+    top: 300px; left: 10%;
+    animation-delay: 1s;
+  }
+  .stadium-glow.glow-5 {
+    width: 190px; height: 190px;
+    top: 350px; right: 20%;
+    animation-delay: 3s;
+  }
+  .stadium-glow.glow-6 {
+    width: 260px; height: 260px;
+    top: 400px; left: 70%;
+    animation-delay: 5s;
+  }
+  
+  /* Marcadores de tiempo adicionales */
+  .season-mid {
+    top: 250px;
+    left: 50%;
+    transform: rotate(5deg);
+    animation-delay: 2s;
+    font-size: 42px;
+  }
+  
+  .season-bottom {
+    bottom: 50px;
+    left: 10%;
+    transform: rotate(-8deg);
+    animation-delay: 6s;
+    font-size: 32px;
+  }
+  
+  /* Patrones de césped adicionales */
+  .grass-texture.texture-4 {
+    top: 350px; right: 30%;
+    animation-delay: 2s;
+    transform: rotate(12deg);
+  }
+  .grass-texture.texture-5 {
+    bottom: 150px; left: 20%;
+    animation-delay: 6s;
+    transform: rotate(-7deg);
+  }
+  .grass-texture.texture-6 {
+    bottom: 100px; right: 10%;
+    animation-delay: 10s;
+    transform: rotate(4deg);
+  }
+  .grass-texture.texture-7 {
+    top: 500px; left: 60%;
+    animation-delay: 12s;
+    transform: rotate(-10deg);
+  }
+  
+  /* === GRADAS INFERIORES === */
+  
+  .lower-stands {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 250px;
+    z-index: 1;
+  }
+  
+  .stand-lower-1 {
+    bottom: 0; 
+    height: 120px;
+    opacity: 0.75;
+    background: linear-gradient(90deg, 
+      rgba(80, 80, 80, 0.4) 0%, 
+      rgba(100, 100, 100, 0.5) 20%,
+      rgba(120, 120, 120, 0.6) 40%,
+      rgba(140, 140, 140, 0.7) 60%,
+      rgba(120, 120, 120, 0.6) 80%,
+      rgba(80, 80, 80, 0.4) 100%);
+  }
+  
+  .stand-lower-2 {
+    bottom: 100px;
+    height: 110px;
+    opacity: 0.7;
+    background: linear-gradient(90deg, 
+      rgba(60, 60, 60, 0.3) 0%, 
+      rgba(90, 90, 90, 0.4) 25%,
+      rgba(110, 110, 110, 0.5) 50%,
+      rgba(90, 90, 90, 0.4) 75%,
+      rgba(60, 60, 60, 0.3) 100%);
+  }
+  
+  .stand-lower-3 {
+    bottom: 180px;
+    height: 100px;
+    opacity: 0.65;
+    background: linear-gradient(90deg, 
+      rgba(40, 40, 40, 0.2) 0%, 
+      rgba(70, 70, 70, 0.3) 30%,
+      rgba(90, 90, 90, 0.4) 60%,
+      rgba(70, 70, 70, 0.3) 90%,
+      rgba(40, 40, 40, 0.2) 100%);
+  }
+  
+  /* === ELEMENTOS DE CAMPO INFERIORES === */
+  
+  .field-elements-bottom {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 200px;
+    z-index: 2;
+  }
+  
+  .penalty-spot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    animation: penaltySpotGlow 4s ease-in-out infinite;
+  }
+  
+  .penalty-spot.spot-1 {
+    bottom: 120px;
+    left: 15%;
+    animation-delay: 0s;
+  }
+  
+  .penalty-spot.spot-2 {
+    bottom: 120px;
+    right: 15%;
+    animation-delay: 2s;
+  }
+  
+  @keyframes penaltySpotGlow {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+  
+  .corner-flag {
+    position: absolute;
+    width: 4px;
+    height: 25px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+  }
+  
+  .corner-flag::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 15px;
+    height: 10px;
+    background: linear-gradient(45deg, #ff4500, #ff6b35);
+    border-radius: 2px;
+    animation: flagWave 3s ease-in-out infinite;
+  }
+  
+  .corner-flag.corner-1 { bottom: 20px; left: 5%; }
+  .corner-flag.corner-2 { bottom: 20px; right: 5%; }
+  .corner-flag.corner-3 { bottom: 80px; left: 25%; }
+  .corner-flag.corner-4 { bottom: 80px; right: 25%; }
+  
+  /* === TRIBUNA VIP === */
+  
+  .vip-section {
+    position: absolute;
+    top: 100px;
+    width: 100%;
+    height: 80px;
+    z-index: 3;
+  }
+  
+  .vip-box {
+    position: absolute;
+    width: 120px;
+    height: 60px;
+    background: linear-gradient(135deg, 
+      rgba(255, 215, 0, 0.3) 0%, 
+      rgba(255, 140, 0, 0.4) 50%, 
+      rgba(255, 69, 0, 0.3) 100%);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+    animation: vipBoxGlow 6s ease-in-out infinite;
+  }
+  
+  .vip-box.box-1 {
+    top: 10px;
+    left: 20%;
+    animation-delay: 0s;
+  }
+  
+  .vip-box.box-2 {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 2s;
+  }
+  
+  .vip-box.box-3 {
+    top: 10px;
+    right: 20%;
+    animation-delay: 4s;
+  }
+  
+  @keyframes vipBoxGlow {
+    0%, 100% { 
+      box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+      border-color: rgba(255, 215, 0, 0.5);
+    }
+    50% { 
+      box-shadow: 0 6px 25px rgba(255, 140, 0, 0.6);
+      border-color: rgba(255, 215, 0, 0.8);
+    }
+  }
+  
+  /* === PANTALLA GIGANTE DEL ESTADIO === */
+  
+  .stadium-screen {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 100px;
+    background: linear-gradient(135deg, 
+      rgba(0, 0, 0, 0.9) 0%, 
+      rgba(30, 30, 30, 0.8) 50%, 
+      rgba(0, 0, 0, 0.9) 100%);
+    border: 3px solid rgba(100, 100, 100, 0.6);
+    border-radius: 10px;
+    box-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.4),
+      inset 0 0 10px rgba(0, 0, 0, 0.7);
+    animation: stadiumScreenFlicker 8s ease-in-out infinite;
+  }
+  
+  .screen-frame {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00ffff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 0 0 10px #00ffff;
+    animation: screenTextGlow 3s ease-in-out infinite;
+  }
+  
+  @keyframes stadiumScreenFlicker {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), inset 0 0 10px rgba(0, 0, 0, 0.7);
+    }
+    25% { 
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), inset 0 0 15px rgba(0, 50, 50, 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.5), inset 0 0 12px rgba(0, 0, 0, 0.8);
+    }
+    75% { 
+      box-shadow: 0 0 35px rgba(0, 255, 255, 0.7), inset 0 0 18px rgba(0, 80, 80, 0.4);
+    }
+  }
+  
+  @keyframes screenTextGlow {
+    0%, 100% { 
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    50% { 
+      color: #00cccc;
+      text-shadow: 0 0 20px #00ffff, 0 0 30px #00cccc;
+    }
+  }
+  
+  /* === ESTILOS ESPECÍFICOS PARA MEJORAR RESPONSIVE === */
+  
+  /* Grid de estadísticas estable - Asegurar visibilidad */
+  .stats-grid {
+    display: grid !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    position: relative !important;
+    z-index: 20 !important;
+  }
+  
+  /* Mejora de visibilidad en stats cards */
+  .stats-card {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 107, 53, 0.2) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) scale(1) !important;
+    position: relative !important;
+    min-height: 120px;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+  
+  .stats-card .text-gray-700 {
+    color: rgb(55, 65, 81) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Mejora de la sección match-card */
+  .match-card {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(25px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+  
+  /* Responsividad mejorada */
+  @media (max-width: 768px) {
+    .stadium-light {
+      width: 50px;
+      height: 50px;
+    }
+    
+    .time-display {
+      font-size: 24px;
+    }
+    
+    .season-display {
+      font-size: 18px;
+    }
+    
+    .grass-texture {
+      width: 200px;
+      height: 60px;
+    }
+    
+    .stadium-screen {
+      width: 120px;
+      height: 60px;
+    }
+    
+    .screen-frame {
+      font-size: 10px;
+    }
+    
+    .vip-box {
+      width: 80px;
+      height: 40px;
+    }
+    
+    .lower-stands {
+      height: 150px;
+    }
+    
+    .stand-lower-1 { height: 80px; }
+    .stand-lower-2 { height: 70px; bottom: 70px; }
+    .stand-lower-3 { height: 60px; bottom: 120px; }
+  }
+  
+  /* Responsive específico para pantallas muy pequeñas */
+  @media (max-width: 640px) {
+    .stats-card {
+      padding: 1rem !important;
+    }
+    
+    .stats-card .text-2xl {
+      font-size: 1.5rem !important;
+    }
+    
+    .match-card {
+      padding: 1rem !important;
+    }
+    
+    /* Asegurar que el texto no se salga del viewport */
+    .whitespace-nowrap {
+      white-space: normal !important;
+      word-wrap: break-word;
+    }
+    
+    /* Mejora del header de match */
+    .bg-gradient-to-r.from-orange-400.to-red-400 {
+      font-size: 0.75rem !important;
+      padding: 0.5rem 1rem !important;
+    }
+    
+    /* Ajustar texto VS para móviles */
+    .text-4xl {
+      font-size: 2rem !important;
+    }
+    
+    .text-5xl {
+      font-size: 2.5rem !important;
+    }
+    
+    .text-6xl {
+      font-size: 3rem !important;
+    }
+    
+    /* Contenedor flex más amigable para móvil */
+    .flex.flex-col.lg\\:flex-row {
+      gap: 1rem !important;
+    }
+  }
+  
+  /* Media query para pantallas ultra pequeñas */
+  @media (max-width: 480px) {
+    .container {
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+    
+    .match-card {
+      margin-left: 0.25rem !important;
+      margin-right: 0.25rem !important;
+    }
+    
+    .text-lg {
+      font-size: 1rem !important;
+    }
+    
+    .text-xl {
+      font-size: 1.125rem !important;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  
+  // Animaciones avanzadas para la página principal
+  document.addEventListener('DOMContentLoaded', function() {
+    gsap.registerPlugin(ScrollTrigger);
+      
+      // Animación de los contadores de estadísticas
+      gsap.from('[data-counter]', {
+        scrollTrigger: {
+          trigger: '[data-counter]',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 2,
+        textContent: 0,
+        snap: { textContent: 1 },
+        stagger: 0.1,
+        ease: 'power2.out',
+        onUpdate: function() {
+          this.targets().forEach(target => {
+            target.innerHTML = Math.ceil(target.textContent);
+          });
+        }
+      });
+      
+      // Animación de las cards de estadísticas
+      gsap.from('.bg-white.rounded-xl', {
+        scrollTrigger: {
+          trigger: '.bg-white.rounded-xl',
+          start: 'top 85%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 0.8,
+        y: 50,
+        opacity: 0,
+        scale: 0.9,
+        stagger: 0.1,
+        ease: 'back.out(1.7)'
+      });
+      
+      // Animación de la sección de próximo partido
+      gsap.from('.bg-white\/10.backdrop-blur-md', {
+        scrollTrigger: {
+          trigger: '.bg-white\/10.backdrop-blur-md',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 1.2,
+        y: 60,
+        opacity: 0,
+        scale: 0.95,
+        ease: 'power2.out'
+      });
+      
+      // Animación de los escudos en el próximo partido
+      gsap.from('.w-24.h-24.mx-auto img', {
+        scrollTrigger: {
+          trigger: '.w-24.h-24.mx-auto',
+          start: 'top 75%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 1,
+        scale: 0,
+        rotation: 180,
+        stagger: 0.3,
+        ease: 'back.out(1.7)'
+      });
+      
+      // Animación del VS
+      gsap.from('.text-6xl.font-black.text-orange-400', {
+        scrollTrigger: {
+          trigger: '.text-6xl.font-black.text-orange-400',
+          start: 'top 75%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 0.8,
+        scale: 0,
+        rotation: 360,
+        delay: 0.6,
+        ease: 'back.out(1.7)'
+      });
+      
+      // Animación de las cards de resultados
+      gsap.from('.border-l-4.border-l-orange-400', {
+        scrollTrigger: {
+          trigger: '.border-l-4.border-l-orange-400',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 0.8,
+        x: -50,
+        opacity: 0,
+        stagger: 0.15,
+        ease: 'power2.out'
+      });
+      
+      // Animación de los jugadores destacados
+      gsap.from('.bg-white\/10.backdrop-blur-md.rounded-2xl', {
+        scrollTrigger: {
+          trigger: '.bg-white\/10.backdrop-blur-md.rounded-2xl',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 1,
+        y: 80,
+        opacity: 0,
+        scale: 0.8,
+        stagger: 0.2,
+        ease: 'back.out(1.7)'
+      });
+      
+      // Animación de las fotos de jugadores
+      gsap.from('.rounded-full.object-cover', {
+        scrollTrigger: {
+          trigger: '.rounded-full.object-cover',
+          start: 'top 75%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 0.8,
+        scale: 0,
+        rotation: 180,
+        stagger: 0.1,
+        delay: 0.3,
+        ease: 'back.out(1.7)'
+      });
+      
+      // Animación de los badges de ranking
+      gsap.from('.absolute.-top-2.-right-2', {
+        scrollTrigger: {
+          trigger: '.absolute.-top-2.-right-2',
+          start: 'top 75%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 0.6,
+        scale: 0,
+        stagger: 0.1,
+        delay: 0.8,
+        ease: 'bounce.out'
+      });
+      
+      // Animación de los botones CTA
+      gsap.from('.bg-gradient-to-r', {
+        scrollTrigger: {
+          trigger: '.bg-gradient-to-r',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 0.8,
+        y: 30,
+        opacity: 0,
+        stagger: 0.1,
+        ease: 'power2.out'
+      });
+      
+      // Efecto hover para las cards con GSAP
+      document.querySelectorAll('.hover\\:scale-105').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          gsap.to(card, {
+            duration: 0.3,
+            scale: 1.05,
+            y: -5,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+            ease: 'power2.out'
+          });
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, {
+            duration: 0.3,
+            scale: 1,
+            y: 0,
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            ease: 'power2.out'
+          });
+        });
+      });
+      
+      // Animación continua de pulso para elementos importantes
+      gsap.to('.bg-gradient-to-r.from-orange-500.to-red-500 > div', {
+        duration: 2,
+        scale: 1.02,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+      
+      // Efecto parallax sutil para las secciones
+      gsap.utils.toArray('section').forEach((section, i) => {
+        gsap.to(section, {
+          scrollTrigger: {
+            trigger: section,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1
+          },
+          y: i % 2 === 0 ? -50 : 50,
+          ease: 'none'
+        });
+      });
+      
+      // Animación de entrada de títulos
+      gsap.from('h2', {
+        scrollTrigger: {
+          trigger: 'h2',
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 1,
+        y: 50,
+        opacity: 0,
+        stagger: 0.2,
+        ease: 'power2.out'
+      });
+      
+      // === SISTEMA DE PARTÍCULAS DINÁMICAS ===
+      initializeParticleSystem();
+      
+      // === EFECTOS ESPECIALES AVANZADOS ===
+      initializeAdvancedEffects();
+      
+      // === ANIMACIONES FUTBOLÍSTICAS ===
+      initializeFootballAnimations();
+      
+      // === CONTROL DE VIDEO CON SCROLL ===
+      initializeVideoScrollControl();
+      
+      console.log('Sistema de partículas y animaciones GSAP cargadas correctamente');
+  });
+  
+  // === SISTEMA DE PARTÍCULAS EN CANVAS ===
+  function initializeParticleSystem() {
+      const canvas = document.getElementById('particle-canvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      const particles = [];
+      const mouseParticles = [];
+      let mouse = { x: 0, y: 0 };
+      
+      // Configurar canvas
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      // Clase Partícula
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 3 + 1;
+          this.speedX = (Math.random() - 0.5) * 2;
+          this.speedY = (Math.random() - 0.5) * 2;
+          this.opacity = Math.random() * 0.5 + 0.2;
+          this.life = Math.random() * 200 + 100;
+          this.maxLife = this.life;
+          this.hue = Math.random() * 60 + 10; // Tonos naranjas
+        }
+        
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          this.life--;
+          this.opacity = (this.life / this.maxLife) * 0.5;
+          
+          // Rebote en bordes
+          if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+          if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+        
+        draw() {
+          ctx.save();
+          ctx.globalAlpha = this.opacity;
+          ctx.fillStyle = `hsl(${this.hue}, 100%, 50%)`;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = `hsl(${this.hue}, 100%, 50%)`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+      
+      // Crear partículas iniciales
+      for (let i = 0; i < 80; i++) {
+        particles.push(new Particle());
+      }
+      
+      // Seguimiento del mouse
+      document.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        
+        // Crear partículas del mouse
+        if (Math.random() < 0.3) {
+          mouseParticles.push({
+            x: mouse.x,
+            y: mouse.y,
+            size: Math.random() * 5 + 2,
+            life: 60,
+            maxLife: 60,
+            speedX: (Math.random() - 0.5) * 4,
+            speedY: (Math.random() - 0.5) * 4,
+            hue: Math.random() * 60 + 10
+          });
+        }
+      });
+      
+      // Loop de animación
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Actualizar y dibujar partículas principales
+        for (let i = particles.length - 1; i >= 0; i--) {
+          particles[i].update();
+          particles[i].draw();
+          
+          if (particles[i].life <= 0) {
+            particles.splice(i, 1);
+            particles.push(new Particle()); // Reemplazar
+          }
+        }
+        
+        // Actualizar y dibujar partículas del mouse
+        for (let i = mouseParticles.length - 1; i >= 0; i--) {
+          const p = mouseParticles[i];
+          p.x += p.speedX;
+          p.y += p.speedY;
+          p.life--;
+          
+          ctx.save();
+          ctx.globalAlpha = p.life / p.maxLife;
+          ctx.fillStyle = `hsl(${p.hue}, 100%, 60%)`;
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = `hsl(${p.hue}, 100%, 60%)`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          
+          if (p.life <= 0) {
+            mouseParticles.splice(i, 1);
+          }
+        }
+        
+        // Conectar partículas cercanas
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 100) {
+              ctx.save();
+              ctx.globalAlpha = (100 - distance) / 100 * 0.3;
+              ctx.strokeStyle = '#ff6b35';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+              ctx.restore();
+            }
+          }
+        }
+        
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+    
+    // === EFECTOS ESPECIALES AVANZADOS ===
+    function initializeAdvancedEffects() {
+      // Animación de las partículas flotantes con GSAP
+      gsap.utils.toArray('.floating-particle').forEach((particle, i) => {
+        gsap.to(particle, {
+          rotation: 360,
+          duration: 20 + Math.random() * 10,
+          repeat: -1,
+          ease: 'none'
+        });
+        
+        gsap.to(particle, {
+          y: '-=' + (50 + Math.random() * 100),
+          x: '+=' + (Math.random() * 100 - 50),
+          duration: 8 + Math.random() * 4,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: Math.random() * 2
+        });
+      });
+      
+      // Efecto de respiración para luces ambientales
+      gsap.utils.toArray('.ambient-light').forEach((light) => {
+        gsap.to(light, {
+          scale: 1.3,
+          opacity: 0.6,
+          duration: 4 + Math.random() * 2,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: Math.random() * 2
+        });
+      });
+      
+      // Movimiento de paralaje con scroll
+      gsap.utils.toArray('.floating-particle').forEach((particle, i) => {
+        gsap.to(particle, {
+          scrollTrigger: {
+            trigger: 'body',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 1
+          },
+          y: -200 * (i % 3 + 1),
+          x: (i % 2 === 0 ? 100 : -100),
+          ease: 'none'
+        });
+      });
+      
+      // Efecto de seguimiento del mouse para partículas brillantes
+      let mouseX = 0, mouseY = 0;
+      
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+      
+      gsap.utils.toArray('.glowing-particle').forEach((particle, i) => {
+        gsap.to(particle, {
+          duration: 3 + Math.random() * 2,
+          repeat: -1,
+          ease: 'none',
+          motionPath: {
+            path: `M${mouseX},${mouseY}`,
+            offsetX: (i % 4) * 50 - 100,
+            offsetY: (i % 4) * 50 - 100
+          }
+        }).eventCallback('onUpdate', function() {
+          this.vars.motionPath.path = `M${mouseX + (Math.sin(Date.now() * 0.001 + i) * 50)},${mouseY + (Math.cos(Date.now() * 0.001 + i) * 50)}`;
+        });
+      });
+      
+      // Creación dinámica de partículas temporales
+      setInterval(() => {
+        createTemporaryParticle();
+      }, 2000);
+      
+      function createTemporaryParticle() {
+        const particle = document.createElement('div');
+        particle.className = 'temp-particle';
+        particle.style.cssText = `
+          position: fixed;
+          width: ${Math.random() * 10 + 5}px;
+          height: ${Math.random() * 10 + 5}px;
+          background: radial-gradient(circle, rgba(255, 107, 53, 0.8), transparent);
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 5;
+          left: ${Math.random() * window.innerWidth}px;
+          top: ${window.innerHeight + 20}px;
+          box-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
+        `;
+        
+        document.body.appendChild(particle);
+        
+        gsap.to(particle, {
+          y: -window.innerHeight - 100,
+          x: Math.random() * 400 - 200,
+          rotation: Math.random() * 720,
+          opacity: 0,
+          duration: Math.random() * 8 + 6,
+          ease: 'power1.out',
+          onComplete: () => particle.remove()
+        });
+      }
+      
+      // Efecto de explosión al hacer clic
+      document.addEventListener('click', (e) => {
+        createClickExplosion(e.clientX, e.clientY);
+      });
+      
+      function createClickExplosion(x, y) {
+        for (let i = 0; i < 12; i++) {
+          const spark = document.createElement('div');
+          spark.style.cssText = `
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #ff6b35;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            left: ${x}px;
+            top: ${y}px;
+            box-shadow: 0 0 10px #ff6b35;
+          `;
+          
+          document.body.appendChild(spark);
+          
+          const angle = (i / 12) * Math.PI * 2;
+          const distance = 100 + Math.random() * 50;
+          
+          gsap.to(spark, {
+            x: Math.cos(angle) * distance,
+            y: Math.sin(angle) * distance,
+            opacity: 0,
+            scale: 0,
+            duration: 0.8,
+            ease: 'power2.out',
+            onComplete: () => spark.remove()
+          });
+        }
+      }
+    }
+    
+    // === ANIMACIONES FUTBOLÍSTICAS ===
+    function initializeFootballAnimations() {
+      // Animaciones de balones de fútbol con scroll parallax
+      gsap.utils.toArray('.football-ball').forEach((ball, i) => {
+        // Movimiento base del balón
+        gsap.to(ball, {
+          rotation: 360,
+          duration: 10 + Math.random() * 5,
+          repeat: -1,
+          ease: 'none'
+        });
+        
+        // Movimiento flotante
+        gsap.to(ball, {
+          y: '-=' + (20 + Math.random() * 40),
+          x: '+=' + (Math.random() * 60 - 30),
+          duration: 4 + Math.random() * 2,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: Math.random() * 2
+        });
+        
+        // Parallax con scroll
+        gsap.to(ball, {
+          scrollTrigger: {
+            trigger: ball.closest('section'),
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1
+          },
+          y: -150 * (i % 2 === 0 ? 1 : -1),
+          x: 100 * (i % 3 === 0 ? 1 : -1),
+          rotation: 180 * (i % 2),
+          ease: 'none'
+        });
+      });
+      
+      // Animación de estelas de balones (aparecen ocasionalmente)
+      gsap.utils.toArray('.ball-trail').forEach((trail, i) => {
+        gsap.set(trail, { opacity: 0, scaleX: 0 });
+        
+        // Animación intermitente de estelas
+        gsap.to(trail, {
+          duration: 2,
+          repeat: -1,
+          delay: i * 3 + Math.random() * 5,
+          ease: 'none',
+          onStart: () => {
+            gsap.timeline()
+              .to(trail, { opacity: 1, scaleX: 1, duration: 0.3 })
+              .to(trail, { opacity: 0, scaleX: 0, duration: 0.7 }, 0.8);
+          }
+        });
+      });
+      
+      // Animaciones de balones brillantes del estadio nocturno
+      gsap.utils.toArray('.glowing-football').forEach((ball, i) => {
+        // Movimiento de rebote realista
+        gsap.timeline({ repeat: -1, delay: i * 2 })
+          .to(ball, {
+            duration: 1.5,
+            y: '-=80',
+            rotation: '+=180',
+            ease: 'power2.out'
+          })
+          .to(ball, {
+            duration: 1.5,
+            y: '+=80',
+            rotation: '+=180',
+            ease: 'bounce.out'
+          });
+        
+        // Brillo pulsante
+        gsap.to(ball, {
+          boxShadow: '0 0 40px rgba(255, 255, 255, 1), 0 0 80px rgba(255, 107, 53, 0.8)',
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: Math.random() * 2
+        });
+        
+        // Parallax con scroll para estadio
+        gsap.to(ball, {
+          scrollTrigger: {
+            trigger: ball.closest('section'),
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 2
+          },
+          y: -200 * (i % 2 === 0 ? 1 : -1),
+          x: 150 * (i % 2),
+          rotation: 360,
+          ease: 'none'
+        });
+      });
+      
+      // Animación de focos de estadio con scroll
+      gsap.utils.toArray('.spotlight').forEach((spot, i) => {
+        gsap.to(spot, {
+          scrollTrigger: {
+            trigger: spot.closest('section'),
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.5
+          },
+          scale: 1.3,
+          opacity: 0.8,
+          x: (i % 2 === 0 ? 50 : -50),
+          ease: 'none'
+        });
+        
+        // Parpadeo ocasional de focos
+        gsap.to(spot, {
+          duration: 0.1,
+          repeat: -1,
+          delay: Math.random() * 10 + 5,
+          ease: 'none',
+          onStart: () => {
+            gsap.timeline()
+              .to(spot, { opacity: 0.1, duration: 0.05 })
+              .to(spot, { opacity: 0.6, duration: 0.05 });
+          }
+        });
+      });
+      
+      // Animación de partículas de multitud
+      gsap.utils.toArray('.crowd-particle').forEach((particle, i) => {
+        // Movimiento de celebración
+        gsap.to(particle, {
+          scrollTrigger: {
+            trigger: particle.closest('section'),
+            start: 'top 80%',
+            end: 'bottom 20%',
+            scrub: 1
+          },
+          scaleY: 2,
+          opacity: 1,
+          ease: 'power2.inOut'
+        });
+        
+        // Movimiento aleatorio de celebración
+        gsap.to(particle, {
+          duration: 0.3,
+          repeat: -1,
+          delay: Math.random() * 2,
+          ease: 'none',
+          onStart: () => {
+            if (Math.random() < 0.3) {
+              gsap.timeline()
+                .to(particle, { scaleY: 2.5, scaleX: 1.5, duration: 0.1 })
+                .to(particle, { scaleY: 1, scaleX: 1, duration: 0.2 });
+            }
+          }
+        });
+      });
+      
+      // Efecto de líneas de campo que se iluminan con el scroll
+      const fieldLines = document.querySelectorAll('.field-lines > div');
+      fieldLines.forEach((line, i) => {
+        gsap.to(line, {
+          scrollTrigger: {
+            trigger: line.closest('section'),
+            start: 'top 70%',
+            end: 'bottom 30%',
+            scrub: 1
+          },
+          boxShadow: '0 0 20px rgba(255, 255, 255, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.4)',
+          borderColor: 'rgba(255, 255, 255, 0.8)',
+          ease: 'none'
+        });
+      });
+      
+      // Patrón de césped que se mueve sutilmente
+      gsap.utils.toArray('.grass-pattern, .night-grass-pattern').forEach(pattern => {
+        gsap.to(pattern, {
+          backgroundPosition: '20px 10px',
+          duration: 20,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+        
+        gsap.to(pattern, {
+          scrollTrigger: {
+            trigger: pattern.closest('section'),
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.5
+          },
+          backgroundPositionY: '30px',
+          ease: 'none'
+        });
+      });
+      
+      // Efectos de humo que se intensifican con hover en la sección
+      const stadiumSection = document.querySelector('.stadium-night-bg');
+      if (stadiumSection) {
+        stadiumSection.closest('section').addEventListener('mouseenter', () => {
+          gsap.utils.toArray('.stadium-smoke').forEach(smoke => {
+            gsap.to(smoke, {
+              scale: 1.5,
+              opacity: 0.3,
+              duration: 2,
+              ease: 'power2.out'
+            });
+          });
+        });
+        
+        stadiumSection.closest('section').addEventListener('mouseleave', () => {
+          gsap.utils.toArray('.stadium-smoke').forEach(smoke => {
+            gsap.to(smoke, {
+              scale: 1,
+              opacity: 0.1,
+              duration: 2,
+              ease: 'power2.out'
+            });
+          });
+        });
+      }
+      
+      // Efecto de "pelota que sigue al cursor" en sección de estadísticas
+      const footballSection = document.querySelector('.football-field-bg');
+      if (footballSection) {
+        let followBall = null;
+        
+        footballSection.closest('section').addEventListener('mousemove', (e) => {
+          if (!followBall) {
+            followBall = document.createElement('div');
+            followBall.className = 'cursor-football';
+            followBall.style.cssText = `
+              position: absolute;
+              width: 30px;
+              height: 30px;
+              background: radial-gradient(circle at 30% 30%, #ffffff 20%, #e0e0e0 40%, #a0a0a0 100%);
+              border-radius: 50%;
+              pointer-events: none;
+              z-index: 100;
+              opacity: 0;
+              box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            `;
+            footballSection.appendChild(followBall);
+            
+            gsap.to(followBall, { opacity: 0.8, scale: 1.2, duration: 0.3 });
+          }
+          
+          const rect = footballSection.getBoundingClientRect();
+          gsap.to(followBall, {
+            x: e.clientX - rect.left - 15,
+            y: e.clientY - rect.top - 15,
+            rotation: '+=10',
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+        
+        footballSection.closest('section').addEventListener('mouseleave', () => {
+          if (followBall) {
+            gsap.to(followBall, {
+              opacity: 0,
+              scale: 0,
+              duration: 0.3,
+              onComplete: () => {
+                if (followBall) {
+                  followBall.remove();
+                  followBall = null;
+                }
+              }
+            });
+          }
+        });
+      }
+      
+      // === ANIMACIONES GRADAS Y ELEMENTOS ADICIONALES ===
+      
+      // Animaciones de siluetas de jugadores
+      gsap.utils.toArray('.player-silhouette').forEach((player, i) => {
+        // Animación de correr
+        gsap.to(player, {
+          scrollTrigger: {
+            trigger: player.closest('section'),
+            start: 'top 80%',
+            end: 'bottom 20%',
+            scrub: 0.5
+          },
+          x: 100 * (i % 2 === 0 ? 1 : -1),
+          ease: 'none'
+        });
+        
+        // Movimiento de celebración ocasional
+        gsap.to(player, {
+          duration: 0.5,
+          repeat: -1,
+          delay: Math.random() * 5 + 3,
+          ease: 'none',
+          onStart: () => {
+            if (Math.random() < 0.4) {
+              gsap.timeline()
+                .to(player, { scaleY: 1.3, duration: 0.2 })
+                .to(player, { scaleY: 1, duration: 0.3 });
+            }
+          }
+        });
+      });
+      
+      // Animaciones de porterías
+      gsap.utils.toArray('.goal').forEach((goal, i) => {
+        gsap.to(goal, {
+          scrollTrigger: {
+            trigger: goal.closest('section'),
+            start: 'top 70%',
+            end: 'bottom 30%',
+            scrub: 1
+          },
+          boxShadow: '0 0 15px rgba(255, 255, 255, 0.6)',
+          borderColor: 'rgba(255, 255, 255, 0.8)',
+          ease: 'none'
+        });
+      });
+      
+      // Animaciones de gradas con parallax
+      gsap.utils.toArray('.stand-tier').forEach((tier, i) => {
+        gsap.to(tier, {
+          scrollTrigger: {
+            trigger: tier.closest('section'),
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.3
+          },
+          y: -30 * (i + 1),
+          ease: 'none'
+        });
+      });
+      
+      // Animaciones de banners ondeando
+      gsap.utils.toArray('.banner').forEach((banner, i) => {
+        // Movimiento con scroll
+        gsap.to(banner, {
+          scrollTrigger: {
+            trigger: banner.closest('section'),
+            start: 'top 80%',
+            end: 'bottom 20%',
+            scrub: 1
+          },
+          rotation: (i % 2 === 0 ? 10 : -10),
+          scale: 1.1,
+          ease: 'none'
+        });
+        
+        // Efecto hover
+        banner.addEventListener('mouseenter', () => {
+          gsap.to(banner, {
+            scale: 1.2,
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)',
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+        
+        banner.addEventListener('mouseleave', () => {
+          gsap.to(banner, {
+            scale: 1,
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+      });
+      
+      // Animaciones de banderas
+      gsap.utils.toArray('.flag').forEach((flag, i) => {
+        gsap.to(flag, {
+          scrollTrigger: {
+            trigger: flag.closest('section'),
+            start: 'top 75%',
+            end: 'bottom 25%',
+            scrub: 0.5
+          },
+          rotation: 15 * Math.sin(i),
+          scale: 1.2,
+          ease: 'none'
+        });
+      });
+      
+      // Animaciones de multitud por secciones
+      gsap.utils.toArray('.crowd-section').forEach((section, i) => {
+        // Ola de celebración
+        gsap.to(section, {
+          scrollTrigger: {
+            trigger: section.closest('section'),
+            start: 'top 70%',
+            end: 'bottom 30%',
+            scrub: 1
+          },
+          scaleY: 2 + i * 0.5,
+          opacity: 0.8,
+          ease: 'power2.inOut'
+        });
+        
+        // Celebración en cadena
+        gsap.to(section, {
+          duration: 1,
+          repeat: -1,
+          delay: i * 0.8,
+          ease: 'none',
+          onStart: () => {
+            gsap.timeline()
+              .to(section, { scaleY: 2.5, duration: 0.3 })
+              .to(section, { scaleY: 1, duration: 0.7 });
+          }
+        });
+      });
+      
+      // Animaciones de confeti
+      gsap.utils.toArray('.confetti').forEach((conf, i) => {
+        // Efecto parallax
+        gsap.to(conf, {
+          scrollTrigger: {
+            trigger: conf.closest('section'),
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 2
+          },
+          y: -300,
+          rotation: 720,
+          ease: 'none'
+        });
+        
+        // Regeneración de confeti
+        gsap.set(conf, {
+          onComplete: () => {
+            gsap.set(conf, { y: -10 });
+          }
+        });
+      });
+      
+      // Animaciones de scoreboards
+      gsap.utils.toArray('.scoreboard').forEach((board, i) => {
+        // Entrada con scroll
+        gsap.from(board, {
+          scrollTrigger: {
+            trigger: board.closest('section'),
+            start: 'top 80%',
+            toggleActions: 'play none none reverse'
+          },
+          y: -50,
+          opacity: 0,
+          duration: 1,
+          ease: 'bounce.out',
+          delay: i * 0.3
+        });
+        
+        // Efecto de parpadeo digital
+        gsap.to(board, {
+          duration: 0.1,
+          repeat: -1,
+          delay: Math.random() * 8 + 4,
+          ease: 'none',
+          onStart: () => {
+            gsap.timeline()
+              .to(board, { opacity: 0.3, duration: 0.05 })
+              .to(board, { opacity: 1, duration: 0.05 })
+              .to(board, { opacity: 0.5, duration: 0.03 })
+              .to(board, { opacity: 1, duration: 0.02 });
+          }
+        });
+        
+        // Hover effect
+        board.addEventListener('mouseenter', () => {
+          gsap.to(board, {
+            scale: 1.1,
+            boxShadow: '0 0 25px rgba(0, 255, 0, 0.8), inset 0 0 15px rgba(0, 80, 0, 0.4)',
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+        
+        board.addEventListener('mouseleave', () => {
+          gsap.to(board, {
+            scale: 1,
+            boxShadow: '0 0 10px rgba(0, 255, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.5)',
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+      });
+      
+      // Efecto de "ola" en las gradas con hover
+      const standsSection = document.querySelector('.stadium-stands-bg');
+      if (standsSection) {
+        standsSection.closest('section').addEventListener('mouseenter', () => {
+          // Ola de celebración en las gradas
+          gsap.utils.toArray('.crowd-section').forEach((section, i) => {
+            gsap.to(section, {
+              scaleY: 3,
+              duration: 0.3,
+              delay: i * 0.1,
+              ease: 'power2.out',
+              onComplete: () => {
+                gsap.to(section, {
+                  scaleY: 1,
+                  duration: 0.5,
+                  ease: 'bounce.out'
+                });
+              }
+            });
+          });
+          
+          // Confeti extra
+          gsap.utils.toArray('.confetti').forEach(conf => {
+            gsap.to(conf, {
+              scale: 1.5,
+              opacity: 1,
+              duration: 0.5,
+              ease: 'power2.out'
+            });
+          });
+        });
+      }
+      
+      console.log('Animaciones futbolísticas cargadas correctamente');
+    }
+    
+    // === CONTROL DE VIDEO CON SCROLL - VERSION SIMPLIFICADA Y ROBUSTA ===
+    function initializeVideoScrollControl() {
+      const video = document.getElementById('scroll-video');
+      const videoSection = document.getElementById('video-scroll-section');
+      const videoFallback = document.getElementById('video-fallback');
+      
+      if (!video || !videoSection) {
+        console.error('❌ Video o sección no encontrados');
+        return;
+      }
+      
+      console.log('🎨 Inicializando control de video con scroll (versión robusta)...');
+      
+      // === CONFIGURACIÓN INICIAL FORZADA ===
+      video.muted = true;
+      video.defaultMuted = true;
+      video.volume = 0;
+      video.loop = false;
+      video.playsinline = true;
+      video.preload = 'auto';
+      video.controls = false;
+      video.setAttribute('webkit-playsinline', 'true');
+      video.setAttribute('x5-playsinline', 'true');
+      video.setAttribute('muted', 'true');
+      
+      // === VARIABLES DE ESTADO ===
+      let videoScrollTrigger = null;
+      let isVideoReady = false;
+      let hasVideoLoaded = false;
+      let debugInfo = {
+        loadEvents: [],
+        errors: [],
+        attempts: 0
+      };
+      
+      // === FUNCIÓN DE ACTUALIZACIÓN SIMPLIFICADA ===
+      const updateVideoTime = (progress) => {
+        if (!isVideoReady || !video.duration || isNaN(video.duration)) {
+          return;
+        }
+        
+        try {
+          const targetTime = Math.max(0, Math.min(progress * video.duration, video.duration - 0.1));
+          const currentDiff = Math.abs(video.currentTime - targetTime);
+          
+          // Solo actualizar si hay diferencia significativa
+          if (currentDiff > 0.1) {
+            video.currentTime = targetTime;
+            console.log(`🎯 Video tiempo: ${targetTime.toFixed(2)}s (${(progress * 100).toFixed(1)}%)`);
+          }
+        } catch (error) {
+          console.error('❌ Error actualizando video:', error);
+          debugInfo.errors.push(error.message);
+        }
+      };
+      
+      // === MOSTRAR VIDEO CUANDO ESTÉ LISTO ===
+      const showVideo = () => {
+        video.style.opacity = '1';
+        if (videoFallback) {
+          videoFallback.style.opacity = '0';
+          setTimeout(() => {
+            videoFallback.style.display = 'none';
+          }, 1000);
+        }
+        console.log('✅ Video mostrado correctamente');
+      };
+      
+      // === CONFIGURAR EVENTOS DE VIDEO ===
+      video.addEventListener('loadedmetadata', () => {
+        console.log('🎨 Video metadata cargado');
+        debugInfo.loadEvents.push('metadata');
+        setupVideo();
+      });
+      
+      video.addEventListener('loadeddata', () => {
+        console.log('🎨 Video data cargado');
+        debugInfo.loadEvents.push('data');
+        setupVideo();
+      });
+      
+      video.addEventListener('canplay', () => {
+        console.log('🎨 Video can play');
+        debugInfo.loadEvents.push('canplay');
+        setupVideo();
+      });
+      
+      video.addEventListener('canplaythrough', () => {
+        console.log('🎨 Video can play through');
+        debugInfo.loadEvents.push('canplaythrough');
+        setupVideo();
+      });
+      
+      // === CONFIGURAR VIDEO CUANDO ESTÉ LISTO ===
+      const setupVideo = () => {
+        if (hasVideoLoaded) return;
+        
+        // Verificar si el video tiene duración válida
+        if (!video.duration || video.duration === Infinity || isNaN(video.duration)) {
+          console.warn('⚠️ Video aún no tiene duración válida');
+          return;
+        }
+        
+        if (video.readyState < 2) {
+          console.warn('⚠️ Video readyState insuficiente:', video.readyState);
+          return;
+        }
+        
+        hasVideoLoaded = true;
+        isVideoReady = true;
+        
+        console.log('✅ Video completamente listo:', {
+          duration: video.duration,
+          readyState: video.readyState,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight
+        });
+        
+        // Mostrar el video
+        showVideo();
+        
+        // Configurar ScrollTrigger
+        if (videoScrollTrigger) {
+          videoScrollTrigger.kill();
+        }
+        
+        videoScrollTrigger = ScrollTrigger.create({
+          trigger: videoSection,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.5,
+          onUpdate: (self) => {
+            updateVideoTime(self.progress);
+          },
+          onRefresh: () => {
+            console.log('🔄 ScrollTrigger actualizado');
+          }
+        });
+        
+        // Intentar reproducir brevemente y pausar (para iOS)
+        try {
+          const playPromise = video.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              video.pause();
+              video.currentTime = 0;
+              console.log('✅ Video inicializado correctamente');
+            }).catch(e => {
+              console.warn('⚠️ No se pudo reproducir video:', e.message);
+            });
+          }
+        } catch (e) {
+          console.warn('⚠️ Error al inicializar video:', e.message);
+        }
+      };
+      
+      // === MANEJO DE ERRORES ===
+      video.addEventListener('error', (e) => {
+        console.error('❌ Error en video:', video.error);
+        debugInfo.errors.push(video.error ? video.error.message : 'Error desconocido');
+        
+        // Intentar con el siguiente formato de video
+        attemptNextVideoSource();
+      });
+      
+      // === INTENTAR DIFERENTES FUENTES DE VIDEO ===
+      const videoSources = ['/video.mp4', '/video2.webm'];
+      let currentSourceIndex = 0;
+      
+      const attemptNextVideoSource = () => {
+        currentSourceIndex++;
+        if (currentSourceIndex < videoSources.length) {
+          console.log(`🔄 Intentando siguiente fuente: ${videoSources[currentSourceIndex]}`);
+          const newSource = document.createElement('source');
+          newSource.src = videoSources[currentSourceIndex];
+          newSource.type = currentSourceIndex === 0 ? 'video/mp4' : 'video/webm';
+          video.innerHTML = '';
+          video.appendChild(newSource);
+          video.load();
+        } else {
+          console.error('❌ Todas las fuentes de video fallaron');
+          // Mantener el fallback visible
+        }
+      };
+      
+      // === CARGAR EL VIDEO ===
+      console.log('🔄 Iniciando carga de video...');
+      video.load();
+      
+      // === TIMEOUT PARA FORZAR INICIO ===
+      setTimeout(() => {
+        if (!isVideoReady) {
+          console.warn('⚠️ Video tardó más de 3 segundos, intentando forzar...');
+          if (video.readyState >= 1) {
+            setupVideo();
+          } else {
+            attemptNextVideoSource();
+          }
+        }
+      }, 3000);
+      
+      // === CONTROLES DE DEBUG ===
+      window.videoDebug = {
+        video,
+        videoSection,
+        isReady: () => isVideoReady,
+        forceSetup: () => setupVideo(),
+        showVideo: () => showVideo(),
+        state: () => debugInfo,
+        nextSource: () => attemptNextVideoSource(),
+        info: () => console.table({
+          duration: video.duration,
+          currentTime: video.currentTime,
+          readyState: video.readyState,
+          networkState: video.networkState,
+          src: video.currentSrc,
+          muted: video.muted,
+          paused: video.paused
+        })
+      };
+      
+      console.log('✅ Sistema de video inicializado');
+      console.log('💡 Debug disponible en window.videoDebug');
+    }
+</script>

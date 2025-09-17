@@ -1,0 +1,792 @@
+---
+import Layout from '../layouts/Layout.astro'
+import LinkToAddCalendar from '../components/LinkToAddCalendar.astro'
+import SectionTitle from '../components/SectionTitle.astro'
+
+const title = 'Calendario FC Bufas - Temporada 2025/26'
+const description = 'Consulta el fixture completo del FC Bufas para la temporada 2025/26. Todos los partidos, horarios y rivales.'
+const canonical = 'https://www.fcbufasweb.vercel.app/calendario'
+
+// Partidos del FC Bufas
+const matches = [
+  {
+    jornada: 'J1',
+    fecha: new Date('2025-09-17T23:15:00+02:00'),
+    rival: 'Pitis FC',
+    campo: 'Garbí',
+    imagen: '/images/equipos/equipovacio.png' // Imagen por defecto
+  },
+  {
+    jornada: 'J2',
+    fecha: new Date('2025-10-01T20:00:00+02:00'),
+    rival: 'FC Tractores',
+    campo: 'Garbí',
+    imagen: '/images/equipos/equipovacio.png'
+  },
+  {
+    jornada: 'J3',
+    fecha: new Date('2025-10-08T22:30:00+02:00'),
+    rival: 'Eternas Promseas FC',
+    campo: 'Garbí',
+    imagen: '/images/equipos/equipovacio.png'
+  },
+  {
+    jornada: 'J4',
+    fecha: new Date('2025-10-15T21:40:00+02:00'),
+    rival: 'Stm Nuls',
+    campo: 'Garbí',
+    imagen: '/images/equipos/equipovacio.png'
+  },
+  {
+    jornada: 'J5',
+    fecha: new Date('2025-10-22T20:50:00+02:00'),
+    rival: 'Shample FC',
+    campo: 'Garbí',
+    imagen: '/images/equipos/equipovacio.png'
+  },
+  {
+    jornada: 'J6',
+    fecha: new Date('2025-10-29T20:50:00+02:00'),
+    rival: 'Watergang Fc',
+    campo: 'Garbí',
+    imagen: '/images/equipos/watergangfc.png'
+  },
+  {
+    jornada: 'J7',
+    fecha: new Date('2025-11-05T22:30:00+02:00'),
+    rival: 'Vers Le Bas',
+    campo: 'Garbí',
+    imagen: '/images/equipos/equipovacio.png'
+  },
+  {
+    jornada: 'J8',
+    fecha: new Date('2025-11-12T23:15:00+02:00'),
+    rival: 'Al-Khasino',
+    campo: 'Garbí',
+    imagen: '/images/equipos/al-khasino.png'
+  },
+  {
+    jornada: 'J9',
+    fecha: new Date('2025-11-19T21:40:00+02:00'),
+    rival: 'Tulas Fc',
+    campo: 'Garbí',
+    imagen: '/images/equipos/equipovacio.png'
+  }
+]
+
+// Función para formatear fecha
+const formatDate = (date: Date) => {
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }
+  return date.toLocaleDateString('es-ES', options)
+}
+
+// Función para formatear hora
+const formatTime = (date: Date) => {
+  return date.toLocaleTimeString('es-ES', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  }) + 'h'
+}
+
+// Calcular próximo partido
+const today = new Date()
+const nextMatch = matches.find(match => match.fecha > today)
+---
+
+<Layout title={title} description={description} canonical={canonical}>
+  <!-- Fondo espectacular con efectos -->
+  <div class="fixed inset-0 overflow-hidden">
+    <!-- Fondo base con gradiente animado -->
+    <div class="animated-bg absolute inset-0"></div>
+    
+    <!-- Partículas flotantes -->
+    <div class="particles-container absolute inset-0">
+      <!-- Partículas grandes -->
+      <div class="particle particle-1"></div>
+      <div class="particle particle-2"></div>
+      <div class="particle particle-3"></div>
+      <div class="particle particle-4"></div>
+      <div class="particle particle-5"></div>
+      <div class="particle particle-6"></div>
+      
+      <!-- Partículas medianas -->
+      <div class="particle-medium pm-1"></div>
+      <div class="particle-medium pm-2"></div>
+      <div class="particle-medium pm-3"></div>
+      <div class="particle-medium pm-4"></div>
+      <div class="particle-medium pm-5"></div>
+      <div class="particle-medium pm-6"></div>
+      <div class="particle-medium pm-7"></div>
+      <div class="particle-medium pm-8"></div>
+      
+      <!-- Partículas pequeñas -->
+      <div class="particle-small ps-1"></div>
+      <div class="particle-small ps-2"></div>
+      <div class="particle-small ps-3"></div>
+      <div class="particle-small ps-4"></div>
+      <div class="particle-small ps-5"></div>
+      <div class="particle-small ps-6"></div>
+      <div class="particle-small ps-7"></div>
+      <div class="particle-small ps-8"></div>
+      <div class="particle-small ps-9"></div>
+      <div class="particle-small ps-10"></div>
+      
+      <!-- Efectos de luz -->
+      <div class="light-effect light-1"></div>
+      <div class="light-effect light-2"></div>
+      <div class="light-effect light-3"></div>
+    </div>
+    
+    <!-- Overlay para mejorar legibilidad -->
+    <div class="absolute inset-0 bg-black/20"></div>
+  </div>
+  
+  <div class="min-h-screen pt-24 pb-8 relative z-10">
+    <div class="container mx-auto px-4">
+      
+      <!-- Header del calendario -->
+      <div class="text-center mb-8">
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/50 max-w-4xl mx-auto">
+          <SectionTitle title="Calendario FC Bufas" />
+          <p class="text-gray-700 text-lg mt-4 max-w-2xl mx-auto font-medium">
+            Fixture completo de la temporada 2025/26. Todos los partidos, horarios y rivales del FC Bufas.
+          </p>
+        </div>
+        
+          <!-- Próximo partido destacado -->
+          {nextMatch && (
+            <div class="mt-6 bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white rounded-2xl p-8 shadow-2xl border border-gray-700 relative overflow-hidden">
+              <!-- Fondo decorativo -->
+              <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10"></div>
+              <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-500/20 to-transparent rounded-bl-full"></div>
+              
+              <!-- Contenido -->
+              <div class="relative z-10">
+                <div class="flex items-center justify-center mb-4">
+                  <div class="bg-gradient-to-r from-orange-400 to-red-400 text-black px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider">
+                    Próximo Partido
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <!-- Escudo FC Bufas -->
+                  <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 mb-3">
+                      <img src="/images/logo.webp" alt="FC Bufas" class="w-full h-full object-contain drop-shadow-lg" />
+                    </div>
+                    <span class="text-xs font-bold text-orange-400">FC BUFAS</span>
+                  </div>
+                  
+                  <!-- Información del partido -->
+                  <div class="text-center px-8">
+                    <div class="text-3xl font-bold mb-1">{nextMatch.jornada}</div>
+                    <div class="text-lg mb-2">{formatDate(nextMatch.fecha)}</div>
+                    <div class="text-2xl font-black text-orange-400">{formatTime(nextMatch.fecha)}</div>
+                    <div class="flex items-center justify-center mt-2">
+                      <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                      <span class="text-sm text-gray-400">{nextMatch.campo}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Escudo rival -->
+                  <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 mb-3">
+                      <img src={nextMatch.imagen} alt={nextMatch.rival} class="w-full h-full object-contain drop-shadow-lg" />
+                    </div>
+                    <span class="text-xs font-bold text-gray-300 text-center">{nextMatch.rival}</span>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+          )}
+          
+          <!-- Botón de descarga -->
+          <div class="mt-6 flex justify-center">
+            <LinkToAddCalendar class="transform hover:scale-105 transition-all duration-300 shadow-lg">
+              📅 Descargar Calendario
+            </LinkToAddCalendar>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de partidos -->
+      <div class="max-w-4xl mx-auto">
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/50 mb-6">
+          <h2 class="text-3xl font-bold text-center text-gray-900 mb-4">Fixture Temporada 2025/26</h2>
+        </div>
+        
+        <div class="grid gap-4 md:gap-6">
+          {matches.map((match) => {
+            const isNext = match === nextMatch
+            const isPast = match.fecha < today
+            
+            return (
+              <div class:list={[
+                "bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl",
+                isNext ? "border-red-500 ring-2 ring-red-200" : "border-white/50 hover:border-orange-300",
+                isPast ? "opacity-75" : ""
+              ]}>
+                <div class="p-6">
+                  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    
+                    <!-- Información del partido -->
+                    <div class="flex items-center gap-4">
+                      <!-- Jornada -->
+                      <div class:list={[
+                        "text-center px-4 py-2 rounded-lg font-bold text-lg",
+                        isNext ? "bg-red-500 text-white" : "bg-orange-100 text-orange-800"
+                      ]}>
+                        {match.jornada}
+                      </div>
+                      
+                      <!-- Equipos -->
+                      <div class="flex items-center gap-6">
+                        <!-- FC Bufas -->
+                        <div class="text-center">
+                          <div class="w-16 h-16 mx-auto mb-2">
+                            <img src="/images/logo.webp" alt="FC Bufas" class="w-full h-full object-contain drop-shadow-md" />
+                          </div>
+                          <div class="text-sm font-bold text-orange-700">FC BUFAS</div>
+                        </div>
+                        
+                        <!-- VS -->
+                        <div class="flex flex-col items-center">
+                          <div class="bg-gradient-to-r from-gray-600 to-gray-800 text-white px-3 py-1 rounded-full text-sm font-bold shadow">
+                            VS
+                          </div>
+                        </div>
+                        
+                        <!-- Rival -->
+                        <div class="text-center">
+                          <div class="w-16 h-16 mx-auto mb-2">
+                            <img 
+                              src={match.imagen} 
+                              alt={match.rival}
+                              class="w-full h-full object-contain drop-shadow-md"
+                              loading="lazy"
+                            />
+                          </div>
+                          <div class="text-sm font-bold text-gray-700">{match.rival}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Fecha y hora -->
+                    <div class="text-center md:text-right">
+                      <div class="flex items-center justify-center md:justify-end mb-2">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <div class="text-lg font-bold text-gray-900">
+                          {formatDate(match.fecha)}
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-center md:justify-end mb-2">
+                        <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-2xl font-bold text-red-600">
+                          {formatTime(match.fecha)}
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-center md:justify-end mb-2">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <div class="text-sm text-gray-600">Estadio {match.campo}</div>
+                      </div>
+                      {isNext && (
+                        <div class="mt-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-flex items-center shadow-lg">
+                          <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
+                          </svg>
+                          PRÓXIMO
+                        </div>
+                      )}
+                      {isPast && (
+                        <div class="mt-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-flex items-center">
+                          <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                          </svg>
+                          JUGADO
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        
+        <!-- Información adicional -->
+        <div class="mt-8 bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
+          <h3 class="text-xl font-semibold text-gray-900 mb-3 text-center">📋 Información del Fixture</h3>
+          <div class="grid md:grid-cols-3 gap-4 text-center">
+            <div class="p-4">
+              <div class="text-2xl font-bold text-blue-600">{matches.length}</div>
+              <div class="text-sm text-blue-800">Partidos Totales</div>
+            </div>
+            <div class="p-4">
+              <div class="text-2xl font-bold text-green-600">{matches.filter(m => m.fecha < today).length}</div>
+              <div class="text-sm text-blue-800">Partidos Jugados</div>
+            </div>
+            <div class="p-4">
+              <div class="text-2xl font-bold text-orange-600">{matches.filter(m => m.fecha > today).length}</div>
+              <div class="text-sm text-blue-800">Partidos Restantes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* Fondo animado base */
+  .animated-bg {
+    background: linear-gradient(-45deg, #000000, #1a1a1a, #ff4500, #ff6b35, #000000, #2d1810);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+  
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 100% 50%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 50% 100%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  /* Partículas grandes */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ff4500, #ff6b35, #ffa500);
+    opacity: 0.3;
+    filter: blur(1px);
+  }
+  
+  .particle-1 { width: 80px; height: 80px; top: 10%; left: 20%; }
+  .particle-2 { width: 60px; height: 60px; top: 70%; right: 15%; }
+  .particle-3 { width: 100px; height: 100px; top: 30%; right: 30%; }
+  .particle-4 { width: 70px; height: 70px; bottom: 20%; left: 10%; }
+  .particle-5 { width: 90px; height: 90px; top: 50%; left: 70%; }
+  .particle-6 { width: 50px; height: 50px; bottom: 40%; right: 20%; }
+  
+  /* Partículas medianas */
+  .particle-medium {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff6b35, #ff4500);
+    opacity: 0.4;
+    filter: blur(0.5px);
+    width: 30px;
+    height: 30px;
+  }
+  
+  .pm-1 { top: 15%; left: 10%; }
+  .pm-2 { top: 25%; right: 25%; }
+  .pm-3 { bottom: 30%; left: 30%; }
+  .pm-4 { top: 60%; left: 15%; }
+  .pm-5 { bottom: 15%; right: 35%; }
+  .pm-6 { top: 45%; right: 10%; }
+  .pm-7 { bottom: 60%; left: 60%; }
+  .pm-8 { top: 80%; right: 50%; }
+  
+  /* Partículas pequeñas */
+  .particle-small {
+    position: absolute;
+    border-radius: 50%;
+    background: #ff6b35;
+    opacity: 0.6;
+    width: 8px;
+    height: 8px;
+    box-shadow: 0 0 10px #ff4500;
+  }
+  
+  .ps-1 { top: 20%; left: 25%; }
+  .ps-2 { top: 35%; right: 20%; }
+  .ps-3 { bottom: 25%; left: 15%; }
+  .ps-4 { top: 65%; left: 45%; }
+  .ps-5 { bottom: 45%; right: 15%; }
+  .ps-6 { top: 15%; right: 40%; }
+  .ps-7 { bottom: 20%; left: 55%; }
+  .ps-8 { top: 75%; right: 30%; }
+  .ps-9 { bottom: 35%; left: 80%; }
+  .ps-10 { top: 40%; left: 5%; }
+  
+  /* Efectos de luz */
+  .light-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.3), transparent);
+    filter: blur(40px);
+  }
+  
+  .light-1 {
+    width: 300px;
+    height: 300px;
+    top: 10%;
+    left: -50px;
+    animation: lightPulse 8s ease-in-out infinite;
+  }
+  
+  .light-2 {
+    width: 400px;
+    height: 400px;
+    bottom: 10%;
+    right: -100px;
+    animation: lightPulse 6s ease-in-out infinite reverse;
+  }
+  
+  .light-3 {
+    width: 250px;
+    height: 250px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: lightPulse 10s ease-in-out infinite;
+  }
+  
+  @keyframes lightPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.2); }
+  }
+  
+  /* Animaciones de las partículas */
+  .particle {
+    animation: float 20s ease-in-out infinite;
+  }
+  
+  .particle-1 { animation-delay: 0s; }
+  .particle-2 { animation-delay: 2s; }
+  .particle-3 { animation-delay: 4s; }
+  .particle-4 { animation-delay: 6s; }
+  .particle-5 { animation-delay: 8s; }
+  .particle-6 { animation-delay: 10s; }
+  
+  .particle-medium {
+    animation: floatMedium 15s linear infinite;
+  }
+  
+  .pm-1 { animation-delay: 1s; }
+  .pm-2 { animation-delay: 3s; }
+  .pm-3 { animation-delay: 5s; }
+  .pm-4 { animation-delay: 7s; }
+  .pm-5 { animation-delay: 9s; }
+  .pm-6 { animation-delay: 11s; }
+  .pm-7 { animation-delay: 13s; }
+  .pm-8 { animation-delay: 2s; }
+  
+  .particle-small {
+    animation: floatSmall 12s linear infinite;
+  }
+  
+  .ps-1 { animation-delay: 0.5s; }
+  .ps-2 { animation-delay: 1.5s; }
+  .ps-3 { animation-delay: 2.5s; }
+  .ps-4 { animation-delay: 3.5s; }
+  .ps-5 { animation-delay: 4.5s; }
+  .ps-6 { animation-delay: 5.5s; }
+  .ps-7 { animation-delay: 6.5s; }
+  .ps-8 { animation-delay: 7.5s; }
+  .ps-9 { animation-delay: 8.5s; }
+  .ps-10 { animation-delay: 9.5s; }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-20px) rotate(90deg); }
+    50% { transform: translateY(-10px) rotate(180deg); }
+    75% { transform: translateY(-30px) rotate(270deg); }
+  }
+  
+  @keyframes floatMedium {
+    0% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.4; }
+    25% { transform: translateY(-50px) translateX(20px) scale(1.2); opacity: 0.6; }
+    50% { transform: translateY(-30px) translateX(-10px) scale(0.8); opacity: 0.3; }
+    75% { transform: translateY(-70px) translateX(30px) scale(1.1); opacity: 0.5; }
+    100% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.4; }
+  }
+  
+  @keyframes floatSmall {
+    0% { transform: translateY(0px) scale(1); opacity: 0.6; }
+    33% { transform: translateY(-100px) scale(1.5); opacity: 1; }
+    66% { transform: translateY(-50px) scale(0.8); opacity: 0.4; }
+    100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+  }
+  
+  /* Animaciones de entrada para las cards */
+  @keyframes slideIn {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+  
+  .match-card {
+    animation: slideIn 0.6s ease-out;
+  }
+  
+  .match-card:nth-child(odd) {
+    animation-delay: 0.1s;
+  }
+  
+  .match-card:nth-child(even) {
+    animation-delay: 0.2s;
+  }
+  
+  /* Efectos adicionales con hover */
+  .bg-white\/95:hover {
+    background: rgba(255, 255, 255, 0.98);
+    transform: translateY(-2px);
+  }
+  
+  /* Efectos de resplandor */
+  .particle::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.1), transparent);
+    border-radius: 50%;
+    animation: glow 4s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    0% { opacity: 0.5; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.2); }
+  }
+</style>
+
+<!-- GSAP desde CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</Layout>
+
+<script>
+  // GSAP Animaciones avanzadas
+  document.addEventListener('DOMContentLoaded', function() {
+    // Timeline principal
+    const tl = gsap.timeline();
+    
+    // Animación de entrada del fondo
+    tl.from('.animated-bg', {
+      duration: 2,
+      opacity: 0,
+      scale: 1.1,
+      ease: 'power2.out'
+    })
+    
+    // Animación de las partículas grandes
+    .from('.particle', {
+      duration: 1.5,
+      opacity: 0,
+      scale: 0,
+      rotation: 180,
+      stagger: 0.2,
+      ease: 'back.out(1.7)'
+    }, '-=1.5')
+    
+    // Animación de las partículas medianas
+    .from('.particle-medium', {
+      duration: 1,
+      opacity: 0,
+      y: 100,
+      stagger: 0.1,
+      ease: 'bounce.out'
+    }, '-=1')
+    
+    // Animación de las partículas pequeñas
+    .from('.particle-small', {
+      duration: 0.8,
+      opacity: 0,
+      scale: 0,
+      stagger: 0.05,
+      ease: 'power2.out'
+    }, '-=0.8')
+    
+    // Animación de los efectos de luz
+    .from('.light-effect', {
+      duration: 2,
+      opacity: 0,
+      scale: 0.5,
+      stagger: 0.3,
+      ease: 'power2.out'
+    }, '-=1');
+    
+    // Animaciones continuas con GSAP
+    gsap.to('.particle-1, .particle-3, .particle-5', {
+      duration: 20,
+      rotation: 360,
+      repeat: -1,
+      ease: 'none'
+    });
+    
+    gsap.to('.particle-2, .particle-4, .particle-6', {
+      duration: 25,
+      rotation: -360,
+      repeat: -1,
+      ease: 'none'
+    });
+    
+    // Movimiento suave de partículas medianas
+    gsap.to('.particle-medium', {
+      duration: 8,
+      y: '-=30',
+      x: '+=20',
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      stagger: 0.5
+    });
+    
+    // Pulsación de partículas pequeñas
+    gsap.to('.particle-small', {
+      duration: 2,
+      scale: 1.5,
+      opacity: 1,
+      repeat: -1,
+      yoyo: true,
+      ease: 'power2.inOut',
+      stagger: 0.2
+    });
+    
+    // Efecto de paralaje en scroll
+    if (typeof ScrollTrigger !== 'undefined') {
+      gsap.registerPlugin(ScrollTrigger);
+      
+      gsap.to('.particle', {
+        scrollTrigger: {
+          trigger: 'body',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true
+        },
+        y: -100,
+        stagger: 0.1
+      });
+      
+      // Animación de las cards al aparecer
+      gsap.from('.bg-white\/95', {
+        scrollTrigger: {
+          trigger: '.bg-white\/95',
+          start: 'top 80%',
+          end: 'bottom 20%',
+          toggleActions: 'play none none reverse'
+        },
+        duration: 1,
+        y: 50,
+        opacity: 0,
+        scale: 0.9,
+        stagger: 0.1,
+        ease: 'back.out(1.7)'
+      });
+    }
+    
+    // Efecto hover mejorado para las cards
+    document.querySelectorAll('.bg-white\/95').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        gsap.to(card, {
+          duration: 0.3,
+          y: -5,
+          scale: 1.02,
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+          ease: 'power2.out'
+        });
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        gsap.to(card, {
+          duration: 0.3,
+          y: 0,
+          scale: 1,
+          boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
+          ease: 'power2.out'
+        });
+      });
+    });
+    
+    // Crear partículas dinámicas adicionales
+    function createDynamicParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'dynamic-particle';
+      particle.style.cssText = `
+        position: fixed;
+        width: ${Math.random() * 6 + 2}px;
+        height: ${Math.random() * 6 + 2}px;
+        background: #ff6b35;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 5;
+        box-shadow: 0 0 10px #ff4500;
+        left: ${Math.random() * window.innerWidth}px;
+        top: ${window.innerHeight + 10}px;
+      `;
+      
+      document.body.appendChild(particle);
+      
+      gsap.to(particle, {
+        duration: Math.random() * 8 + 5,
+        y: -window.innerHeight - 100,
+        x: Math.random() * 200 - 100,
+        rotation: Math.random() * 360,
+        opacity: 0,
+        ease: 'power1.out',
+        onComplete: () => particle.remove()
+      });
+    }
+    
+    // Crear partículas dinámicas cada cierto tiempo
+    setInterval(createDynamicParticle, 3000);
+    
+    // Efecto de mouse follow para partículas
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+    
+    // Movimiento sutil de partículas siguiendo el mouse
+    gsap.set('.particle-small', {
+      transformOrigin: 'center'
+    });
+    
+    let mouseFollowTween = gsap.to('.particle-small', {
+      duration: 3,
+      ease: 'power1.out',
+      paused: true
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      const moveX = (e.clientX - window.innerWidth / 2) * 0.02;
+      const moveY = (e.clientY - window.innerHeight / 2) * 0.02;
+      
+      gsap.to('.particle-small', {
+        duration: 2,
+        x: `+=${moveX}`,
+        y: `+=${moveY}`,
+        ease: 'power2.out'
+      });
+    });
+  });
+</script>
