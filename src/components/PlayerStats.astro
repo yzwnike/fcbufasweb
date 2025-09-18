@@ -17,7 +17,7 @@ const { player } = Astro.props
         <p class="text-gray-500 text-sm">{player.position}</p>
       </div>
       
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <div class="bg-orange-50 rounded-lg p-4 text-center">
           <div class="text-2xl font-bold text-orange-600">{player.goles ?? 0}</div>
           <div class="text-sm text-gray-600">Goles</div>
@@ -36,6 +36,11 @@ const { player } = Astro.props
         <div class="bg-purple-50 rounded-lg p-4 text-center">
           <div class="text-2xl font-bold text-purple-600">{player.valor ?? 0}M€</div>
           <div class="text-sm text-gray-600">Valor</div>
+        </div>
+        
+        <div class="bg-yellow-50 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-yellow-600">{player.puntos ?? 0}</div>
+          <div class="text-sm text-gray-600">Puntos</div>
         </div>
       </div>
       

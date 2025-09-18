@@ -34,11 +34,11 @@ const isActive = (path: string) => pathname === path
 
 <header
   class:list={[
-    "fixed top-0 z-50 mx-auto flex h-20 w-full select-none items-center md:overflow-hidden",
+    "fixed top-0 z-50 mx-auto flex h-20 w-full select-none items-center",
     pathname === '/' ? "text-white" : "text-black header-with-bg"
   ]}
 >
-  <div class="relative flex justify-between px-6 py-4 md:w-full">
+  <div class="relative flex justify-between px-4 md:px-6 py-4 w-full max-w-7xl mx-auto">
     <a href="/" class="cursor-pointer transition duration-300 hover:scale-110 md:hidden">
       <img src="/favicon.svg" alt="logo" class="h-auto w-7" />
     </a>
@@ -50,20 +50,50 @@ const isActive = (path: string) => pathname === path
     </div>
     <nav
       id="navContent"
-      class="bg-black/90 invisible fixed right-0 top-0 mx-auto h-[100vh] max-w-6xl translate-x-full items-center justify-between space-y-2 px-6 pt-14 text-xs font-light backdrop-blur-2xl md:visible md:relative md:flex md:!h-fit md:w-full md:translate-x-0 md:space-y-0 md:bg-transparent md:py-4 md:backdrop-blur-none lg:text-sm"
+      class="bg-black/90 invisible fixed right-0 top-0 mx-auto h-[100vh] w-80 max-w-sm translate-x-full items-center justify-between space-y-2 px-6 pt-14 text-xs font-light backdrop-blur-2xl md:visible md:relative md:flex md:!h-fit md:w-full md:translate-x-0 md:space-y-0 md:bg-transparent md:py-4 md:backdrop-blur-none lg:text-sm"
     >
       <div
         class:list={[
-          'flex flex-col justify-start space-y-2 md:flex-row md:gap-8 md:space-y-0',
-          shouldShowLogo ? 'md:w-1/3' : 'md:flex-grow',
+          'flex flex-col justify-start space-y-3 md:flex-row md:gap-6 lg:gap-8 md:space-y-0 md:items-center',
+          shouldShowLogo ? 'md:flex-1' : 'md:flex-grow',
         ]}
       >
         <a
-          href="/stats"
-          class="group relative inline-block w-fit py-1 leading-relaxed tracking-wider"
+          href="/"
+          class="group relative inline-block w-fit py-2 leading-relaxed tracking-wider transition-colors duration-200 hover:text-orange-400"
         >
           <span class:list={[
-            "py-1 font-medium",
+            "py-1 font-medium text-sm lg:text-base flex items-center",
+            pathname === '/' ? "text-white" : "text-white md:text-black"
+          ]}>
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            INICIO
+          </span>
+          <div class="relative mt-1 h-[2px] w-full overflow-hidden">
+            <div
+              class:list={[
+                'absolute bottom-0 left-0 h-full bg-orange-400 transition-all duration-300 ease-out',
+                isActive('/') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+              ]}
+            >
+            </div>
+            <div
+              class:list={[
+                'absolute bottom-0 right-0 h-full bg-black transition-all duration-300 ease-out',
+                isActive('/') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+              ]}
+            >
+            </div>
+          </div>
+        </a>
+        <a
+          href="/stats"
+          class="group relative inline-block w-fit py-2 leading-relaxed tracking-wider transition-colors duration-200 hover:text-orange-400"
+        >
+          <span class:list={[
+            "py-1 font-medium text-sm lg:text-base",
             pathname === '/' ? "text-white" : "text-white md:text-black"
           ]}>Estadísticas</span>
           <div class="relative mt-1 h-[2px] w-full overflow-hidden">
@@ -84,13 +114,38 @@ const isActive = (path: string) => pathname === path
           </div>
         </a>
         <a
-          href="/calendario"
-          class="group relative inline-block w-fit py-1 leading-relaxed tracking-wider"
+          href="/pts"
+          class="group relative inline-block w-fit py-2 leading-relaxed tracking-wider transition-colors duration-200 hover:text-orange-400"
         >
           <span class:list={[
-            "py-1 font-medium",
+            "py-1 font-medium text-sm lg:text-base",
             pathname === '/' ? "text-white" : "text-white md:text-black"
-          ]}>VER CALENDARIO</span>
+          ]}>PTS. ÚLTIMA JORNADA</span>
+          <div class="relative mt-1 h-[2px] w-full overflow-hidden">
+            <div
+              class:list={[
+                'absolute bottom-0 left-0 h-full bg-orange-400 transition-all duration-300 ease-out',
+                isActive('/pts') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+              ]}
+            >
+            </div>
+            <div
+              class:list={[
+                'absolute bottom-0 right-0 h-full bg-black transition-all duration-300 ease-out',
+                isActive('/pts') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+              ]}
+            >
+            </div>
+          </div>
+        </a>
+        <a
+          href="/calendario"
+          class="group relative inline-block w-fit py-2 leading-relaxed tracking-wider transition-colors duration-200 hover:text-orange-400"
+        >
+          <span class:list={[
+            "py-1 font-medium text-sm lg:text-base",
+            pathname === '/' ? "text-white" : "text-white md:text-black"
+          ]}>CALENDARIO</span>
           <div class="relative mt-1 h-[2px] w-full overflow-hidden">
             <div
               class:list={[
@@ -109,13 +164,38 @@ const isActive = (path: string) => pathname === path
           </div>
         </a>
         <a
-          href="/valores-mercado"
-          class="group relative inline-block w-fit py-1 leading-relaxed tracking-wider"
+          href="/clasificacion"
+          class="group relative inline-block w-fit py-2 leading-relaxed tracking-wider transition-colors duration-200 hover:text-orange-400"
         >
           <span class:list={[
-            "py-1 font-medium",
+            "py-1 font-medium text-sm lg:text-base",
             pathname === '/' ? "text-white" : "text-white md:text-black"
-          ]}>VALORES DE MERCADO</span>
+          ]}>CLASIFICACIÓN</span>
+          <div class="relative mt-1 h-[2px] w-full overflow-hidden">
+            <div
+              class:list={[
+                'absolute bottom-0 left-0 h-full bg-orange-400 transition-all duration-300 ease-out',
+                isActive('/clasificacion') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+              ]}
+            >
+            </div>
+            <div
+              class:list={[
+                'absolute bottom-0 right-0 h-full bg-black transition-all duration-300 ease-out',
+                isActive('/clasificacion') ? 'w-[51%]' : 'w-0 group-hover:w-[51%]',
+              ]}
+            >
+            </div>
+          </div>
+        </a>
+        <a
+          href="/valores-mercado"
+          class="group relative inline-block w-fit py-2 leading-relaxed tracking-wider transition-colors duration-200 hover:text-orange-400"
+        >
+          <span class:list={[
+            "py-1 font-medium text-sm lg:text-base",
+            pathname === '/' ? "text-white" : "text-white md:text-black"
+          ]}>VALORES MERCADO</span>
           <div class="relative mt-1 h-[2px] w-full overflow-hidden">
             <div
               class:list={[
@@ -137,26 +217,28 @@ const isActive = (path: string) => pathname === path
 
       {
         shouldShowLogo && (
-          <a
-            href="/"
-            class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition duration-500 hover:scale-110 md:inline-block"
-          >
-            <img
-              class="h-10"
-              src="/favicon.svg"
-              fetchpriority="high"
-              alt="La Velada del Año V"
-              decoding="async"
-            />
-          </a>
+          <div class="flex-1 flex justify-center">
+            <a
+              href="/"
+              class="transition duration-300 hover:scale-110"
+            >
+              <img
+                class="h-8 lg:h-10"
+                src="/favicon.svg"
+                fetchpriority="high"
+                alt="FC Bufas"
+                decoding="async"
+              />
+            </a>
+          </div>
         )
       }
 
       <div class:list={[
-        'hidden md:block',
-        shouldShowLogo ? 'md:w-1/3' : 'md:flex-grow',
+        'flex-1 flex justify-end',
+        !shouldShowLogo && 'hidden'
       ]}>
-        <!-- Espacio vacío para balancear el layout -->
+        <!-- Espacio para balancear el layout cuando hay logo -->
       </div>
     </nav>
   </div>

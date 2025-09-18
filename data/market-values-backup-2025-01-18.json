@@ -1,0 +1,66 @@
+{
+  "backup_date": "2025-01-18T01:30:34Z",
+  "description": "Backup of market values before update - January 18, 2025",
+  "players": {
+    "albert": {
+      "current_valorTotal": 30000000,
+      "new_valorTotal": 29000000,
+      "change": -1000000,
+      "change_percent": -3.33
+    },
+    "javo": {
+      "current_valorTotal": 60000000,
+      "new_valorTotal": 59000000,
+      "change": -1000000,
+      "change_percent": -1.67
+    },
+    "pablo": {
+      "current_valorTotal": 40000000,
+      "new_valorTotal": 43000000,
+      "change": 3000000,
+      "change_percent": 7.5
+    },
+    "yazawa": {
+      "current_valorTotal": 42000000,
+      "new_valorTotal": 42000000,
+      "change": 0,
+      "change_percent": 0
+    },
+    "perma": {
+      "current_valorTotal": 55000000,
+      "new_valorTotal": 52000000,
+      "change": -3000000,
+      "change_percent": -5.45
+    },
+    "mister": {
+      "current_valorTotal": 48000000,
+      "new_valorTotal": 45000000,
+      "change": -3000000,
+      "change_percent": -6.25
+    },
+    "mario": {
+      "current_valorTotal": 97000000,
+      "new_valorTotal": 89000000,
+      "change": -8000000,
+      "change_percent": -8.25
+    },
+    "marcos": {
+      "current_valorTotal": 51000000,
+      "new_valorTotal": 53000000,
+      "change": 2000000,
+      "change_percent": 3.92
+    },
+    "nicou": {
+      "current_valorTotal": 56000000,
+      "new_valorTotal": 54000000,
+      "change": -2000000,
+      "change_percent": -3.57
+    },
+    "fan": {
+      "current_valorTotal": 48000000,
+      "new_valorTotal": 46000000,
+      "change": -2000000,
+      "change_percent": -4.17
+    }
+  }
+}

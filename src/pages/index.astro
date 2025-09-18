@@ -2,6 +2,7 @@
 import Hero from '@/sections/Hero.astro'
 import Layout from '@/layouts/Layout.astro'
 import { FIGHTERS } from '../consts/fighters'
+import { clasificacion } from '../consts/clasificacion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -12,27 +13,37 @@ const canonical = 'https://www.fcbufasweb.vercel.app/'
 
 export const prerender = true
 
-// Datos para las nuevas secciones - Pretemporada
+// Datos reales de FC Bufas desde la clasificación
+const fcBufasData = clasificacion.find(equipo => equipo.nombre === 'Fc Bufas')
 const teamStats = {
-  partidos: 0,
-  victorias: 0,
-  empates: 0,
-  derrotas: 0,
-  golesFavor: 0,
-  golesContra: 0
+  partidos: fcBufasData?.partidosJugados || 0,
+  victorias: fcBufasData?.ganados || 0,
+  empates: fcBufasData?.empatados || 0,
+  derrotas: fcBufasData?.perdidos || 0,
+  golesFavor: fcBufasData?.golesFavor || 0,
+  golesContra: fcBufasData?.golesContra || 0
 }
 
-// Próximo partido
+// Próximo partido - Jornada 2
 const nextMatch = {
-  jornada: 'J1',
-  fecha: new Date('2025-09-17T23:15:00+02:00'),
-  rival: 'Pitis FC',
+  jornada: 'J2',
+  fecha: new Date('2025-09-24T20:30:00+02:00'),
+  rival: 'Al-Khasino',
   campo: 'Garbí',
   imagen: '/images/equipos/equipovacio.png'
 }
 
-// Últimos partidos - Sin partidos oficiales jugados aún
-const lastResults = []
+// Último partido jugado - J1
+const lastResults = [
+  {
+    jornada: 'J1',
+    fecha: '17 Sep 2025',
+    rival: 'Pitis FC',
+    resultado: '1-5',
+    tipo: 'derrota',
+    local: true
+  }
+]
 
 // Jugadores destacados - Top 4 por variación de mercado
 const topPlayers = FIGHTERS

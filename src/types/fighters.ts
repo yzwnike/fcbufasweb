@@ -61,8 +61,10 @@ export interface Fighters {
   goles?: number
   asistencias?: number
   partidos?: number
+  puntos?: number
   valor?: number
   valorTotal?: number
+  puntosTotales?: number
   historialValores?: {
     fecha: Date
     valor: number

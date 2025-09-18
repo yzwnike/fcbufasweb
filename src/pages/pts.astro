@@ -1,0 +1,591 @@
+---
+import Layout from '../layouts/Layout.astro'
+import PTSPlayer from '../components/PTSPlayer.astro'
+
+const title = 'PTS. Última Jornada - FC Bufas'
+const description = 'Puntuación y estadísticas de la última jornada del equipo FC Bufas.'
+const canonical = 'https://www.fcbufasweb.vercel.app/pts'
+
+// Datos de jugadores para la jornada 1
+const JORNADA_1_PLAYERS = [
+  {
+    id: 'yazawa',
+    name: 'Yazawa',
+    realName: 'Nico Vehi (Yazawa)',
+    position: 'POR',
+    bio: 'Portero titular para la jornada 1. Mantuvo la portería con seguridad.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 4,
+    valor: 18,
+    valorTotal: 42000000,
+    image: '/players/yazawa.webp'
+  },
+  {
+    id: 'mister',
+    name: 'Mister',
+    realName: 'Marc Sánchez (Míster)',
+    position: 'DFC',
+    bio: 'Defensa central sólido en la jornada 1. Mantuvo la línea defensiva organizada.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 2,
+    valor: 28,
+    valorTotal: 48000000,
+    image: '/players/mister.webp'
+  },
+  {
+    id: 'perma',
+    name: 'Perma',
+    realName: 'Marc Pemanyer',
+    position: 'DFC',
+    bio: 'Defensa central que aportó solidez defensiva en su debut.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 3,
+    valor: 15,
+    valorTotal: 55000000,
+    image: '/players/perma.webp'
+  },
+  {
+    id: 'fan',
+    name: 'Fan',
+    realName: 'Fan Xu',
+    position: 'LI',
+    bio: 'Lateral izquierdo con buena proyección ofensiva en la jornada.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 3,
+    valor: 12,
+    valorTotal: 48000000,
+    image: '/players/fan.webp'
+  },
+  {
+    id: 'pablo',
+    name: 'Pablo',
+    realName: 'Pablo Vehí Roca',
+    position: 'LD',
+    bio: 'Lateral derecho destacado de la jornada con la mejor puntuación.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 5,
+    valor: 22,
+    valorTotal: 40000000,
+    image: '/players/pablo.webp'
+  },
+  {
+    id: 'albert',
+    name: 'Albert',
+    realName: 'Albert Rodríguez',
+    position: 'MC',
+    bio: 'Mediocampista trabajador que cumplió su rol en el centro del campo.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 2,
+    valor: 25,
+    valorTotal: 30000000,
+    image: '/players/albert.webp'
+  },
+  {
+    id: 'mario',
+    name: 'Mario',
+    realName: 'Mario Roca',
+    position: 'MC',
+    bio: 'Mediocampista creativo que aportó una asistencia clave.',
+    goles: 0,
+    asistencias: 1,
+    partidos: 1,
+    puntos: 4,
+    valor: 32,
+    valorTotal: 97000000,
+    image: '/players/mario.webp'
+  },
+  {
+    id: 'nicou',
+    name: 'Nico',
+    realName: 'Nico Uriburu',
+    position: 'MC',
+    bio: 'Mediocampista versátil con una buena actuación en su debut.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 4,
+    valor: 20,
+    valorTotal: 56000000,
+    image: '/players/nicou.webp'
+  },
+  {
+    id: 'marcos',
+    name: 'Marcos',
+    realName: 'Marcos López',
+    position: 'DC',
+    bio: 'Delantero centro que marcó el gol de la jornada y fue el más destacado.',
+    goles: 1,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 6,
+    valor: 29,
+    valorTotal: 51000000,
+    image: '/players/marcos.webp'
+  }
+]
+
+// Formación 1-2-3-3 (9 jugadores)
+// Posiciones para móvil
+const formationMobile = {
+  // Portero
+  'yazawa': { top: '85%', left: '50%' },
+  
+  // Defensa (2 jugadores centrales)
+  'mister': { top: '70%', left: '40%' },
+  'perma': { top: '70%', left: '60%' },
+  
+  // Mediocampo (5 jugadores: 2 laterales + 3 centrales)
+  'fan': { top: '50%', left: '10%' }, // Lateral izquierdo
+  'pablo': { top: '50%', left: '90%' }, // Lateral derecho
+  'albert': { top: '45%', left: '33%' }, // Mediocentro izquierdo
+  'mario': { top: '45%', left: '50%' }, // Mediocentro central
+  'nicou': { top: '45%', left: '67%' }, // Mediocentro derecho
+  
+  // Delantero (1 jugador)
+  'marcos': { top: '25%', left: '50%' }
+}
+
+// Posiciones para desktop
+const formationDesktop = {
+  // Portero
+  'yazawa': { top: '80%', left: '50%' },
+  
+  // Defensa (2 jugadores centrales)
+  'mister': { top: '65%', left: '40%' },
+  'perma': { top: '65%', left: '60%' },
+  
+  // Mediocampo (5 jugadores)
+  'fan': { top: '45%', left: '10%' }, // Lateral izquierdo
+  'pablo': { top: '45%', left: '90%' }, // Lateral derecho
+  'albert': { top: '40%', left: '33%' }, // Mediocentro izquierdo
+  'mario': { top: '40%', left: '50%' }, // Mediocentro central
+  'nicou': { top: '40%', left: '67%' }, // Mediocentro derecho
+  
+  // Delantero (1 jugador)
+  'marcos': { top: '20%', left: '50%' }
+}
+
+// Calcular estadísticas del equipo
+const totalPuntos = JORNADA_1_PLAYERS.reduce((sum, player) => sum + player.puntos, 0)
+const totalGoles = JORNADA_1_PLAYERS.reduce((sum, player) => sum + player.goles, 0)
+const totalAsistencias = JORNADA_1_PLAYERS.reduce((sum, player) => sum + player.asistencias, 0)
+const mejorJugador = JORNADA_1_PLAYERS.reduce((best, player) => 
+  player.puntos > best.puntos ? player : best
+, JORNADA_1_PLAYERS[0])
+---
+
+<Layout title={title} description={description} canonical={canonical}>
+  <!-- Fondo único para PTS con gradiente deportivo -->
+  <div class="pts-bg fixed inset-0 overflow-hidden">
+    <!-- Patrón de campo de fútbol -->
+    <div class="field-pattern absolute inset-0 opacity-10"></div>
+    <!-- Overlay verde deportivo -->
+    <div class="absolute inset-0 bg-gradient-to-br from-green-900/20 via-green-600/10 to-emerald-800/20"></div>
+  </div>
+  
+  <div class="relative z-10 min-h-screen py-8">
+    <div class="container mx-auto px-4">
+      
+      <!-- Header redesañado -->
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 shadow-2xl">
+          <span class="text-3xl">⚽</span>
+        </div>
+        <h1 class="text-5xl font-black text-white mb-2 drop-shadow-lg">PTS. JORNADA 1</h1>
+        <div class="bg-white/10 backdrop-blur-md rounded-full px-6 py-2 inline-block mb-6">
+          <p class="text-white text-lg font-medium">FC Bufas • Temporada 2025/26</p>
+        </div>
+        
+        <!-- Estadísticas principales en diseño horizontal -->
+        <div class="flex flex-wrap justify-center gap-4 max-w-2xl mx-auto">
+          <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl shadow-lg">
+            <div class="text-2xl font-bold">{totalPuntos}</div>
+            <div class="text-sm opacity-90">Puntos Total</div>
+          </div>
+          <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl shadow-lg">
+            <div class="text-2xl font-bold">{totalGoles}</div>
+            <div class="text-sm opacity-90">Goles</div>
+          </div>
+          <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl shadow-lg">
+            <div class="text-2xl font-bold">{totalAsistencias}</div>
+            <div class="text-sm opacity-90">Asistencias</div>
+          </div>
+          <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl shadow-lg">
+            <div class="text-lg font-bold">{mejorJugador.name}</div>
+            <div class="text-sm opacity-90">MVP ({mejorJugador.puntos} PTS)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campo de fútbol con nuevo diseño -->
+      <div class="max-w-6xl mx-auto">
+        <div class="pts-field relative w-full aspect-[4/3] bg-gradient-to-br from-green-400 via-green-500 to-green-600 rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+          <!-- Líneas del campo -->
+          <div class="absolute inset-0">
+            <!-- Línea central -->
+            <div class="absolute top-0 bottom-0 left-1/2 w-1 bg-white/30 transform -translate-x-1/2"></div>
+            <!-- Círculo central -->
+            <div class="absolute top-1/2 left-1/2 w-24 h-24 border-2 border-white/30 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+            <!-- Área de portería superior -->
+            <div class="absolute top-0 left-1/2 w-32 h-16 border-2 border-white/30 border-t-0 transform -translate-x-1/2"></div>
+            <!-- Área de portería inferior -->
+            <div class="absolute bottom-0 left-1/2 w-32 h-16 border-2 border-white/30 border-b-0 transform -translate-x-1/2"></div>
+          </div>
+          
+          <!-- Jugadores con el nuevo componente -->
+          {Object.entries(formationDesktop).map(([playerId, position]) => {
+            const player = JORNADA_1_PLAYERS.find(p => p.id === playerId)
+            return player ? (
+              <PTSPlayer player={player} position={position} />
+            ) : null
+          })}
+          
+          <!-- Info del partido en esquina -->
+          <div class="absolute top-4 left-4 bg-black/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+            <div class="text-sm font-semibold">JORNADA 1</div>
+            <div class="text-xs opacity-75">FC Bufas • 1-2-5-1</div>
+          </div>
+          
+          <!-- Leyenda en la esquina opuesta -->
+          <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg text-xs">
+            <div class="font-semibold text-gray-800 mb-1">Puntuación</div>
+            <div class="space-y-1">
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-green-500 rounded mr-2"></div>
+                <span>6+ PTS</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-yellow-500 rounded mr-2"></div>
+                <span>4-5 PTS</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-orange-500 rounded mr-2"></div>
+                <span>2-3 PTS</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-red-500 rounded mr-2"></div>
+                <span>0-1 PTS</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ranking de jugadores debajo del campo -->
+      <div class="mt-12 max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-white text-center mb-8">🏆 Ranking de Rendimiento</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {JORNADA_1_PLAYERS
+            .sort((a, b) => b.puntos - a.puntos)
+            .map((player, index) => {
+              const getPodiumClass = (pos: number) => {
+                if (pos === 0) return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-black' // Oro
+                if (pos === 1) return 'bg-gradient-to-r from-gray-300 to-gray-400 text-black' // Plata
+                if (pos === 2) return 'bg-gradient-to-r from-amber-600 to-amber-700 text-white' // Bronce
+                return 'bg-white/10 backdrop-blur-sm text-white'
+              }
+              
+              return (
+                <div class={`p-4 rounded-xl shadow-lg ${getPodiumClass(index)}`}>
+                  <div class="flex items-center space-x-3">
+                    <div class="text-2xl font-bold">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
+                    </div>
+                    <div class="flex-1">
+                      <div class="font-semibold">{player.name}</div>
+                      <div class="text-sm opacity-75">{player.position}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-xl font-bold">{player.puntos} PTS</div>
+                      <div class="flex space-x-2 text-sm">
+                        {player.goles > 0 && <span>⚽{player.goles}</span>}
+                        {player.asistencias > 0 && <span>🅰️{player.asistencias}</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          }
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* Fondo único para la página PTS */
+  .pts-bg {
+    background: linear-gradient(135deg, 
+      #1a5d1a 0%, 
+      #2d8f2d 25%, 
+      #4ade80 50%, 
+      #16a34a 75%, 
+      #15803d 100%
+    );
+    animation: pitchShift 20s ease-in-out infinite;
+  }
+  
+  @keyframes pitchShift {
+    0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+    25% { filter: hue-rotate(10deg) brightness(1.1); }
+    50% { filter: hue-rotate(-5deg) brightness(0.9); }
+    75% { filter: hue-rotate(5deg) brightness(1.05); }
+  }
+  
+  /* Patrón de campo de fútbol */
+  .field-pattern {
+    background-image: 
+      linear-gradient(0deg, rgba(255,255,255,0.1) 50%, transparent 50%),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 50%, transparent 50%);
+    background-size: 40px 40px;
+    animation: grassWave 15s linear infinite;
+  }
+  
+  @keyframes grassWave {
+    0% { background-position: 0px 0px, 0px 0px; }
+    100% { background-position: 40px 40px, 40px 40px; }
+  }
+  
+  /* Campo de fútbol estilizado */
+  .pts-field {
+    background: linear-gradient(135deg, 
+      #22c55e 0%, 
+      #16a34a 50%, 
+      #15803d 100%
+    );
+    position: relative;
+    overflow: visible;
+  }
+  
+  .pts-field::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px),
+      radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 30px 30px, 15px 15px;
+    animation: fieldTexture 25s linear infinite;
+  }
+  
+  @keyframes fieldTexture {
+    0% { transform: translateX(0) translateY(0); }
+    100% { transform: translateX(30px) translateY(15px); }
+  }
+  
+  /* Efectos de césped dinámico */
+  .pts-field::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      linear-gradient(90deg, transparent 45%, rgba(255,255,255,0.02) 50%, transparent 55%),
+      linear-gradient(0deg, transparent 45%, rgba(255,255,255,0.02) 50%, transparent 55%);
+    background-size: 60px 60px;
+    animation: grassShimmer 30s ease-in-out infinite;
+  }
+  
+  @keyframes grassShimmer {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+  
+  /* Animaciones de entrada para elementos */
+  @keyframes slideInFromTop {
+    0% {
+      transform: translateY(-100px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideInFromBottom {
+    0% {
+      transform: translateY(100px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeInScale {
+    0% {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  /* Aplicar animaciones a elementos específicos */
+  .pts-field {
+    animation: fadeInScale 1s ease-out 0.3s both;
+  }
+  
+  h1 {
+    animation: slideInFromTop 0.8s ease-out both;
+  }
+  
+  .bg-gradient-to-r {
+    animation: slideInFromBottom 0.6s ease-out both;
+  }
+  
+  .bg-gradient-to-r:nth-child(1) { animation-delay: 0.1s; }
+  .bg-gradient-to-r:nth-child(2) { animation-delay: 0.2s; }
+  .bg-gradient-to-r:nth-child(3) { animation-delay: 0.3s; }
+  .bg-gradient-to-r:nth-child(4) { animation-delay: 0.4s; }
+  
+  /* Efectos de hover para las tarjetas de ranking */
+  .grid > div {
+    transition: all 0.3s ease;
+  }
+  
+  .grid > div:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Efecto de brillo para el MVP */
+  .bg-gradient-to-r.from-yellow-400 {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bg-gradient-to-r.from-yellow-400::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shine 3s infinite;
+  }
+  
+  @keyframes shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .pts-field {
+      aspect-ratio: 3/4;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+    }
+    
+    .bg-gradient-to-r {
+      padding: 1rem 1.25rem;
+    }
+  }
+</style>
+
+<script>
+  // La página PTS no necesita interacciones complejas
+  // Solo animaciones CSS y visualización estática
+  console.log('Página PTS cargada - FC Bufas Jornada 1')
+  
+  // Mostrar información adicional al hacer click en las estadísticas principales
+  document.querySelectorAll('.bg-gradient-to-r').forEach((card, index) => {
+    card.addEventListener('click', () => {
+      const info = [
+        'Total de puntos conseguidos por el equipo en la Jornada 1',
+        'Goles marcados en la jornada por Marcos',
+        'Asistencia realizada por Mario',
+        'Marcos es el MVP con 6 puntos, seguido por Pablo con 5'
+      ]
+      
+      alert(info[index] || 'Estadística de la Jornada 1')
+    })
+  })
+</script>
+
+<!-- GSAP desde CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+<script>
+  // GSAP Animaciones idénticas a stats.astro para mantener consistencia
+  document.addEventListener('DOMContentLoaded', function() {
+    const tl = gsap.timeline();
+    
+    tl.from('.animated-bg', {
+      duration: 2,
+      opacity: 0,
+      scale: 1.1,
+      ease: 'power2.out'
+    })
+    
+    .from('.particle', {
+      duration: 1.5,
+      opacity: 0,
+      scale: 0,
+      rotation: 180,
+      stagger: 0.2,
+      ease: 'back.out(1.7)'
+    }, '-=1.5')
+    
+    .from('.particle-medium', {
+      duration: 1,
+      opacity: 0,
+      y: 100,
+      stagger: 0.1,
+      ease: 'bounce.out'
+    }, '-=1')
+    
+    .from('.particle-small', {
+      duration: 0.8,
+      opacity: 0,
+      scale: 0,
+      stagger: 0.05,
+      ease: 'power2.out'
+    }, '-=0.8')
+    
+    .from('.light-effect', {
+      duration: 2,
+      opacity: 0,
+      scale: 0.5,
+      stagger: 0.3,
+      ease: 'power2.out'
+    }, '-=1');
+    
+    // Animaciones continuas
+    gsap.to('.particle-1, .particle-3, .particle-5', {
+      duration: 20,
+      rotation: 360,
+      repeat: -1,
+      ease: 'none'
+    });
+    
+    gsap.to('.particle-2, .particle-4, .particle-6', {
+      duration: 25,
+      rotation: -360,
+      repeat: -1,
+      ease: 'none'
+    });
+  });
+</script>

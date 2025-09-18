@@ -111,7 +111,7 @@ export const getStaticPaths = () => {
       </div>
 
       <!-- Estadísticas del jugador -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow-lg p-6 text-center">
           <div class="text-3xl font-bold text-blue-600">{fighter.goles || 0}</div>
           <div class="text-gray-600">⚽ Goles</div>
@@ -119,6 +119,10 @@ export const getStaticPaths = () => {
         <div class="bg-white rounded-lg shadow-lg p-6 text-center">
           <div class="text-3xl font-bold text-green-600">{fighter.asistencias || 0}</div>
           <div class="text-gray-600">🎯 Asistencias</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+          <div class="text-3xl font-bold text-orange-600">{fighter.puntosTotales || 0}</div>
+          <div class="text-gray-600">🏆 Puntos</div>
         </div>
         <div class="bg-white rounded-lg shadow-lg p-6 text-center">
           <div class="text-3xl font-bold text-purple-600">{fighter.partidos || 0}</div>
