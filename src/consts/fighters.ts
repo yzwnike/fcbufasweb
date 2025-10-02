@@ -45,16 +45,17 @@ export const FIGHTERS: Fighters[] = [
       thumbnail: '/images/fighters/workoutThumbnails/perxitaa-thumbnail.webp',
     },
     goles: 0,
-    asistencias: 0,
-    partidos: 1,
-    puntos: 2,
+    asistencias: 1, // Acumulado: 1 asistencia en J2
+    partidos: 2,
+    puntos: 6, // Acumulado: 2 + 4 = 6 puntos
     valor: 25,
-    valorTotal: 29000000,
-    puntosTotales: 2,
+valorTotal: 31000000, // Valor actualizado
+    puntosTotales: 6,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 35000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 30000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 29000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 29000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 31000000 }
     ],
     dorsal: 11,
   },
@@ -93,15 +94,16 @@ export const FIGHTERS: Fighters[] = [
     ],
     goles: 0,
     asistencias: 0,
-    partidos: 0,
-    puntos: 0,
+    partidos: 1, // Primera aparición en J2
+    puntos: 5,
     valor: 65,
-    valorTotal: 59000000,
-    puntosTotales: 0,
+valorTotal: 58000000, // Valor actualizado
+    puntosTotales: 5,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 60000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 60000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 59000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 59000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 58000000 }
     ],
     dorsal: 8,
   },
@@ -141,15 +143,16 @@ export const FIGHTERS: Fighters[] = [
     ],
     goles: 0,
     asistencias: 0,
-    partidos: 1,
-    puntos: 5,
+    partidos: 2,
+    puntos: 10, // Acumulado: 5 + 5 = 10 puntos
     valor: 22,
-    valorTotal: 43000000,
-    puntosTotales: 5,
+valorTotal: 44000000, // Valor actualizado
+    puntosTotales: 10,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 42000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 40000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 43000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 43000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 44000000 }
     ],
     dorsal: 6,
   },
@@ -210,15 +213,16 @@ export const FIGHTERS: Fighters[] = [
     ],
     goles: 0,
     asistencias: 0,
-    partidos: 1,
-    puntos: 4,
+    partidos: 2,
+    puntos: 8, // Acumulado: 4 + 4 = 8 puntos
     valor: 18,
-    valorTotal: 42000000,
-    puntosTotales: 4,
+valorTotal: 41000000, // Valor actualizado
+    puntosTotales: 8,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 45000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 42000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 42000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 42000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 41000000 }
     ],
     dorsal: 7,
   },
@@ -259,15 +263,16 @@ export const FIGHTERS: Fighters[] = [
     ],
     goles: 0,
     asistencias: 0,
-    partidos: 1,
-    puntos: 3,
+    partidos: 2,
+    puntos: 3, // Acumulado: 3 + 0 = 3 puntos
     valor: 15,
-    valorTotal: 52000000,
+valorTotal: 51000000, // Valor actualizado
     puntosTotales: 3,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 55000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 55000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 52000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 52000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 51000000 }
     ],
     dorsal: 4,
   },
@@ -304,17 +309,18 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/qdS_XOZ5kyU?si=ma0Sdomx1JJOyld1&amp;clip=Ugkxd-wfH9H1C-ZaiGBlFn3hZeAk9qQWK48w&amp;clipt=EKjUAhiw-wI',
       },
     ],
-    goles: 0,
+    goles: 1, // Acumulado: 0 + 1 = 1 gol
     asistencias: 0,
-    partidos: 1,
-    puntos: 2,
+    partidos: 2,
+    puntos: 15, // Acumulado: 2 + 13 = 15 puntos
     valor: 28,
-    valorTotal: 45000000,
-    puntosTotales: 2,
+valorTotal: 55000000, // Valor actualizado
+    puntosTotales: 15,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 50000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 48000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 45000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 45000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 55000000 }
     ],
     dorsal: 5,
   },
@@ -352,16 +358,17 @@ export const FIGHTERS: Fighters[] = [
       },
     ],
     goles: 0,
-    asistencias: 1,
-    partidos: 1,
-    puntos: 4,
+    asistencias: 2, // Acumulado: 1 + 1 = 2 asistencias
+    partidos: 2,
+    puntos: 9, // Acumulado: 4 + 5 = 9 puntos
     valor: 32,
-    valorTotal: 89000000,
-    puntosTotales: 4,
+valorTotal: 81000000, // Valor actualizado
+    puntosTotales: 9,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 85000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 97000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 89000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 89000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 81000000 }
     ],
     dorsal: 10,
   },
@@ -398,17 +405,18 @@ export const FIGHTERS: Fighters[] = [
         url: 'https://www.youtube.com/embed/cfpvro5tD7g?si=ZcMgqxaAfHxRQb96&amp;clip=UgkxQ5sj8mAkLsReNNl3UPmr5g6CkSbZyERl&amp;clipt=EKjXAhiw_gI',
       },
     ],
-    goles: 1,
+    goles: 4, // Acumulado: 1 + 3 = 4 goles
     asistencias: 0,
-    partidos: 1,
-    puntos: 6,
+    partidos: 2,
+    puntos: 20, // Acumulado: 6 + 14 = 20 puntos
     valor: 29,
-    valorTotal: 53000000,
-    puntosTotales: 6,
+valorTotal: 62000000, // Valor actualizado
+    puntosTotales: 20,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 57000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 51000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 53000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 53000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 62000000 }
     ],
     dorsal: 9,
   },
@@ -447,15 +455,16 @@ export const FIGHTERS: Fighters[] = [
     ],
     goles: 0,
     asistencias: 0,
-    partidos: 1,
-    puntos: 4,
+    partidos: 2,
+    puntos: 12, // Acumulado: 4 + 8 = 12 puntos (YZW)
     valor: 20,
-    valorTotal: 54000000,
-    puntosTotales: 4,
+valorTotal: 58000000, // Valor actualizado
+    puntosTotales: 12,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 56000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 56000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 54000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 54000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 58000000 }
     ],
     dorsal: 14,
   },
@@ -474,16 +483,17 @@ export const FIGHTERS: Fighters[] = [
     country: 'fra',
     city: 'China',
     goles: 0,
-    asistencias: 0,
-    partidos: 1,
-    puntos: 3,
+    asistencias: 1, // Acumulado: 0 + 1 = 1 asistencia
+    partidos: 2,
+    puntos: 12, // Acumulado: 3 + 9 = 12 puntos
     valor: 12,
-    valorTotal: 46000000,
-    puntosTotales: 3,
+valorTotal: 50000000, // Valor actualizado
+    puntosTotales: 12,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 48000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 48000000 },
-      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 46000000 }
+      { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 46000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 50000000 }
     ],
     dorsal: 2,
     socials: [

@@ -136,7 +136,165 @@ const JORNADA_1_PLAYERS = [
   }
 ]
 
-// Formación 1-2-3-3 (9 jugadores)
+// Datos de jugadores para la jornada 2
+const JORNADA_2_PLAYERS = [
+  {
+    id: 'yazawa',
+    name: 'Yazawa',
+    realName: 'Nico Vehi (Yazawa)',
+    position: 'POR',
+    bio: 'Portero titular mantiene su rendimiento sólido en la jornada 2.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 4, // Mantiene su puntuación base
+    valor: 18,
+    valorTotal: 42000000,
+    image: '/players/yazawa.webp'
+  },
+  {
+    id: 'mister',
+    name: 'Mister',
+    realName: 'Marc Sánchez (Míster)',
+    position: 'DFC',
+    bio: 'Excelente actuación defensiva con un gol que le da gran impulso.',
+    goles: 1, // G
+    asistencias: 0,
+    partidos: 1,
+    puntos: 13,
+    valor: 28,
+    valorTotal: 48000000,
+    image: '/players/mister.webp'
+  },
+  {
+    id: 'perma',
+    name: 'Perma',
+    realName: 'Marc Pemanyer',
+    position: 'DFC',
+    bio: 'Actuación discreta en su segunda jornada consecutiva.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 0,
+    valor: 15,
+    valorTotal: 55000000,
+    image: '/players/perma.webp'
+  },
+  {
+    id: 'fan',
+    name: 'Fan',
+    realName: 'Fan Xu',
+    position: 'LI',
+    bio: 'Gran actuación con una asistencia que demuestra su calidad ofensiva.',
+    goles: 0,
+    asistencias: 1, // A
+    partidos: 1,
+    puntos: 9,
+    valor: 12,
+    valorTotal: 48000000,
+    image: '/players/fan.webp'
+  },
+  {
+    id: 'pablo',
+    name: 'Pablo',
+    realName: 'Pablo Vehí Roca',
+    position: 'LD',
+    bio: 'Sólida actuación del lateral derecho mantiene su buen nivel.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 5,
+    valor: 22,
+    valorTotal: 40000000,
+    image: '/players/pablo.webp'
+  },
+  {
+    id: 'albert',
+    name: 'Albert',
+    realName: 'Albert Rodríguez',
+    position: 'MC',
+    bio: 'Mejora su rendimiento con una asistencia clave en el mediocampo.',
+    goles: 0,
+    asistencias: 1, // A
+    partidos: 1,
+    puntos: 4,
+    valor: 25,
+    valorTotal: 30000000,
+    image: '/players/albert.webp'
+  },
+  {
+    id: 'mario',
+    name: 'Mario',
+    realName: 'Mario Roca',
+    position: 'MC',
+    bio: 'Sólida actuación del mediocampista creativo con una nueva asistencia.',
+    goles: 0,
+    asistencias: 1, // A
+    partidos: 1,
+    puntos: 5,
+    valor: 32,
+    valorTotal: 97000000,
+    image: '/players/mario.webp'
+  },
+  {
+    id: 'nicou',
+    name: 'Nico',
+    realName: 'Nico Uriburu', // YZW = Uriburu
+    position: 'MC',
+    bio: 'Actuación destacada con 8 puntos, demostrando su versatilidad.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 8, // YZW 8
+    valor: 20,
+    valorTotal: 56000000,
+    image: '/players/nicou.webp'
+  },
+  {
+    id: 'javo',
+    name: 'Javo',
+    realName: 'Javo Ayesta',
+    position: 'MC',
+    bio: 'Primera aparición en jornada con una actuación sólida.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 5,
+    valor: 65,
+    valorTotal: 60000000,
+    image: '/players/javo.webp'
+  },
+  {
+    id: 'marcos',
+    name: 'Marcos',
+    realName: 'Marcos López',
+    position: 'DC',
+    bio: 'Espectacular actuación con 3 goles que lo convierten en la estrella de la jornada.',
+    goles: 3, // GGG
+    asistencias: 0,
+    partidos: 1,
+    puntos: 14,
+    valor: 29,
+    valorTotal: 51000000,
+    image: '/players/marcos.webp'
+  }
+]
+
+// Datos combinados de todas las jornadas para estadísticas totales
+const ALL_PLAYERS_STATS = {
+  'yazawa': { puntosTotales: 8, goles: 0, asistencias: 0, partidos: 2 },
+  'mister': { puntosTotales: 15, goles: 1, asistencias: 0, partidos: 2 },
+  'perma': { puntosTotales: 3, goles: 0, asistencias: 0, partidos: 2 },
+  'fan': { puntosTotales: 12, goles: 0, asistencias: 1, partidos: 2 },
+  'pablo': { puntosTotales: 10, goles: 0, asistencias: 0, partidos: 2 },
+  'albert': { puntosTotales: 6, goles: 0, asistencias: 1, partidos: 2 },
+  'mario': { puntosTotales: 9, goles: 0, asistencias: 2, partidos: 2 },
+  'nicou': { puntosTotales: 12, goles: 0, asistencias: 0, partidos: 2 },
+  'javo': { puntosTotales: 5, goles: 0, asistencias: 0, partidos: 1 },
+  'marcos': { puntosTotales: 20, goles: 4, asistencias: 0, partidos: 2 }
+}
+
+// Formación 1-2-5-2 (10 jugadores)
 // Posiciones para móvil
 const formationMobile = {
   // Portero
@@ -149,12 +307,13 @@ const formationMobile = {
   // Mediocampo (5 jugadores: 2 laterales + 3 centrales)
   'fan': { top: '50%', left: '10%' }, // Lateral izquierdo
   'pablo': { top: '50%', left: '90%' }, // Lateral derecho
-  'albert': { top: '45%', left: '33%' }, // Mediocentro izquierdo
+  'albert': { top: '45%', left: '25%' }, // Mediocentro izquierdo
   'mario': { top: '45%', left: '50%' }, // Mediocentro central
-  'nicou': { top: '45%', left: '67%' }, // Mediocentro derecho
+  'nicou': { top: '45%', left: '75%' }, // Mediocentro derecho
   
-  // Delantero (1 jugador)
-  'marcos': { top: '25%', left: '50%' }
+  // Delanteros (2 jugadores)
+  'javo': { top: '25%', left: '35%' }, // Delantero izquierdo
+  'marcos': { top: '25%', left: '65%' } // Delantero derecho
 }
 
 // Posiciones para desktop
@@ -169,21 +328,22 @@ const formationDesktop = {
   // Mediocampo (5 jugadores)
   'fan': { top: '45%', left: '10%' }, // Lateral izquierdo
   'pablo': { top: '45%', left: '90%' }, // Lateral derecho
-  'albert': { top: '40%', left: '33%' }, // Mediocentro izquierdo
+  'albert': { top: '40%', left: '25%' }, // Mediocentro izquierdo
   'mario': { top: '40%', left: '50%' }, // Mediocentro central
-  'nicou': { top: '40%', left: '67%' }, // Mediocentro derecho
+  'nicou': { top: '40%', left: '75%' }, // Mediocentro derecho
   
-  // Delantero (1 jugador)
-  'marcos': { top: '20%', left: '50%' }
+  // Delanteros (2 jugadores)
+  'javo': { top: '20%', left: '35%' }, // Delantero izquierdo
+  'marcos': { top: '20%', left: '65%' } // Delantero derecho
 }
 
-// Calcular estadísticas del equipo
-const totalPuntos = JORNADA_1_PLAYERS.reduce((sum, player) => sum + player.puntos, 0)
-const totalGoles = JORNADA_1_PLAYERS.reduce((sum, player) => sum + player.goles, 0)
-const totalAsistencias = JORNADA_1_PLAYERS.reduce((sum, player) => sum + player.asistencias, 0)
-const mejorJugador = JORNADA_1_PLAYERS.reduce((best, player) => 
+// Calcular estadísticas del equipo (Jornada 2)
+const totalPuntos = JORNADA_2_PLAYERS.reduce((sum, player) => sum + player.puntos, 0)
+const totalGoles = JORNADA_2_PLAYERS.reduce((sum, player) => sum + player.goles, 0)
+const totalAsistencias = JORNADA_2_PLAYERS.reduce((sum, player) => sum + player.asistencias, 0)
+const mejorJugador = JORNADA_2_PLAYERS.reduce((best, player) => 
   player.puntos > best.puntos ? player : best
-, JORNADA_1_PLAYERS[0])
+, JORNADA_2_PLAYERS[0])
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
@@ -203,7 +363,7 @@ const mejorJugador = JORNADA_1_PLAYERS.reduce((best, player) =>
         <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 shadow-2xl">
           <span class="text-3xl">⚽</span>
         </div>
-        <h1 class="text-5xl font-black text-white mb-2 drop-shadow-lg">PTS. JORNADA 1</h1>
+        <h1 class="text-5xl font-black text-white mb-2 drop-shadow-lg">PTS. JORNADA 2</h1>
         <div class="bg-white/10 backdrop-blur-md rounded-full px-6 py-2 inline-block mb-6">
           <p class="text-white text-lg font-medium">FC Bufas • Temporada 2025/26</p>
         </div>
@@ -246,7 +406,7 @@ const mejorJugador = JORNADA_1_PLAYERS.reduce((best, player) =>
           
           <!-- Jugadores con el nuevo componente -->
           {Object.entries(formationDesktop).map(([playerId, position]) => {
-            const player = JORNADA_1_PLAYERS.find(p => p.id === playerId)
+            const player = JORNADA_2_PLAYERS.find(p => p.id === playerId)
             return player ? (
               <PTSPlayer player={player} position={position} />
             ) : null
@@ -254,8 +414,8 @@ const mejorJugador = JORNADA_1_PLAYERS.reduce((best, player) =>
           
           <!-- Info del partido en esquina -->
           <div class="absolute top-4 left-4 bg-black/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-            <div class="text-sm font-semibold">JORNADA 1</div>
-            <div class="text-xs opacity-75">FC Bufas • 1-2-5-1</div>
+            <div class="text-sm font-semibold">JORNADA 2</div>
+            <div class="text-xs opacity-75">FC Bufas • 1-2-5-2</div>
           </div>
           
           <!-- Leyenda en la esquina opuesta -->
@@ -287,7 +447,7 @@ const mejorJugador = JORNADA_1_PLAYERS.reduce((best, player) =>
       <div class="mt-12 max-w-4xl mx-auto">
         <h2 class="text-2xl font-bold text-white text-center mb-8">🏆 Ranking de Rendimiento</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {JORNADA_1_PLAYERS
+          {JORNADA_2_PLAYERS
             .sort((a, b) => b.puntos - a.puntos)
             .map((player, index) => {
               const getPodiumClass = (pos: number) => {
@@ -507,19 +667,19 @@ const mejorJugador = JORNADA_1_PLAYERS.reduce((best, player) =>
 <script>
   // La página PTS no necesita interacciones complejas
   // Solo animaciones CSS y visualización estática
-  console.log('Página PTS cargada - FC Bufas Jornada 1')
+  console.log('Página PTS cargada - FC Bufas Jornada 2')
   
   // Mostrar información adicional al hacer click en las estadísticas principales
   document.querySelectorAll('.bg-gradient-to-r').forEach((card, index) => {
     card.addEventListener('click', () => {
       const info = [
-        'Total de puntos conseguidos por el equipo en la Jornada 1',
-        'Goles marcados en la jornada por Marcos',
-        'Asistencia realizada por Mario',
-        'Marcos es el MVP con 6 puntos, seguido por Pablo con 5'
+        'Total de puntos conseguidos por el equipo en la Jornada 2',
+        'Goles marcados: 3 por Marcos, 1 por Mister',
+        'Asistencias: Fan, Albert y Mario con 1 cada uno',
+        'Marcos es el MVP con 14 puntos'
       ]
       
-      alert(info[index] || 'Estadística de la Jornada 1')
+      alert(info[index] || 'Estadística de la Jornada 2')
     })
   })
 </script>

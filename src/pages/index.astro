@@ -90,59 +90,26 @@ const formatTime = (date: Date) => {
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
-  <!-- Fondo espectacular con partículas y efectos -->
+  <!-- Fondo optimizado y ligero -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none" id="background-container">
-    <!-- Gradiente base animado -->
-    <div class="animated-bg absolute inset-0"></div>
+    <!-- Gradiente base simple -->
+    <div class="simple-bg absolute inset-0"></div>
     
-    <!-- Sistema de partículas -->
+    <!-- Sistema de partículas reducido -->
     <div class="particles-layer absolute inset-0">
-      <!-- Partículas flotantes grandes -->
-      <div class="floating-particle particle-1" data-speed="0.5"></div>
-      <div class="floating-particle particle-2" data-speed="0.3"></div>
-      <div class="floating-particle particle-3" data-speed="0.7"></div>
-      <div class="floating-particle particle-4" data-speed="0.4"></div>
-      <div class="floating-particle particle-5" data-speed="0.6"></div>
-      <div class="floating-particle particle-6" data-speed="0.8"></div>
+      <!-- Solo 2 partículas flotantes -->
+      <div class="floating-particle particle-1"></div>
+      <div class="floating-particle particle-2"></div>
       
-      <!-- Partículas medianas con brillo -->
+      <!-- Solo 2 partículas con brillo -->
       <div class="glowing-particle glow-1"></div>
       <div class="glowing-particle glow-2"></div>
-      <div class="glowing-particle glow-3"></div>
-      <div class="glowing-particle glow-4"></div>
-      <div class="glowing-particle glow-5"></div>
-      <div class="glowing-particle glow-6"></div>
-      <div class="glowing-particle glow-7"></div>
-      <div class="glowing-particle glow-8"></div>
       
-      <!-- Estrellas pequeñas -->
+      <!-- Solo 3 estrellas -->
       <div class="star-particle star-1"></div>
       <div class="star-particle star-2"></div>
       <div class="star-particle star-3"></div>
-      <div class="star-particle star-4"></div>
-      <div class="star-particle star-5"></div>
-      <div class="star-particle star-6"></div>
-      <div class="star-particle star-7"></div>
-      <div class="star-particle star-8"></div>
-      <div class="star-particle star-9"></div>
-      <div class="star-particle star-10"></div>
-      <div class="star-particle star-11"></div>
-      <div class="star-particle star-12"></div>
-      
-      <!-- Efectos de luz ambiental -->
-      <div class="ambient-light light-1"></div>
-      <div class="ambient-light light-2"></div>
-      <div class="ambient-light light-3"></div>
-      <div class="ambient-light light-4"></div>
-      
-      <!-- Ondas de energía -->
-      <div class="energy-wave wave-1"></div>
-      <div class="energy-wave wave-2"></div>
-      <div class="energy-wave wave-3"></div>
     </div>
-    
-    <!-- Canvas para partículas dinámicas -->
-    <canvas id="particle-canvas" class="absolute inset-0 w-full h-full"></canvas>
     
     <!-- Overlay sutil para legibilidad -->
     <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30"></div>
@@ -524,11 +491,13 @@ const formatTime = (date: Date) => {
 </Layout>
 
 <style>
-  /* Fondo animado base */
-  .animated-bg {
+  /* Fondo animado base - Optimizado para GPU */
+  .simple-bg {
     background: linear-gradient(-45deg, #000000, #1a0d00, #ff4500, #ff6b35, #2d1810, #000000, #4a2c17);
     background-size: 400% 400%;
-    animation: gradientFlow 20s ease infinite;
+    animation: gradientFlow 30s ease infinite;
+    will-change: background-position;
+    transform: translateZ(0); /* Forzar capa compuesta */
   }
   
   @keyframes gradientFlow {
@@ -539,13 +508,16 @@ const formatTime = (date: Date) => {
     100% { background-position: 0% 50%; }
   }
   
-  /* Partículas flotantes grandes */
+  /* Partículas flotantes grandes - Optimizado para GPU */
   .floating-particle {
     position: absolute;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 107, 53, 0.6), rgba(255, 69, 0, 0.3), transparent);
     filter: blur(1px);
     animation: floatAnimation 25s linear infinite;
+    will-change: transform, opacity;
+    transform: translateZ(0); /* Forzar aceleración GPU */
+    backface-visibility: hidden; /* Mejorar rendimiento */
   }
   
   .particle-1 { width: 120px; height: 120px; top: 10%; left: 15%; animation-delay: 0s; }
@@ -555,7 +527,7 @@ const formatTime = (date: Date) => {
   .particle-5 { width: 90px; height: 90px; top: 70%; left: 60%; animation-delay: 20s; }
   .particle-6 { width: 110px; height: 110px; bottom: 40%; right: 40%; animation-delay: 8s; }
   
-  /* Partículas con brillo */
+  /* Partículas con brillo - Optimizado para GPU */
   .glowing-particle {
     position: absolute;
     width: 40px;
@@ -564,6 +536,9 @@ const formatTime = (date: Date) => {
     background: radial-gradient(circle, rgba(255, 140, 0, 0.8), rgba(255, 69, 0, 0.4), transparent);
     box-shadow: 0 0 20px rgba(255, 107, 53, 0.6), 0 0 40px rgba(255, 69, 0, 0.3);
     animation: glowPulse 3s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
   
   .glow-1 { top: 20%; left: 10%; animation-delay: 0s; }
@@ -575,7 +550,7 @@ const formatTime = (date: Date) => {
   .glow-7 { bottom: 60%; left: 80%; animation-delay: 0.3s; }
   .glow-8 { top: 80%; right: 45%; animation-delay: 1.8s; }
   
-  /* Estrellas pequeñas */
+  /* Estrellas pequeñas - Optimizado para GPU */
   .star-particle {
     position: absolute;
     width: 4px;
@@ -584,6 +559,9 @@ const formatTime = (date: Date) => {
     border-radius: 50%;
     box-shadow: 0 0 6px #ffffff, 0 0 12px rgba(255, 107, 53, 0.5);
     animation: starTwinkle 2s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
   
   .star-1 { top: 15%; left: 25%; animation-delay: 0s; }
@@ -599,13 +577,16 @@ const formatTime = (date: Date) => {
   .star-11 { top: 30%; left: 5%; animation-delay: 0.1s; }
   .star-12 { bottom: 10%; left: 50%; animation-delay: 1.3s; }
   
-  /* Luces ambientales */
+  /* Luces ambientales - Optimizado para GPU */
   .ambient-light {
     position: absolute;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 107, 53, 0.15), rgba(255, 69, 0, 0.1), transparent);
     filter: blur(60px);
     animation: ambientPulse 8s ease-in-out infinite;
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
   
   .light-1 { width: 400px; height: 400px; top: -100px; left: -100px; animation-delay: 0s; }
