@@ -21,5 +21,5 @@ export default defineConfig({
 
   integrations: [sitemap(), auth()],
 
-  site: 'https://www.infolavelada.com/',
+  site: 'https://fcbufasweb.vercel.app/',
 })
