@@ -214,10 +214,10 @@ valorTotal: 44000000, // Valor actualizado
     goles: 0,
     asistencias: 0,
     partidos: 2,
-    puntos: 8, // Acumulado: 4 + 4 = 8 puntos
+    puntos: 7, // Acumulado: 4 + 3 = 7 puntos
     valor: 18,
 valorTotal: 41000000, // Valor actualizado
-    puntosTotales: 8,
+    puntosTotales: 7,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 45000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 42000000 },
