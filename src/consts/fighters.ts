@@ -387,7 +387,7 @@ valorTotal: 88000000, // Valor actualizado
     gender: 'masculino',
     birthDate: new Date(2005, 8, 7),
     height: 1.84,
-    age: 19,
+    age: 20,
     position: "DC",
     country: 'es',
     gallery: true,
