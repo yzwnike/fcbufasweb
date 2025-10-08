@@ -44,18 +44,19 @@ export const FIGHTERS: Fighters[] = [
       videoID: 'dj-4LLi5cck',
       thumbnail: '/images/fighters/workoutThumbnails/perxitaa-thumbnail.webp',
     },
-    goles: 0,
-    asistencias: 1, // Acumulado: 1 asistencia en J2
-    partidos: 2,
-    puntos: 6, // Acumulado: 2 + 4 = 6 puntos
+    goles: 1,
+    asistencias: 2, // +1 J3
+    partidos: 3,
+    puntos: 17, // 6 + 11 (J3) = 17
     valor: 25,
-valorTotal: 31000000, // Valor actualizado
-    puntosTotales: 6,
+valorTotal: 40000000, // Valor actualizado
+    puntosTotales: 17,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 35000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 30000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 29000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 31000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 31000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 40000000 }
     ],
     dorsal: 11,
   },
@@ -94,16 +95,17 @@ valorTotal: 31000000, // Valor actualizado
     ],
     goles: 0,
     asistencias: 0,
-    partidos: 1, // Primera aparición en J2
+    partidos: 1, // +1 en J3
     puntos: 5,
     valor: 65,
-valorTotal: 58000000, // Valor actualizado
+valorTotal: 57000000, // Valor actualizado
     puntosTotales: 5,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 60000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 60000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 59000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 58000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 58000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 57000000 }
     ],
     dorsal: 8,
   },
@@ -144,15 +146,16 @@ valorTotal: 58000000, // Valor actualizado
     goles: 0,
     asistencias: 0,
     partidos: 2,
-    puntos: 10, // Acumulado: 5 + 5 = 10 puntos
+    puntos: 10, // Acumulado: 5 + 5 + 0 (J3) = 10 puntos
     valor: 22,
-valorTotal: 44000000, // Valor actualizado
+valorTotal: 43000000, // Valor actualizado
     puntosTotales: 10,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 42000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 40000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 43000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 44000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 44000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 43000000 }
     ],
     dorsal: 6,
   },
@@ -213,16 +216,17 @@ valorTotal: 44000000, // Valor actualizado
     ],
     goles: 0,
     asistencias: 0,
-    partidos: 2,
-    puntos: 7, // Acumulado: 4 + 3 = 7 puntos
+    partidos: 3,
+    puntos: 17, // 7 + 10 (J3) = 17 puntos
     valor: 18,
-valorTotal: 41000000, // Valor actualizado
-    puntosTotales: 7,
+valorTotal: 49000000, // Valor actualizado
+    puntosTotales: 17,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 45000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 42000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 42000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 41000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 41000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 49000000 }
     ],
     dorsal: 7,
   },
@@ -262,17 +266,18 @@ valorTotal: 41000000, // Valor actualizado
       },
     ],
     goles: 0,
-    asistencias: 0,
-    partidos: 2,
-    puntos: 3, // Acumulado: 3 + 0 = 3 puntos
+    asistencias: 1, // +1 J3
+    partidos: 3,
+    puntos: 13, // 3 + 10 (J3) = 13 puntos
     valor: 15,
-valorTotal: 51000000, // Valor actualizado
-    puntosTotales: 3,
+valorTotal: 57000000, // Valor actualizado
+    puntosTotales: 13,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 55000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 55000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 52000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 51000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 51000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 57000000 }
     ],
     dorsal: 4,
   },
@@ -309,18 +314,19 @@ valorTotal: 51000000, // Valor actualizado
         url: 'https://www.youtube.com/embed/qdS_XOZ5kyU?si=ma0Sdomx1JJOyld1&amp;clip=Ugkxd-wfH9H1C-ZaiGBlFn3hZeAk9qQWK48w&amp;clipt=EKjUAhiw-wI',
       },
     ],
-    goles: 1, // Acumulado: 0 + 1 = 1 gol
-    asistencias: 0,
-    partidos: 2,
-    puntos: 15, // Acumulado: 2 + 13 = 15 puntos
+    goles: 2, // +1 J3 (total)
+    asistencias: 2, // +2 J3
+    partidos: 3,
+    puntos: 30, // 15 + 15 (J3) = 30 puntos
     valor: 28,
-valorTotal: 55000000, // Valor actualizado
-    puntosTotales: 15,
+valorTotal: 62000000, // Valor actualizado
+    puntosTotales: 30,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 50000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 48000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 45000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 55000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 55000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 62000000 }
     ],
     dorsal: 5,
   },
@@ -357,18 +363,19 @@ valorTotal: 55000000, // Valor actualizado
         url: 'https://www.youtube.com/embed/cfpvro5tD7g?si=rjaM5jJdImEtefJ6&amp;clip=UgkxuoAS_mblPPU-wtj4bH3GiLXmVRBAow2b&amp;clipt=EImsAhjj2gI',
       },
     ],
-    goles: 0,
-    asistencias: 2, // Acumulado: 1 + 1 = 2 asistencias
-    partidos: 2,
-    puntos: 9, // Acumulado: 4 + 5 = 9 puntos
+    goles: 3, // +3 J3
+    asistencias: 4, // +2 J3
+    partidos: 3,
+    puntos: 30, // 9 + 21 (J3) = 30 puntos
     valor: 32,
-valorTotal: 81000000, // Valor actualizado
-    puntosTotales: 9,
+valorTotal: 88000000, // Valor actualizado
+    puntosTotales: 30,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 85000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 97000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 89000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 81000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 81000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 88000000 }
     ],
     dorsal: 10,
   },
@@ -405,18 +412,19 @@ valorTotal: 81000000, // Valor actualizado
         url: 'https://www.youtube.com/embed/cfpvro5tD7g?si=ZcMgqxaAfHxRQb96&amp;clip=UgkxQ5sj8mAkLsReNNl3UPmr5g6CkSbZyERl&amp;clipt=EKjXAhiw_gI',
       },
     ],
-    goles: 4, // Acumulado: 1 + 3 = 4 goles
+    goles: 6, // +2 J3 (total)
     asistencias: 0,
-    partidos: 2,
-    puntos: 20, // Acumulado: 6 + 14 = 20 puntos
+    partidos: 3,
+    puntos: 33, // 20 + 13 (J3) = 33 puntos
     valor: 29,
-valorTotal: 62000000, // Valor actualizado
-    puntosTotales: 20,
+valorTotal: 68000000, // Valor actualizado
+    puntosTotales: 33,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 57000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 51000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 53000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 62000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 62000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 68000000 }
     ],
     dorsal: 9,
   },
@@ -453,18 +461,19 @@ valorTotal: 62000000, // Valor actualizado
         url: 'https://www.youtube.com/embed/qdS_XOZ5kyU?si=D8fgVfCSRy_SwZHv&amp;clip=UgkxEmtFin7L3_YLiJW_OyRkmeZtFj53PnkT&amp;clipt=EPWwAhj91wI',
       },
     ],
-    goles: 0,
+    goles: 1, // +1 J3
     asistencias: 0,
-    partidos: 2,
-    puntos: 12, // Acumulado: 4 + 8 = 12 puntos (YZW)
+    partidos: 3,
+    puntos: 23, // 12 + 11 (J3) = 23 puntos
     valor: 20,
-valorTotal: 58000000, // Valor actualizado
-    puntosTotales: 12,
+valorTotal: 62000000, // Valor actualizado
+    puntosTotales: 23,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 56000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 56000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 54000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 58000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 58000000 },
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 62000000 }
     ],
     dorsal: 14,
   },
@@ -482,18 +491,19 @@ valorTotal: 58000000, // Valor actualizado
     gallery: true,
     country: 'fra',
     city: 'China',
-    goles: 0,
-    asistencias: 1, // Acumulado: 0 + 1 = 1 asistencia
-    partidos: 2,
-    puntos: 12, // Acumulado: 3 + 9 = 12 puntos
+    goles: 1, // +1 J3
+    asistencias: 2, // +1 J3
+    partidos: 3,
+    puntos: 24, // 12 + 12 (J3) = 24 puntos
     valor: 12,
-valorTotal: 50000000, // Valor actualizado
-    puntosTotales: 12,
+valorTotal: 57000000, // Valor actualizado
+    puntosTotales: 24,
     historialValores: [
       { fecha: new Date("2025-06-01T00:00:00.000Z"), valor: 48000000 },
       { fecha: new Date("2025-07-29T00:00:00.000Z"), valor: 48000000 },
       { fecha: new Date("2025-09-18T01:30:34.000Z"), valor: 46000000 },
-      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 50000000 }
+      { fecha: new Date("2025-10-02T15:17:09.000Z"), valor: 50000000 },
+      { fecha: new Date("2025-10-09T15:17:09.000Z"), valor: 57000000 }
     ],
     dorsal: 2,
     socials: [

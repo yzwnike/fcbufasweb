@@ -6,6 +6,20 @@ import { FIGHTERS } from '../consts/fighters'
 const title = 'Valores de Mercado - FC Bufas'
 const description = 'Consulta los valores de mercado de los jugadores del FC Bufas.'
 const canonical = 'https://www.fcbufasweb.vercel.app/valores-mercado'
+
+// Puntos Jornada 3 por jugador (id -> puntos)
+const PTS_J3: Record<string, number> = {
+  yazawa: 10,
+  mister: 15,
+  perma: 10,
+  albert: 11,
+  mario: 21,
+  fan: 12,
+  nicou: 11,
+  marcos: 13,
+  javo: 0,
+  pablo: 0,
+}
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
@@ -74,12 +88,13 @@ const canonical = 'https://www.fcbufasweb.vercel.app/valores-mercado'
         
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-50">
+<thead class="bg-gray-50">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jugador</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posición</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Edad</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PTS J3</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puntos</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor de Mercado</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tendencia</th>
@@ -121,8 +136,13 @@ const canonical = 'https://www.fcbufasweb.vercel.app/valores-mercado'
                           {fighter.position}
                         </span>
                       </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {fighter.age} años
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-semibold text-blue-600">
+                          {PTS_J3[fighter.id] ?? 0} pts
+                        </div>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-bold text-orange-600">

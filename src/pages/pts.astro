@@ -280,6 +280,150 @@ const JORNADA_2_PLAYERS = [
   }
 ]
 
+// Datos de jugadores para la jornada 3
+const JORNADA_3_PLAYERS = [
+  {
+    id: 'yazawa',
+    name: 'Yazawa',
+    realName: 'Nico Vehi (Yazawa)',
+    position: 'POR',
+    bio: 'Portero titular con actuación destacada en la jornada 3.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 10,
+    valor: 18,
+    valorTotal: 42000000,
+    image: '/players/yazawa.webp'
+  },
+  {
+    id: 'mister',
+    name: 'Mister',
+    realName: 'Marc Sánchez (Míster)',
+    position: 'DFC',
+    bio: 'Central líder con gran jornada: gol y dos asistencias.',
+    goles: 1,
+    asistencias: 2,
+    partidos: 1,
+    puntos: 15,
+    valor: 28,
+    valorTotal: 48000000,
+    image: '/players/mister.webp'
+  },
+  {
+    id: 'perma',
+    name: 'Perma',
+    realName: 'Marc Pemanyer',
+    position: 'DFC',
+    bio: 'Aporta en salida con una asistencia en la jornada 3.',
+    goles: 0,
+    asistencias: 1,
+    partidos: 1,
+    puntos: 10,
+    valor: 15,
+    valorTotal: 55000000,
+    image: '/players/perma.webp'
+  },
+  {
+    id: 'fan',
+    name: 'Fan',
+    realName: 'Fan Xu',
+    position: 'LI',
+    bio: 'Buen partido por banda con gol y asistencia.',
+    goles: 1,
+    asistencias: 1,
+    partidos: 1,
+    puntos: 12,
+    valor: 12,
+    valorTotal: 48000000,
+    image: '/players/fan.webp'
+  },
+  {
+    id: 'pablo',
+    name: 'Pablo',
+    realName: 'Pablo Vehí Roca',
+    position: 'LD',
+    bio: 'Jornada discreta.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 0,
+    valor: 22,
+    valorTotal: 40000000,
+    image: '/players/pablo.webp'
+  },
+  {
+    id: 'albert',
+    name: 'Albert',
+    realName: 'Albert Rodríguez',
+    position: 'MC',
+    bio: 'Gran trabajo en medio con gol y asistencia.',
+    goles: 1,
+    asistencias: 1,
+    partidos: 1,
+    puntos: 11,
+    valor: 25,
+    valorTotal: 30000000,
+    image: '/players/albert.webp'
+  },
+  {
+    id: 'mario',
+    name: 'Mario',
+    realName: 'Mario Roca',
+    position: 'MC',
+    bio: 'MVP de la jornada con doble-doble y hat-trick de goles.',
+    goles: 3,
+    asistencias: 2,
+    partidos: 1,
+    puntos: 21,
+    valor: 32,
+    valorTotal: 97000000,
+    image: '/players/mario.webp'
+  },
+  {
+    id: 'nicou',
+    name: 'Nico',
+    realName: 'Nico Uriburu',
+    position: 'MC',
+    bio: 'Llega al área y anota.',
+    goles: 1,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 11,
+    valor: 20,
+    valorTotal: 56000000,
+    image: '/players/nicou.webp'
+  },
+  {
+    id: 'javo',
+    name: 'Javo',
+    realName: 'Javo Ayesta',
+    position: 'MC',
+    bio: 'Sin incidencia estadística en esta jornada.',
+    goles: 0,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 0,
+    valor: 65,
+    valorTotal: 60000000,
+    image: '/players/javo.webp'
+  },
+  {
+    id: 'marcos',
+    name: 'Marcos',
+    realName: 'Marcos López',
+    position: 'DC',
+    bio: 'Sigue sumando con un doblete.',
+    goles: 2,
+    asistencias: 0,
+    partidos: 1,
+    puntos: 13,
+    valor: 29,
+    valorTotal: 51000000,
+    image: '/players/marcos.webp'
+  }
+]
+
 // Datos combinados de todas las jornadas para estadísticas totales
 const ALL_PLAYERS_STATS = {
   'yazawa': { puntosTotales: 7, goles: 0, asistencias: 0, partidos: 2 },
@@ -337,13 +481,13 @@ const formationDesktop = {
   'marcos': { top: '20%', left: '65%' } // Delantero derecho
 }
 
-// Calcular estadísticas del equipo (Jornada 2)
-const totalPuntos = JORNADA_2_PLAYERS.reduce((sum, player) => sum + player.puntos, 0)
-const totalGoles = JORNADA_2_PLAYERS.reduce((sum, player) => sum + player.goles, 0)
-const totalAsistencias = JORNADA_2_PLAYERS.reduce((sum, player) => sum + player.asistencias, 0)
-const mejorJugador = JORNADA_2_PLAYERS.reduce((best, player) => 
+// Calcular estadísticas del equipo (Jornada 3)
+const totalPuntos = JORNADA_3_PLAYERS.reduce((sum, player) => sum + player.puntos, 0)
+const totalGoles = JORNADA_3_PLAYERS.reduce((sum, player) => sum + player.goles, 0)
+const totalAsistencias = JORNADA_3_PLAYERS.reduce((sum, player) => sum + player.asistencias, 0)
+const mejorJugador = JORNADA_3_PLAYERS.reduce((best, player) => 
   player.puntos > best.puntos ? player : best
-, JORNADA_2_PLAYERS[0])
+, JORNADA_3_PLAYERS[0])
 ---
 
 <Layout title={title} description={description} canonical={canonical}>
@@ -363,7 +507,7 @@ const mejorJugador = JORNADA_2_PLAYERS.reduce((best, player) =>
         <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-4 shadow-2xl">
           <span class="text-3xl">⚽</span>
         </div>
-        <h1 class="text-5xl font-black text-white mb-2 drop-shadow-lg">PTS. JORNADA 2</h1>
+<h1 class="text-5xl font-black text-white mb-2 drop-shadow-lg">PTS. JORNADA 3</h1>
         <div class="bg-white/10 backdrop-blur-md rounded-full px-6 py-2 inline-block mb-6">
           <p class="text-white text-lg font-medium">FC Bufas • Temporada 2025/26</p>
         </div>
@@ -405,8 +549,8 @@ const mejorJugador = JORNADA_2_PLAYERS.reduce((best, player) =>
           </div>
           
           <!-- Jugadores con el nuevo componente -->
-          {Object.entries(formationDesktop).map(([playerId, position]) => {
-            const player = JORNADA_2_PLAYERS.find(p => p.id === playerId)
+{Object.entries(formationDesktop).map(([playerId, position]) => {
+            const player = JORNADA_3_PLAYERS.find(p => p.id === playerId)
             return player ? (
               <PTSPlayer player={player} position={position} />
             ) : null
@@ -414,7 +558,7 @@ const mejorJugador = JORNADA_2_PLAYERS.reduce((best, player) =>
           
           <!-- Info del partido en esquina -->
           <div class="absolute top-4 left-4 bg-black/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-            <div class="text-sm font-semibold">JORNADA 2</div>
+<div class="text-sm font-semibold">JORNADA 3</div>
             <div class="text-xs opacity-75">FC Bufas • 1-2-5-2</div>
           </div>
           
@@ -667,16 +811,16 @@ const mejorJugador = JORNADA_2_PLAYERS.reduce((best, player) =>
 <script>
   // La página PTS no necesita interacciones complejas
   // Solo animaciones CSS y visualización estática
-  console.log('Página PTS cargada - FC Bufas Jornada 2')
+console.log('Página PTS cargada - FC Bufas Jornada 3')
   
   // Mostrar información adicional al hacer click en las estadísticas principales
   document.querySelectorAll('.bg-gradient-to-r').forEach((card, index) => {
     card.addEventListener('click', () => {
       const info = [
-        'Total de puntos conseguidos por el equipo en la Jornada 2',
-        'Goles marcados: 3 por Marcos, 1 por Mister',
-        'Asistencias: Fan, Albert y Mario con 1 cada uno',
-        'Marcos es el MVP con 14 puntos'
+'Total de puntos conseguidos por el equipo en la Jornada 3',
+        'Goles marcados: 9 (Mister 1, Albert 1, Mario 3, Fan 1, Nico 1, Marcos 2)',
+        'Asistencias: 7 (Mister 2, Perma 1, Albert 1, Mario 2, Fan 1)',
+        'Mario es el MVP con 21 puntos'
       ]
       
       alert(info[index] || 'Estadística de la Jornada 2')

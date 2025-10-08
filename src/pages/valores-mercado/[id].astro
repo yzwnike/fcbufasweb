@@ -20,6 +20,22 @@ const tendenciaPercent = historial.length >= 2
   ? ((tendencia / historial[historial.length - 2].valor) * 100).toFixed(1)
   : '0'
 
+// Puntos Jornada 3 mapeados por id
+const PTS_J3: Record<string, number> = {
+  yazawa: 10,
+  mister: 15,
+  perma: 10,
+  albert: 11,
+  mario: 21,
+  fan: 12,
+  nicou: 11,
+  marcos: 13,
+  javo: 0,
+  pablo: 0,
+}
+
+const puntosJ3 = PTS_J3[fighter.id] ?? 0
+
 export const prerender = true
 
 export const getStaticPaths = () => {
@@ -120,9 +136,10 @@ export const getStaticPaths = () => {
           <div class="text-3xl font-bold text-green-600">{fighter.asistencias || 0}</div>
           <div class="text-gray-600">🎯 Asistencias</div>
         </div>
-        <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+<div class="bg-white rounded-lg shadow-lg p-6 text-center">
           <div class="text-3xl font-bold text-orange-600">{fighter.puntosTotales || 0}</div>
           <div class="text-gray-600">🏆 Puntos</div>
+          <div class="text-xs text-gray-500 mt-1">Jornada 3: <span class="font-semibold">{puntosJ3}</span> pts</div>
         </div>
         <div class="bg-white rounded-lg shadow-lg p-6 text-center">
           <div class="text-3xl font-bold text-purple-600">{fighter.partidos || 0}</div>
