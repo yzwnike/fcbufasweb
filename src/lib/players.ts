@@ -1,0 +1,67 @@
+import type { Player } from "./fc26";
+
+// Solo cartas base, sin TOTW
+export const players: Player[] = [
+  {
+    name: "Albert",
+    slug: "albert",
+    image: "/cards/albert.png",
+    overall: 82,
+    filigranas: 2,
+    pierna_mala: 2,
+    stats: {
+      ritmo: { total: 83, aceleracion: 83, velocidad_sprint: 83 },
+      tiro: {
+        total: 77,
+        posicionamiento: 83,
+        remate: 77,
+        potencia_tiro: 79,
+        tiros_lejanos: 74,
+        voleas: 55,
+        penaltis: 77,
+      },
+      pase: {
+        total: 82,
+        vision: 83,
+        centros: 79,
+        faltas: 69,
+        pase_corto: 84,
+        pase_largo: 80,
+        efecto: 77,
+      },
+      regate: {
+        total: 79,
+        agilidad: 80,
+        equilibrio: 79,
+        reacciones: 78,
+        control_balon: 78,
+        regate: 77,
+        compostura: 79,
+      },
+      defensa: {
+        total: 79,
+        intercepciones: 80,
+        cabeceo: 66,
+        percepcion_defensiva: 74,
+        entrada_normal: 78,
+        entrada_agresiva: 75,
+      },
+      fisico: {
+        total: 76,
+        salto: 79,
+        resistencia: 73,
+        fuerza: 75,
+        agresividad: 74,
+      },
+    },
+  },
+  { name: "Elvei", slug: "elvei", image: "/cards/elvei.png" },
+  { name: "Fan", slug: "fan", image: "/cards/fan.png" },
+  { name: "Javo", slug: "javo", image: "/cards/javo.png" },
+  { name: "Marcos", slug: "marcos", image: "/cards/marcos.png" },
+  { name: "Mario", slug: "mario", image: "/cards/mario.png" },
+  { name: "Mister", slug: "mister", image: "/cards/mister.png" },
+  { name: "Nicou", slug: "nicou", image: "/cards/nicou.png" },
+  { name: "Perma", slug: "perma", image: "/cards/perma.png" },
+  { name: "Yazawa", slug: "yazawa", image: "/cards/yazawa.png" },
+];

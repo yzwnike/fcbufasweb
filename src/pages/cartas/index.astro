@@ -1,0 +1,39 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { players } from "../../lib/players";
+---
+
+<Layout title="Cartas FC 26" description="Cartas estilo FC 26 de los jugadores del FC Bufas">
+  <section class="relative z-10 px-4 md:px-6 py-8 md:py-12 max-w-7xl mx-auto">
+    <header class="mb-6 md:mb-8">
+      <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white drop-shadow">Cartas de jugadores</h1>
+      <p class="text-sm md:text-base text-white/80">Haz clic en una carta para ver sus atributos y substats.</p>
+    </header>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+      {players.map((p) => (
+        <a href={`/cartas/${p.slug}`} class="group block relative rounded-xl overflow-hidden bg-white/5 backdrop-blur border border-white/10 shadow hover:shadow-lg transition-all duration-200">
+          <div class="relative">
+            <img
+              src={p.image}
+              alt={`Carta de ${p.name}`}
+              width="300"
+              height="420"
+              class="w-full h-auto"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-70 group-hover:opacity-80 transition-opacity"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-2 md:p-3 flex items-center justify-between">
+              <figcaption class="text-white font-semibold tracking-wide drop-shadow">{p.name}</figcaption>
+              {typeof p.overall === 'number' && (
+                <span class="ml-2 text-xs md:text-sm font-bold text-black bg-yellow-300/90 rounded px-2 py-0.5 shadow">
+                  {p.overall}
+                </span>
+              )}
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+</Layout>
