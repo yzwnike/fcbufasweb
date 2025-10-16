@@ -1,0 +1,500 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Sobres de Cartas - Nike FC Cards">
+  <div class="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-teal-900">
+    <div class="container mx-auto px-4 py-20">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
+          📦 Sobres de Cartas
+        </h1>
+        <p class="text-xl text-green-100 max-w-2xl mx-auto">
+          Abre sobres para conseguir nuevas cartas de jugadores. 
+          ¡Colecciona todas las rarezas!
+        </p>
+      </div>
+
+      <!-- Auth Check -->
+      <div id="not-logged-in" class="hidden text-center">
+        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
+          <p class="text-red-200 mb-6">Debes iniciar sesión para abrir sobres</p>
+          <a href="/nike-fc-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
+            Iniciar Sesión
+          </a>
+        </div>
+      </div>
+
+      <!-- Pack Selection -->
+      <div id="pack-selection" class="hidden">
+        <!-- User Stats -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-md mx-auto">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-green-100">Usuario:</p>
+              <p id="username" class="text-xl font-bold text-white">Loading...</p>
+            </div>
+            <div class="text-right">
+              <p class="text-green-100">Monedas</p>
+              <p id="user-coins" class="text-2xl font-bold text-yellow-400">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pack Types -->
+        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-8">
+          <!-- Free Pack -->
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center">
+            <div class="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+              <span class="text-3xl">🆓</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">Sobre Gratuito</h3>
+            <div class="space-y-2 mb-6">
+              <p class="text-green-200">• 1 carta aleatoria</p>
+              <p class="text-green-200">• Cada 24 horas</p>
+              <p class="text-green-200">• Gratis</p>
+            </div>
+            
+            <div id="free-pack-timer" class="mb-6 hidden">
+              <p class="text-yellow-300 font-semibold">Próximo sobre en:</p>
+              <div class="text-2xl font-bold text-white">
+                <span id="hours">12</span>h <span id="minutes">34</span>m
+              </div>
+              <div class="mt-4">
+                <p class="text-sm text-green-200 mb-2">Acelerar por:</p>
+                <p class="text-lg font-bold text-yellow-400"><span id="speedup-cost">120</span> monedas</p>
+              </div>
+            </div>
+
+            <button id="free-pack-btn" class="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-500">
+              Abrir Gratis
+            </button>
+            <button id="speedup-btn" class="w-full mt-2 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors hidden">
+              Acelerar
+            </button>
+          </div>
+
+          <!-- Premium Pack -->
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center">
+            <div class="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+              <span class="text-3xl">💎</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">Sobre Premium</h3>
+            <div class="space-y-2 mb-6">
+              <p class="text-green-200">• 3 cartas aleatorias</p>
+              <p class="text-green-200">• Mejores probabilidades</p>
+              <p class="text-yellow-400 font-bold">• 500 monedas</p>
+            </div>
+            <button id="premium-pack-btn" class="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors">
+              Comprar Premium
+            </button>
+          </div>
+
+          <!-- Special Pack -->
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center">
+            <div class="w-24 h-24 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+              <span class="text-3xl">✨</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-4">Sobre Especial</h3>
+            <div class="space-y-2 mb-6">
+              <p class="text-green-200">• 5 cartas aleatorias</p>
+              <p class="text-green-200">• 1 carta Elite/Leyenda garantizada</p>
+              <p class="text-yellow-400 font-bold">• 1000 monedas</p>
+            </div>
+            <button id="special-pack-btn" class="w-full py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">
+              Comprar Especial
+            </button>
+          </div>
+        </div>
+
+        <!-- Pack History -->
+        <div class="max-w-4xl mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-6 text-center">Historial de Sobres</h3>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6">
+            <div id="pack-history" class="space-y-4">
+              <!-- Historial se cargará aquí -->
+              <div class="text-center text-green-200 py-8">
+                No has abierto ningún sobre aún
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pack Opening Animation -->
+      <div id="pack-opening" class="hidden text-center">
+        <div class="max-w-2xl mx-auto">
+          <div class="text-6xl mb-8 animate-bounce">📦</div>
+          <h2 class="text-3xl font-bold text-white mb-4">Abriendo sobre...</h2>
+          <div class="w-full bg-gray-700 rounded-full h-4 mb-8">
+            <div id="opening-progress" class="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
+          </div>
+          <p class="text-green-200">¡Preparándote una sorpresa!</p>
+        </div>
+      </div>
+
+      <!-- Cards Revealed -->
+      <div id="cards-revealed" class="hidden">
+        <div class="text-center mb-8">
+          <h2 class="text-4xl font-bold text-white mb-4">¡Cartas Obtenidas!</h2>
+          <div class="text-2xl text-yellow-400 font-bold" id="cards-value">Valor total: 0 monedas</div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="revealed-cards" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto mb-8">
+          <!-- Las cartas aparecerán aquí -->
+        </div>
+
+        <div class="text-center">
+          <button id="continue-btn" class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors mr-4">
+            Abrir Otro Sobre
+          </button>
+          <a href="/nike-fc-cards/collection" class="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors">
+            Ver Colección
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentUser = null;
+    let authToken = null;
+    let freePackTimer = null;
+
+    // Auth functions
+    function checkAuthState() {
+      const token = localStorage.getItem('nike_fc_token');
+      const user = localStorage.getItem('nike_fc_user');
+      
+      if (token && user) {
+        try {
+          authToken = token;
+          currentUser = JSON.parse(user);
+          return true;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          localStorage.removeItem('nike_fc_token');
+          localStorage.removeItem('nike_fc_user');
+          return false;
+        }
+      }
+      return false;
+    }
+
+    function updateUserDisplay() {
+      if (currentUser) {
+        document.getElementById('username').textContent = currentUser.username;
+        document.getElementById('user-coins').textContent = currentUser.coins;
+        updatePackButtons();
+      }
+    }
+
+    function updatePackButtons() {
+      const premiumBtn = document.getElementById('premium-pack-btn');
+      const specialBtn = document.getElementById('special-pack-btn');
+      
+      if (premiumBtn) {
+        if (currentUser.coins >= 500) {
+          premiumBtn.disabled = false;
+          premiumBtn.textContent = 'Comprar Premium';
+        } else {
+          premiumBtn.disabled = true;
+          premiumBtn.textContent = 'Sin monedas suficientes';
+        }
+      }
+      
+      if (specialBtn) {
+        if (currentUser.coins >= 1000) {
+          specialBtn.disabled = false;
+          specialBtn.textContent = 'Comprar Especial';
+        } else {
+          specialBtn.disabled = true;
+          specialBtn.textContent = 'Sin monedas suficientes';
+        }
+      }
+    }
+
+    // UI functions
+    function showSection(sectionId) {
+      const sections = ['not-logged-in', 'pack-selection', 'pack-opening', 'cards-revealed'];
+      sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.classList.toggle('hidden', id !== sectionId);
+        }
+      });
+    }
+
+    // API calls
+    async function fetchPackStatus() {
+      try {
+        const response = await fetch('/api/nike-fc-cards/packs/status', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching pack status:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    async function claimFreePack(speedup = false) {
+      try {
+        const response = await fetch('/api/nike-fc-cards/packs/free', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}` 
+          },
+          body: JSON.stringify({ speedup })
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error claiming free pack:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    async function buyPack(packType) {
+      try {
+        const response = await fetch('/api/nike-fc-cards/packs/buy', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}` 
+          },
+          body: JSON.stringify({ packType })
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error buying pack:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    function updatePackStatus(status) {
+      if (status.freePackStatus.canClaim) {
+        document.getElementById('free-pack-timer').classList.add('hidden');
+        document.getElementById('speedup-btn').classList.add('hidden');
+        
+        const freeBtn = document.getElementById('free-pack-btn');
+        freeBtn.disabled = false;
+        freeBtn.textContent = 'Abrir Gratis';
+      } else {
+        document.getElementById('free-pack-timer').classList.remove('hidden');
+        document.getElementById('hours').textContent = status.freePackStatus.hoursRemaining;
+        document.getElementById('minutes').textContent = status.freePackStatus.minutesRemaining;
+        document.getElementById('speedup-cost').textContent = status.freePackStatus.speedupCost;
+        document.getElementById('speedup-btn').classList.remove('hidden');
+        
+        const freeBtn = document.getElementById('free-pack-btn');
+        freeBtn.disabled = true;
+        freeBtn.textContent = 'No Disponible';
+      }
+    }
+
+    async function openPack(packType) {
+      showSection('pack-opening');
+      
+      // Simulate pack opening animation
+      const progressBar = document.getElementById('opening-progress');
+      let progress = 0;
+      
+      const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          setTimeout(() => processPackOpening(packType), 500);
+        }
+      }, 100);
+    }
+
+    async function processPackOpening(packType) {
+      let result;
+      
+      if (packType === 'free') {
+        result = await claimFreePack(false);
+      } else if (packType === 'speedup') {
+        result = await claimFreePack(true);
+      } else {
+        result = await buyPack(packType);
+      }
+      
+      if (!result.success) {
+        alert('Error al abrir sobre: ' + result.error);
+        showSection('pack-selection');
+        return;
+      }
+      
+      // Update user balance
+      if (result.coinsSpent > 0) {
+        currentUser.coins -= result.coinsSpent;
+        localStorage.setItem('nike_fc_user', JSON.stringify(currentUser));
+      }
+      
+      revealCards(result.cards || []);
+    }
+
+    function revealCards(cards) {
+      const cardsContainer = document.getElementById('revealed-cards');
+      cardsContainer.innerHTML = '';
+      
+      let totalValue = 0;
+      
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          const cardElement = createCardElement(card);
+          cardsContainer.appendChild(cardElement);
+          totalValue += card.base_price;
+          
+          if (index === cards.length - 1) {
+            document.getElementById('cards-value').textContent = `Valor total: ${totalValue} monedas`;
+            updateUserDisplay();
+          }
+        }, index * 200);
+      });
+      
+      showSection('cards-revealed');
+    }
+
+    function generateMockCards(numCards, packType) {
+      const players = [
+        'Nico Vehi', 'Pablo Vehi', 'Albert Rodriguez', 'Marc Sanchez', 
+        'Mario Roca', 'Marcos Lopez', 'Nico Uriburu', 'Javo Ayesta',
+        'Marc Permanyer', 'Fan Xu'
+      ];
+      
+      const rarities = ['Bronze', 'Silver', 'Gold', 'Elite', 'Legend'];
+      const rarityColors = {
+        Bronze: 'from-amber-600 to-amber-800',
+        Silver: 'from-gray-400 to-gray-600',
+        Gold: 'from-yellow-400 to-yellow-600',
+        Elite: 'from-purple-500 to-purple-700',
+        Legend: 'from-pink-500 to-pink-700'
+      };
+      
+      const rarityValues = {
+        Bronze: 50,
+        Silver: 100,
+        Gold: 250,
+        Elite: 500,
+        Legend: 1000
+      };
+
+      const cards = [];
+      
+      for (let i = 0; i < numCards; i++) {
+        let rarity;
+        
+        if (packType === 'special' && i === 0) {
+          // Garantizar Elite o Legend en sobre especial
+          rarity = Math.random() > 0.5 ? 'Elite' : 'Legend';
+        } else {
+          // Probabilidades normales
+          const rand = Math.random();
+          if (rand < 0.5) rarity = 'Bronze';
+          else if (rand < 0.75) rarity = 'Silver';
+          else if (rand < 0.9) rarity = 'Gold';
+          else if (rand < 0.98) rarity = 'Elite';
+          else rarity = 'Legend';
+        }
+        
+        const player = players[Math.floor(Math.random() * players.length)];
+        
+        cards.push({
+          player,
+          rarity,
+          color: rarityColors[rarity],
+          value: rarityValues[rarity] + Math.floor(Math.random() * 50)
+        });
+      }
+      
+      return cards;
+    }
+
+    function createCardElement(card) {
+      const rarityColors = {
+        Bronze: 'from-amber-600 to-amber-800',
+        Silver: 'from-gray-400 to-gray-600',
+        Gold: 'from-yellow-400 to-yellow-600',
+        Elite: 'from-purple-500 to-purple-700',
+        Legend: 'from-pink-500 to-pink-700'
+      };
+      
+      const cardDiv = document.createElement('div');
+      cardDiv.className = `bg-gradient-to-br ${rarityColors[card.rarity]} rounded-xl p-4 text-center transform hover:scale-105 transition-transform`;
+      cardDiv.innerHTML = `
+        <div class="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <span class="text-2xl">⚽</span>
+        </div>
+        <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
+        <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${card.rarity}</div>
+        <div class="text-xs text-yellow-300 font-bold">${card.base_price} 💰</div>
+        <div class="text-xs text-white/90 mt-1">FIFA: ${card.player.fifa_rating}</div>
+      `;
+      return cardDiv;
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!checkAuthState()) {
+        showSection('not-logged-in');
+        return;
+      }
+
+      showSection('pack-selection');
+      updateUserDisplay();
+      
+      // Load pack status
+      const statusResult = await fetchPackStatus();
+      if (statusResult.success) {
+        updatePackStatus(statusResult);
+      }
+
+      // Pack buttons
+      document.getElementById('free-pack-btn').addEventListener('click', () => {
+        if (!document.getElementById('free-pack-btn').disabled) {
+          openPack('free');
+        }
+      });
+
+      document.getElementById('speedup-btn').addEventListener('click', () => {
+        const cost = parseInt(document.getElementById('speedup-cost').textContent);
+        if (currentUser.coins >= cost) {
+          openPack('speedup');
+        } else {
+          alert('No tienes suficientes monedas para acelerar');
+        }
+      });
+
+      document.getElementById('premium-pack-btn').addEventListener('click', () => {
+        if (currentUser.coins >= 500) {
+          openPack('premium');
+        }
+      });
+
+      document.getElementById('special-pack-btn').addEventListener('click', () => {
+        if (currentUser.coins >= 1000) {
+          openPack('special');
+        }
+      });
+
+      document.getElementById('continue-btn').addEventListener('click', async () => {
+        showSection('pack-selection');
+        updateUserDisplay();
+        
+        // Refresh pack status
+        const statusResult = await fetchPackStatus();
+        if (statusResult.success) {
+          updatePackStatus(statusResult);
+        }
+      });
+    });
+  </script>
+</Layout>

@@ -1,0 +1,549 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Mi Colección - Nike FC Cards">
+  <div class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+    <div class="container mx-auto px-4 py-20">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
+          📚 Mi Colección
+        </h1>
+        <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+          Gestiona todas tus cartas, filtra por rareza y posición, y pon cartas en venta
+        </p>
+      </div>
+
+      <!-- Auth Check -->
+      <div id="not-logged-in" class="hidden text-center">
+        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
+          <p class="text-red-200 mb-6">Debes iniciar sesión para ver tu colección</p>
+          <a href="/nike-fc-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
+            Iniciar Sesión
+          </a>
+        </div>
+      </div>
+
+      <!-- Collection Container -->
+      <div id="collection-container" class="hidden">
+        <!-- Collection Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 max-w-4xl mx-auto">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-blue-300" id="total-cards">0</div>
+            <div class="text-blue-200">Cartas Totales</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-yellow-400" id="total-value">0</div>
+            <div class="text-blue-200">Valor Total</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-green-400" id="unique-players">0</div>
+            <div class="text-blue-200">Jugadores Únicos</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-purple-400" id="cards-for-sale">0</div>
+            <div class="text-blue-200">En Venta</div>
+          </div>
+        </div>
+
+        <!-- Rarity Distribution -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-4xl mx-auto">
+          <h3 class="text-xl font-bold text-white text-center mb-4">Distribución por Rareza</h3>
+          <div class="grid grid-cols-5 gap-4">
+            <div class="text-center">
+              <div class="w-12 h-12 bg-amber-600 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="bronze-count">0</div>
+              <div class="text-xs text-blue-200">Bronce</div>
+            </div>
+            <div class="text-center">
+              <div class="w-12 h-12 bg-gray-400 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="silver-count">0</div>
+              <div class="text-xs text-blue-200">Plata</div>
+            </div>
+            <div class="text-center">
+              <div class="w-12 h-12 bg-yellow-400 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="gold-count">0</div>
+              <div class="text-xs text-blue-200">Oro</div>
+            </div>
+            <div class="text-center">
+              <div class="w-12 h-12 bg-purple-500 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="elite-count">0</div>
+              <div class="text-xs text-blue-200">Élite</div>
+            </div>
+            <div class="text-center">
+              <div class="w-12 h-12 bg-pink-500 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="legend-count">0</div>
+              <div class="text-xs text-blue-200">Leyenda</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-4xl mx-auto">
+          <h3 class="text-xl font-bold text-white mb-4">Filtros</h3>
+          <div class="grid md:grid-cols-4 gap-4">
+            <!-- Rarity Filter -->
+            <div>
+              <label class="block text-sm font-medium text-blue-200 mb-2">Rareza</label>
+              <select id="rarity-filter" class="w-full px-3 py-2 bg-blue-800/50 border border-blue-600 rounded-lg text-white">
+                <option value="">Todas</option>
+                <option value="Bronze">Bronce</option>
+                <option value="Silver">Plata</option>
+                <option value="Gold">Oro</option>
+                <option value="Elite">Élite</option>
+                <option value="Legend">Leyenda</option>
+              </select>
+            </div>
+
+            <!-- Position Filter -->
+            <div>
+              <label class="block text-sm font-medium text-blue-200 mb-2">Posición</label>
+              <select id="position-filter" class="w-full px-3 py-2 bg-blue-800/50 border border-blue-600 rounded-lg text-white">
+                <option value="">Todas</option>
+                <option value="GK">Portero</option>
+                <option value="CB">Defensa Central</option>
+                <option value="LB">Lateral Izquierdo</option>
+                <option value="RB">Lateral Derecho</option>
+                <option value="CM">Centrocampista</option>
+                <option value="CAM">Mediocentro Ofensivo</option>
+                <option value="CDM">Mediocentro Defensivo</option>
+                <option value="LM">Centrocampista Izquierdo</option>
+                <option value="RM">Centrocampista Derecho</option>
+                <option value="LW">Extremo Izquierdo</option>
+                <option value="RW">Extremo Derecho</option>
+                <option value="ST">Delantero</option>
+              </select>
+            </div>
+
+            <!-- Rating Filter -->
+            <div>
+              <label class="block text-sm font-medium text-blue-200 mb-2">Rating Mínimo</label>
+              <select id="rating-filter" class="w-full px-3 py-2 bg-blue-800/50 border border-blue-600 rounded-lg text-white">
+                <option value="">Cualquiera</option>
+                <option value="60">60+</option>
+                <option value="70">70+</option>
+                <option value="80">80+</option>
+                <option value="85">85+</option>
+                <option value="90">90+</option>
+              </select>
+            </div>
+
+            <!-- Sale Filter -->
+            <div>
+              <label class="block text-sm font-medium text-blue-200 mb-2">Estado</label>
+              <select id="sale-filter" class="w-full px-3 py-2 bg-blue-800/50 border border-blue-600 rounded-lg text-white">
+                <option value="">Todas</option>
+                <option value="false">En Colección</option>
+                <option value="true">En Venta</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-4 flex justify-between items-center">
+            <button id="apply-filters-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+              Aplicar Filtros
+            </button>
+            <button id="clear-filters-btn" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+              Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          <!-- Cards will be loaded here -->
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="text-center py-8">
+          <div class="text-white">Cargando colección...</div>
+        </div>
+
+        <!-- No Cards -->
+        <div id="no-cards" class="hidden text-center py-8">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+            <div class="text-6xl mb-4">📦</div>
+            <h3 class="text-2xl font-bold text-white mb-4">Sin cartas</h3>
+            <p class="text-blue-200 mb-6">No tienes cartas que coincidan con los filtros seleccionados</p>
+            <a href="/nike-fc-cards/packs" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+              Abrir Sobres
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Detail Modal -->
+  <div id="card-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl max-w-md w-full mx-4">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-gray-900" id="modal-card-name">Jugador</h3>
+          <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Card Preview -->
+        <div class="text-center mb-6">
+          <div id="modal-card-preview" class="inline-block">
+            <!-- Card preview will be generated here -->
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="space-y-4">
+          <div id="sale-section" class="hidden">
+            <div class="flex items-center gap-4 mb-4">
+              <label class="text-gray-700 font-medium">Precio de venta:</label>
+              <input type="number" id="sale-price-input" min="50" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg" />
+            </div>
+            <div class="flex gap-4">
+              <button id="put-on-sale-btn" class="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">
+                Poner en Venta
+              </button>
+              <button id="cancel-sale-btn" class="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600">
+                Cancelar
+              </button>
+            </div>
+          </div>
+
+          <div id="action-buttons" class="flex gap-4">
+            <button id="sell-card-btn" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">
+              Vender al Mercado
+            </button>
+            <button id="remove-from-sale-btn" class="hidden flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600">
+              Quitar de Venta
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentUser = null;
+    let authToken = null;
+    let userCards = [];
+    let filteredCards = [];
+    let selectedCard = null;
+
+    // Auth functions
+    function checkAuthState() {
+      const token = localStorage.getItem('nike_fc_token');
+      const user = localStorage.getItem('nike_fc_user');
+      
+      if (token && user) {
+        try {
+          authToken = token;
+          currentUser = JSON.parse(user);
+          return true;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          localStorage.removeItem('nike_fc_token');
+          localStorage.removeItem('nike_fc_user');
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // UI functions
+    function showSection(sectionId) {
+      const sections = ['not-logged-in', 'collection-container', 'loading', 'no-cards'];
+      sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.classList.toggle('hidden', id !== sectionId);
+        }
+      });
+    }
+
+    // Fetch user collection (mock for now - replace with API call)
+    async function fetchUserCollection() {
+      // Mock data - replace with actual API call when cards API is available
+      return {
+        success: true,
+        cards: generateMockCards(),
+        stats: {
+          totalCards: 42,
+          totalValue: 15250,
+          uniquePlayers: 28,
+          cardsByRarity: {
+            Bronze: 18,
+            Silver: 12,
+            Gold: 8,
+            Elite: 3,
+            Legend: 1
+          }
+        }
+      };
+    }
+
+    function generateMockCards() {
+      const players = [
+        'Nico Vehi', 'Pablo Vehi', 'Albert Rodriguez', 'Marc Sanchez', 
+        'Mario Roca', 'Marcos Lopez', 'Nico Uriburu', 'Javo Ayesta',
+        'Marc Permanyer', 'Fan Xu'
+      ];
+
+      const positions = ['ST', 'CM', 'CB', 'GK', 'LW', 'RW', 'CAM', 'CDM'];
+      const rarities = ['Bronze', 'Silver', 'Gold', 'Elite', 'Legend'];
+      const cards = [];
+
+      for (let i = 0; i < 42; i++) {
+        const player = players[Math.floor(Math.random() * players.length)];
+        const position = positions[Math.floor(Math.random() * positions.length)];
+        const rarity = rarities[Math.floor(Math.random() * rarities.length)];
+        const isForSale = Math.random() > 0.8;
+
+        cards.push({
+          id: i + 1,
+          user_id: currentUser.id,
+          card_id: i + 1,
+          obtained_at: new Date().toISOString(),
+          is_for_sale: isForSale,
+          sale_price: isForSale ? Math.floor(Math.random() * 1000) + 100 : null,
+          card: {
+            id: i + 1,
+            player_id: (i % 10) + 1,
+            rarity: rarity,
+            special_type: 'Regular',
+            base_price: Math.floor(Math.random() * 500) + 50,
+            player: {
+              id: (i % 10) + 1,
+              name: player,
+              position1: position,
+              fifa_rating: Math.floor(Math.random() * 30) + 60,
+              fantasy_points: Math.floor(Math.random() * 10)
+            }
+          }
+        });
+      }
+
+      return cards;
+    }
+
+    function displayStats(stats) {
+      document.getElementById('total-cards').textContent = stats.totalCards;
+      document.getElementById('total-value').textContent = stats.totalValue.toLocaleString();
+      document.getElementById('unique-players').textContent = stats.uniquePlayers;
+      
+      const cardsForSale = userCards.filter(uc => uc.is_for_sale).length;
+      document.getElementById('cards-for-sale').textContent = cardsForSale;
+
+      // Rarity counts
+      document.getElementById('bronze-count').textContent = stats.cardsByRarity.Bronze || 0;
+      document.getElementById('silver-count').textContent = stats.cardsByRarity.Silver || 0;
+      document.getElementById('gold-count').textContent = stats.cardsByRarity.Gold || 0;
+      document.getElementById('elite-count').textContent = stats.cardsByRarity.Elite || 0;
+      document.getElementById('legend-count').textContent = stats.cardsByRarity.Legend || 0;
+    }
+
+    function displayCards(cards) {
+      const grid = document.getElementById('cards-grid');
+      
+      if (cards.length === 0) {
+        grid.classList.add('hidden');
+        document.getElementById('no-cards').classList.remove('hidden');
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      document.getElementById('no-cards').classList.add('hidden');
+      
+      grid.innerHTML = '';
+      
+      cards.forEach(userCard => {
+        const cardElement = createCardElement(userCard);
+        grid.appendChild(cardElement);
+      });
+    }
+
+    function createCardElement(userCard) {
+      const card = userCard.card;
+      const rarityColors = {
+        Bronze: 'from-amber-600 to-amber-800',
+        Silver: 'from-gray-400 to-gray-600',
+        Gold: 'from-yellow-400 to-yellow-600',
+        Elite: 'from-purple-500 to-purple-700',
+        Legend: 'from-pink-500 to-pink-700'
+      };
+
+      const cardDiv = document.createElement('div');
+      cardDiv.className = `bg-gradient-to-br ${rarityColors[card.rarity]} rounded-xl p-4 text-center transform hover:scale-105 transition-transform cursor-pointer relative`;
+      cardDiv.addEventListener('click', () => openCardModal(userCard));
+
+      let saleIndicator = '';
+      if (userCard.is_for_sale) {
+        saleIndicator = `
+          <div class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+            En Venta
+          </div>
+        `;
+      }
+
+      cardDiv.innerHTML = `
+        ${saleIndicator}
+        <div class="w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <span class="text-3xl">⚽</span>
+        </div>
+        <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
+        <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${card.rarity}</div>
+        <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
+        <div class="text-xs text-yellow-300 font-bold">${card.base_price} 💰</div>
+        ${userCard.is_for_sale ? `<div class="text-xs text-green-300 mt-1">Precio: ${userCard.sale_price}</div>` : ''}
+      `;
+
+      return cardDiv;
+    }
+
+    function openCardModal(userCard) {
+      selectedCard = userCard;
+      const card = userCard.card;
+
+      document.getElementById('modal-card-name').textContent = card.player.name;
+      
+      // Generate card preview
+      const preview = document.getElementById('modal-card-preview');
+      preview.innerHTML = createCardElement(userCard).innerHTML;
+
+      // Show/hide appropriate buttons
+      const sellBtn = document.getElementById('sell-card-btn');
+      const removeFromSaleBtn = document.getElementById('remove-from-sale-btn');
+      const saleSection = document.getElementById('sale-section');
+
+      if (userCard.is_for_sale) {
+        sellBtn.classList.add('hidden');
+        removeFromSaleBtn.classList.remove('hidden');
+        saleSection.classList.add('hidden');
+      } else {
+        sellBtn.classList.remove('hidden');
+        removeFromSaleBtn.classList.add('hidden');
+        saleSection.classList.add('hidden');
+      }
+
+      document.getElementById('card-modal').classList.remove('hidden');
+    }
+
+    function closeCardModal() {
+      document.getElementById('card-modal').classList.add('hidden');
+      selectedCard = null;
+    }
+
+    function applyFilters() {
+      const rarityFilter = document.getElementById('rarity-filter').value;
+      const positionFilter = document.getElementById('position-filter').value;
+      const ratingFilter = parseInt(document.getElementById('rating-filter').value) || 0;
+      const saleFilter = document.getElementById('sale-filter').value;
+
+      filteredCards = userCards.filter(userCard => {
+        const card = userCard.card;
+        
+        if (rarityFilter && card.rarity !== rarityFilter) return false;
+        if (positionFilter && card.player.position1 !== positionFilter) return false;
+        if (ratingFilter && card.player.fifa_rating < ratingFilter) return false;
+        if (saleFilter !== '' && userCard.is_for_sale.toString() !== saleFilter) return false;
+
+        return true;
+      });
+
+      displayCards(filteredCards);
+    }
+
+    function clearFilters() {
+      document.getElementById('rarity-filter').value = '';
+      document.getElementById('position-filter').value = '';
+      document.getElementById('rating-filter').value = '';
+      document.getElementById('sale-filter').value = '';
+      
+      filteredCards = [...userCards];
+      displayCards(filteredCards);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!checkAuthState()) {
+        showSection('not-logged-in');
+        return;
+      }
+
+      showSection('loading');
+
+      const result = await fetchUserCollection();
+      
+      if (!result.success) {
+        alert('Error al cargar la colección');
+        return;
+      }
+
+      userCards = result.cards;
+      filteredCards = [...userCards];
+
+      showSection('collection-container');
+      displayStats(result.stats);
+      displayCards(filteredCards);
+
+      // Event listeners
+      document.getElementById('apply-filters-btn').addEventListener('click', applyFilters);
+      document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+      document.getElementById('close-modal').addEventListener('click', closeCardModal);
+      
+      document.getElementById('sell-card-btn').addEventListener('click', () => {
+        document.getElementById('sale-section').classList.remove('hidden');
+        document.getElementById('action-buttons').classList.add('hidden');
+        
+        // Calculate suggested price
+        const suggestedPrice = Math.floor(selectedCard.card.base_price * 1.2);
+        document.getElementById('sale-price-input').value = suggestedPrice;
+      });
+
+      document.getElementById('cancel-sale-btn').addEventListener('click', () => {
+        document.getElementById('sale-section').classList.add('hidden');
+        document.getElementById('action-buttons').classList.remove('hidden');
+      });
+
+      document.getElementById('put-on-sale-btn').addEventListener('click', () => {
+        const price = parseInt(document.getElementById('sale-price-input').value);
+        if (price >= 50) {
+          // Update card in mock data
+          selectedCard.is_for_sale = true;
+          selectedCard.sale_price = price;
+          
+          // Refresh display
+          applyFilters();
+          closeCardModal();
+          
+          alert(`Carta puesta en venta por ${price} monedas`);
+        } else {
+          alert('El precio mínimo es 50 monedas');
+        }
+      });
+
+      document.getElementById('remove-from-sale-btn').addEventListener('click', () => {
+        // Update card in mock data
+        selectedCard.is_for_sale = false;
+        selectedCard.sale_price = null;
+        
+        // Refresh display
+        applyFilters();
+        closeCardModal();
+        
+        alert('Carta retirada del mercado');
+      });
+
+      // Close modal on backdrop click
+      document.getElementById('card-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'card-modal') {
+          closeCardModal();
+        }
+      });
+    });
+  </script>
+</Layout>

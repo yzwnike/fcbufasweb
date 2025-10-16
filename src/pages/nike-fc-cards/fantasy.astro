@@ -1,0 +1,494 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Fantasy Rush - Nike FC Cards">
+  <div class="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900">
+    <div class="container mx-auto px-4 py-20">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
+          ⚡ Fantasy Rush
+        </h1>
+        <p class="text-xl text-purple-100 max-w-2xl mx-auto">
+          Elige tu equipo semanal: 1 Delantero, 1 Centrocampista, 1 Defensa/Portero. 
+          Los puntos fantasy se convierten en monedas x20
+        </p>
+      </div>
+
+      <!-- Auth Check -->
+      <div id="not-logged-in" class="hidden text-center">
+        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
+          <p class="text-red-200 mb-6">Debes iniciar sesión para participar en Fantasy Rush</p>
+          <a href="/nike-fc-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
+            Iniciar Sesión
+          </a>
+        </div>
+      </div>
+
+      <!-- Fantasy Rush Container -->
+      <div id="fantasy-container" class="hidden">
+        <!-- Week Info -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-md mx-auto">
+          <div class="text-center">
+            <h3 class="text-xl font-bold text-white mb-2">Semana Actual</h3>
+            <div class="text-purple-200" id="week-info">Cargando...</div>
+            <div class="mt-4">
+              <div class="text-sm text-purple-200">Multiplicador de puntos:</div>
+              <div class="text-2xl font-bold text-yellow-400">x20 monedas</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Selection Display -->
+        <div id="current-selection" class="hidden mb-8">
+          <h2 class="text-2xl font-bold text-white text-center mb-6">Tu Selección Actual</h2>
+          <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-6">
+            <!-- Forward -->
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+              <div class="text-4xl mb-4">⚽</div>
+              <h3 class="text-lg font-bold text-white mb-2">Delantero</h3>
+              <div class="player-card">
+                <div class="text-xl font-bold text-purple-300" id="selected-forward-name">-</div>
+                <div class="text-purple-200" id="selected-forward-position">-</div>
+                <div class="text-sm text-yellow-400 mt-2">
+                  Puntos: <span id="selected-forward-points">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Midfielder -->
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+              <div class="text-4xl mb-4">🎯</div>
+              <h3 class="text-lg font-bold text-white mb-2">Centrocampista</h3>
+              <div class="player-card">
+                <div class="text-xl font-bold text-purple-300" id="selected-midfielder-name">-</div>
+                <div class="text-purple-200" id="selected-midfielder-position">-</div>
+                <div class="text-sm text-yellow-400 mt-2">
+                  Puntos: <span id="selected-midfielder-points">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Defender -->
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+              <div class="text-4xl mb-4">🛡️</div>
+              <h3 class="text-lg font-bold text-white mb-2">Defensa/Portero</h3>
+              <div class="player-card">
+                <div class="text-xl font-bold text-purple-300" id="selected-defender-name">-</div>
+                <div class="text-purple-200" id="selected-defender-position">-</div>
+                <div class="text-sm text-yellow-400 mt-2">
+                  Puntos: <span id="selected-defender-points">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weekly Results -->
+          <div id="weekly-results" class="bg-white/10 backdrop-blur-md rounded-xl p-6 max-w-2xl mx-auto mb-6">
+            <div class="grid grid-cols-2 gap-6 text-center">
+              <div>
+                <div class="text-3xl font-bold text-purple-300" id="total-points">0</div>
+                <div class="text-purple-200">Puntos Totales</div>
+              </div>
+              <div>
+                <div class="text-3xl font-bold text-yellow-400" id="coins-earned">0</div>
+                <div class="text-purple-200">Monedas Ganadas</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center">
+            <button id="change-selection-btn" class="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">
+              Cambiar Selección
+            </button>
+          </div>
+        </div>
+
+        <!-- Player Selection -->
+        <div id="player-selection" class="space-y-8">
+          <h2 class="text-2xl font-bold text-white text-center mb-6">Selecciona Tu Equipo</h2>
+
+          <!-- Position Tabs -->
+          <div class="flex justify-center mb-6">
+            <div class="bg-white/10 rounded-lg p-1">
+              <button id="tab-forward" class="tab-button px-4 py-2 rounded-lg font-semibold transition-colors bg-purple-500 text-white">
+                Delanteros
+              </button>
+              <button id="tab-midfielder" class="tab-button px-4 py-2 rounded-lg font-semibold transition-colors text-purple-200 hover:text-white">
+                Centrocampistas
+              </button>
+              <button id="tab-defender" class="tab-button px-4 py-2 rounded-lg font-semibold transition-colors text-purple-200 hover:text-white">
+                Defensas/Porteros
+              </button>
+            </div>
+          </div>
+
+          <!-- Player Lists -->
+          <div id="forwards-list" class="player-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+            <!-- Forward players will be loaded here -->
+          </div>
+
+          <div id="midfielders-list" class="player-list hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+            <!-- Midfielder players will be loaded here -->
+          </div>
+
+          <div id="defenders-list" class="player-list hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+            <!-- Defender players will be loaded here -->
+          </div>
+
+          <!-- Selection Summary -->
+          <div id="selection-summary" class="bg-white/10 backdrop-blur-md rounded-xl p-6 max-w-2xl mx-auto">
+            <h3 class="text-xl font-bold text-white text-center mb-4">Selección Actual</h3>
+            <div class="grid grid-cols-3 gap-4 text-center mb-6">
+              <div>
+                <div class="text-purple-200 mb-2">Delantero</div>
+                <div class="text-white font-bold" id="summary-forward">No seleccionado</div>
+              </div>
+              <div>
+                <div class="text-purple-200 mb-2">Centrocampista</div>
+                <div class="text-white font-bold" id="summary-midfielder">No seleccionado</div>
+              </div>
+              <div>
+                <div class="text-purple-200 mb-2">Defensa/Portero</div>
+                <div class="text-white font-bold" id="summary-defender">No seleccionado</div>
+              </div>
+            </div>
+            <div class="text-center">
+              <button id="confirm-selection-btn" class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-500" disabled>
+                Confirmar Selección
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="text-center py-8">
+          <div class="text-white">Cargando jugadores...</div>
+        </div>
+      </div>
+
+      <!-- Selection Success -->
+      <div id="selection-success" class="hidden text-center">
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
+          <div class="text-6xl mb-6">🎉</div>
+          <h2 class="text-3xl font-bold text-white mb-4">¡Selección Confirmada!</h2>
+          <p class="text-purple-200 mb-6">Tu equipo ha sido registrado para esta semana. Los puntos se calcularán al final de la semana.</p>
+          <a href="/nike-fc-cards" class="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">
+            Volver al Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentUser = null;
+    let authToken = null;
+    let eligiblePlayers = { forwards: [], midfielders: [], defenders: [] };
+    let currentSelection = null;
+    let selectedPlayers = {
+      forward: null,
+      midfielder: null,
+      defender: null
+    };
+
+    // Auth functions
+    function checkAuthState() {
+      const token = localStorage.getItem('nike_fc_token');
+      const user = localStorage.getItem('nike_fc_user');
+      
+      if (token && user) {
+        try {
+          authToken = token;
+          currentUser = JSON.parse(user);
+          return true;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          localStorage.removeItem('nike_fc_token');
+          localStorage.removeItem('nike_fc_user');
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // UI functions
+    function showSection(sectionId) {
+      const sections = ['not-logged-in', 'fantasy-container', 'selection-success', 'loading'];
+      sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.classList.toggle('hidden', id !== sectionId);
+        }
+      });
+    }
+
+    function showTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('bg-purple-500', 'text-white');
+        btn.classList.add('text-purple-200');
+      });
+      
+      const activeTab = document.getElementById(`tab-${tabName}`);
+      if (activeTab) {
+        activeTab.classList.add('bg-purple-500', 'text-white');
+        activeTab.classList.remove('text-purple-200');
+      }
+
+      // Show corresponding player list
+      document.querySelectorAll('.player-list').forEach(list => {
+        list.classList.add('hidden');
+      });
+      
+      const activeList = document.getElementById(`${tabName}s-list`);
+      if (activeList) {
+        activeList.classList.remove('hidden');
+      }
+    }
+
+    // API calls
+    async function fetchEligiblePlayers() {
+      try {
+        const response = await fetch('/api/nike-fc-cards/fantasy/eligible', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching eligible players:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    async function fetchCurrentSelection() {
+      try {
+        const response = await fetch('/api/nike-fc-cards/fantasy/selection', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching current selection:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    async function createSelection() {
+      try {
+        const response = await fetch('/api/nike-fc-cards/fantasy/selection', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}` 
+          },
+          body: JSON.stringify({
+            forwardPlayerId: selectedPlayers.forward.id,
+            midfielderPlayerId: selectedPlayers.midfielder.id,
+            defenderPlayerId: selectedPlayers.defender.id
+          })
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error creating selection:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    // Display functions
+    function displayCurrentSelection(selection) {
+      if (!selection) {
+        document.getElementById('current-selection').classList.add('hidden');
+        document.getElementById('player-selection').classList.remove('hidden');
+        return;
+      }
+
+      // Show current selection
+      document.getElementById('current-selection').classList.remove('hidden');
+      document.getElementById('player-selection').classList.add('hidden');
+
+      // Display player details
+      document.getElementById('selected-forward-name').textContent = selection.forward_player.name;
+      document.getElementById('selected-forward-position').textContent = selection.forward_player.position1;
+      document.getElementById('selected-forward-points').textContent = selection.forward_player.fantasy_points;
+
+      document.getElementById('selected-midfielder-name').textContent = selection.midfielder_player.name;
+      document.getElementById('selected-midfielder-position').textContent = selection.midfielder_player.position1;
+      document.getElementById('selected-midfielder-points').textContent = selection.midfielder_player.fantasy_points;
+
+      document.getElementById('selected-defender-name').textContent = selection.defender_player.name;
+      document.getElementById('selected-defender-position').textContent = selection.defender_player.position1;
+      document.getElementById('selected-defender-points').textContent = selection.defender_player.fantasy_points;
+
+      // Display totals
+      const totalPoints = selection.total_points || (
+        selection.forward_player.fantasy_points + 
+        selection.midfielder_player.fantasy_points + 
+        selection.defender_player.fantasy_points
+      );
+      document.getElementById('total-points').textContent = totalPoints;
+      document.getElementById('coins-earned').textContent = totalPoints * 20;
+    }
+
+    function displayPlayers() {
+      // Display forwards
+      const forwardsList = document.getElementById('forwards-list');
+      forwardsList.innerHTML = '';
+      eligiblePlayers.forwards.forEach(player => {
+        const playerCard = createPlayerCard(player, 'forward');
+        forwardsList.appendChild(playerCard);
+      });
+
+      // Display midfielders
+      const midfieldersList = document.getElementById('midfielders-list');
+      midfieldersList.innerHTML = '';
+      eligiblePlayers.midfielders.forEach(player => {
+        const playerCard = createPlayerCard(player, 'midfielder');
+        midfieldersList.appendChild(playerCard);
+      });
+
+      // Display defenders
+      const defendersList = document.getElementById('defenders-list');
+      defendersList.innerHTML = '';
+      eligiblePlayers.defenders.forEach(player => {
+        const playerCard = createPlayerCard(player, 'defender');
+        defendersList.appendChild(playerCard);
+      });
+    }
+
+    function createPlayerCard(player, position) {
+      const card = document.createElement('div');
+      card.className = `player-card bg-white/10 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/20 transition-colors cursor-pointer border-2 border-transparent`;
+      card.dataset.playerId = player.id;
+      card.dataset.position = position;
+
+      card.innerHTML = `
+        <div class="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <span class="text-2xl">⚽</span>
+        </div>
+        <div class="text-white font-bold text-sm mb-1">${player.name}</div>
+        <div class="text-purple-200 text-xs mb-2">${player.position1}${player.position2 ? `/${player.position2}` : ''}</div>
+        <div class="text-yellow-400 text-xs font-bold">${player.fantasy_points} pts</div>
+        <div class="text-xs text-purple-300 mt-1">FIFA: ${player.fifa_rating}</div>
+      `;
+
+      card.addEventListener('click', () => selectPlayer(player, position));
+      return card;
+    }
+
+    function selectPlayer(player, position) {
+      selectedPlayers[position] = player;
+      
+      // Update visual selection
+      document.querySelectorAll(`.player-card[data-position="${position}"]`).forEach(card => {
+        card.classList.remove('border-green-500', 'bg-green-500/20');
+        card.classList.add('border-transparent');
+      });
+      
+      const selectedCard = document.querySelector(`.player-card[data-player-id="${player.id}"]`);
+      if (selectedCard) {
+        selectedCard.classList.add('border-green-500', 'bg-green-500/20');
+        selectedCard.classList.remove('border-transparent');
+      }
+
+      // Update summary
+      updateSelectionSummary();
+    }
+
+    function updateSelectionSummary() {
+      document.getElementById('summary-forward').textContent = 
+        selectedPlayers.forward ? selectedPlayers.forward.name : 'No seleccionado';
+      document.getElementById('summary-midfielder').textContent = 
+        selectedPlayers.midfielder ? selectedPlayers.midfielder.name : 'No seleccionado';
+      document.getElementById('summary-defender').textContent = 
+        selectedPlayers.defender ? selectedPlayers.defender.name : 'No seleccionado';
+
+      // Enable/disable confirm button
+      const confirmBtn = document.getElementById('confirm-selection-btn');
+      const allSelected = selectedPlayers.forward && selectedPlayers.midfielder && selectedPlayers.defender;
+      confirmBtn.disabled = !allSelected;
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!checkAuthState()) {
+        showSection('not-logged-in');
+        return;
+      }
+
+      showSection('loading');
+
+      // Set week info
+      const now = new Date();
+      const weekStart = getWeekStart(now);
+      document.getElementById('week-info').textContent = `Semana del ${formatDate(weekStart)}`;
+
+      // Load data
+      const [playersResult, selectionResult] = await Promise.all([
+        fetchEligiblePlayers(),
+        fetchCurrentSelection()
+      ]);
+
+      if (!playersResult.success) {
+        alert('Error al cargar jugadores: ' + playersResult.error);
+        return;
+      }
+
+      eligiblePlayers = playersResult.players;
+      currentSelection = selectionResult.selection;
+
+      showSection('fantasy-container');
+      
+      if (currentSelection) {
+        displayCurrentSelection(currentSelection);
+      } else {
+        displayCurrentSelection(null);
+        displayPlayers();
+      }
+
+      // Set up event listeners
+      document.getElementById('tab-forward').addEventListener('click', () => showTab('forward'));
+      document.getElementById('tab-midfielder').addEventListener('click', () => showTab('midfielder'));
+      document.getElementById('tab-defender').addEventListener('click', () => showTab('defender'));
+
+      document.getElementById('change-selection-btn')?.addEventListener('click', () => {
+        displayCurrentSelection(null);
+        displayPlayers();
+      });
+
+      document.getElementById('confirm-selection-btn').addEventListener('click', async () => {
+        const confirmBtn = document.getElementById('confirm-selection-btn');
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Confirmando...';
+
+        const result = await createSelection();
+        
+        if (result.success) {
+          showSection('selection-success');
+        } else {
+          alert('Error al confirmar selección: ' + result.error);
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Confirmar Selección';
+        }
+      });
+    });
+
+    // Utility functions
+    function getWeekStart(date = new Date()) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(d.setDate(diff));
+      monday.setHours(0, 0, 0, 0);
+      return monday;
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString('es-ES', { 
+        day: 'numeric', 
+        month: 'long'
+      });
+    }
+  </script>
+</Layout>

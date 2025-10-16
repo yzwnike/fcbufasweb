@@ -1,0 +1,586 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Mercado - Nike FC Cards">
+  <div class="min-h-screen bg-gradient-to-br from-yellow-900 via-yellow-800 to-orange-900">
+    <div class="container mx-auto px-4 py-20">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
+          💰 Mercado de Cartas
+        </h1>
+        <p class="text-xl text-yellow-100 max-w-2xl mx-auto">
+          Compra y vende cartas con otros usuarios. Encuentra las cartas que necesitas para completar tu colección
+        </p>
+      </div>
+
+      <!-- Auth Check -->
+      <div id="not-logged-in" class="hidden text-center">
+        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
+          <p class="text-red-200 mb-6">Debes iniciar sesión para acceder al mercado</p>
+          <a href="/nike-fc-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
+            Iniciar Sesión
+          </a>
+        </div>
+      </div>
+
+      <!-- Market Container -->
+      <div id="market-container" class="hidden">
+        <!-- User Balance -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-md mx-auto">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-yellow-100">Tu saldo:</p>
+              <p id="user-balance" class="text-3xl font-bold text-yellow-400">0</p>
+            </div>
+            <div class="text-right">
+              <p class="text-yellow-100">Cartas en venta:</p>
+              <p id="user-cards-for-sale" class="text-2xl font-bold text-green-400">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Market Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 max-w-4xl mx-auto">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-yellow-300" id="total-listings">0</div>
+            <div class="text-yellow-200">Cartas en Venta</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-green-400" id="avg-price">0</div>
+            <div class="text-yellow-200">Precio Promedio</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-blue-400" id="active-sellers">0</div>
+            <div class="text-yellow-200">Vendedores Activos</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-3xl font-bold text-purple-400" id="legend-cards">0</div>
+            <div class="text-yellow-200">Cartas Leyenda</div>
+          </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-6xl mx-auto">
+          <h3 class="text-xl font-bold text-white mb-4">Buscar Cartas</h3>
+          
+          <!-- Search Bar -->
+          <div class="mb-4">
+            <input type="text" id="search-input" placeholder="Buscar por nombre de jugador..." 
+                   class="w-full px-4 py-3 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white placeholder-yellow-300">
+          </div>
+
+          <div class="grid md:grid-cols-5 gap-4">
+            <!-- Rarity Filter -->
+            <div>
+              <label class="block text-sm font-medium text-yellow-200 mb-2">Rareza</label>
+              <select id="rarity-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
+                <option value="">Todas</option>
+                <option value="Bronze">Bronce</option>
+                <option value="Silver">Plata</option>
+                <option value="Gold">Oro</option>
+                <option value="Elite">Élite</option>
+                <option value="Legend">Leyenda</option>
+              </select>
+            </div>
+
+            <!-- Position Filter -->
+            <div>
+              <label class="block text-sm font-medium text-yellow-200 mb-2">Posición</label>
+              <select id="position-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
+                <option value="">Todas</option>
+                <option value="GK">Portero</option>
+                <option value="CB">Defensa Central</option>
+                <option value="LB">Lateral Izquierdo</option>
+                <option value="RB">Lateral Derecho</option>
+                <option value="CM">Centrocampista</option>
+                <option value="CAM">Mediocentro Ofensivo</option>
+                <option value="CDM">Mediocentro Defensivo</option>
+                <option value="LM">Centrocampista Izquierdo</option>
+                <option value="RM">Centrocampista Derecho</option>
+                <option value="LW">Extremo Izquierdo</option>
+                <option value="RW">Extremo Derecho</option>
+                <option value="ST">Delantero</option>
+              </select>
+            </div>
+
+            <!-- Price Range -->
+            <div>
+              <label class="block text-sm font-medium text-yellow-200 mb-2">Precio Máximo</label>
+              <select id="max-price-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
+                <option value="">Sin límite</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1,000</option>
+                <option value="2500">2,500</option>
+              </select>
+            </div>
+
+            <!-- Sort By -->
+            <div>
+              <label class="block text-sm font-medium text-yellow-200 mb-2">Ordenar por</label>
+              <select id="sort-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
+                <option value="price_asc">Precio: Menor a Mayor</option>
+                <option value="price_desc">Precio: Mayor a Menor</option>
+                <option value="rating_desc">Rating FIFA: Mayor</option>
+                <option value="rarity_desc">Rareza: Mayor</option>
+                <option value="recent">Más Recientes</option>
+              </select>
+            </div>
+
+            <!-- Apply Filters Button -->
+            <div class="flex items-end">
+              <button id="search-btn" class="w-full bg-yellow-500 text-black font-semibold py-2 rounded-lg hover:bg-yellow-400 transition-colors">
+                Buscar
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button id="clear-search-btn" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+              Limpiar Filtros
+            </button>
+          </div>
+        </div>
+
+        <!-- Market Listings -->
+        <div class="max-w-7xl mx-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">Cartas en Venta</h2>
+            <div class="text-yellow-200">
+              <span id="results-count">0</span> cartas encontradas
+            </div>
+          </div>
+
+          <div id="market-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Market cards will be loaded here -->
+          </div>
+
+          <!-- Loading -->
+          <div id="loading" class="text-center py-8">
+            <div class="text-white">Cargando mercado...</div>
+          </div>
+
+          <!-- No Results -->
+          <div id="no-results" class="hidden text-center py-8">
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+              <div class="text-6xl mb-4">🔍</div>
+              <h3 class="text-2xl font-bold text-white mb-4">Sin resultados</h3>
+              <p class="text-yellow-200 mb-6">No se encontraron cartas con los filtros seleccionados</p>
+              <button id="clear-all-btn" class="px-6 py-3 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors">
+                Ver Todas las Cartas
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Purchase Modal -->
+  <div id="purchase-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl max-w-md w-full mx-4">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-gray-900">Confirmar Compra</h3>
+          <button id="close-purchase-modal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Card Preview -->
+        <div class="text-center mb-6">
+          <div id="purchase-card-preview" class="inline-block">
+            <!-- Card preview will be generated here -->
+          </div>
+        </div>
+
+        <!-- Purchase Details -->
+        <div class="space-y-4 mb-6">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Jugador:</span>
+            <span class="font-semibold" id="purchase-player-name">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Vendedor:</span>
+            <span class="font-semibold" id="purchase-seller">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Precio:</span>
+            <span class="text-2xl font-bold text-green-600" id="purchase-price">0 💰</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Tu saldo actual:</span>
+            <span class="font-semibold" id="current-balance">0 💰</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Saldo después:</span>
+            <span class="font-semibold" id="balance-after">0 💰</span>
+          </div>
+        </div>
+
+        <!-- Purchase Actions -->
+        <div class="flex gap-4">
+          <button id="confirm-purchase-btn" class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors">
+            Confirmar Compra
+          </button>
+          <button id="cancel-purchase-btn" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentUser = null;
+    let authToken = null;
+    let marketListings = [];
+    let filteredListings = [];
+    let selectedListing = null;
+
+    // Auth functions
+    function checkAuthState() {
+      const token = localStorage.getItem('nike_fc_token');
+      const user = localStorage.getItem('nike_fc_user');
+      
+      if (token && user) {
+        try {
+          authToken = token;
+          currentUser = JSON.parse(user);
+          return true;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          localStorage.removeItem('nike_fc_token');
+          localStorage.removeItem('nike_fc_user');
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // UI functions
+    function showSection(sectionId) {
+      const sections = ['not-logged-in', 'market-container', 'loading', 'no-results'];
+      sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.classList.toggle('hidden', id !== sectionId);
+        }
+      });
+    }
+
+    // Fetch market data (mock for now)
+    async function fetchMarketListings() {
+      // Mock data - replace with actual API call
+      return {
+        success: true,
+        listings: generateMockListings(),
+        stats: {
+          totalListings: 156,
+          avgPrice: 340,
+          activeSellers: 28,
+          legendCards: 12
+        }
+      };
+    }
+
+    function generateMockListings() {
+      const players = [
+        'Nico Vehi', 'Pablo Vehi', 'Albert Rodriguez', 'Marc Sanchez', 
+        'Mario Roca', 'Marcos Lopez', 'Nico Uriburu', 'Javo Ayesta',
+        'Marc Permanyer', 'Fan Xu', 'Joan Oriol', 'Dani Malaga'
+      ];
+
+      const sellers = ['CardsKing23', 'Collector99', 'ProTrader', 'FCBufasFan', 'MegaDealer'];
+      const positions = ['ST', 'CM', 'CB', 'GK', 'LW', 'RW', 'CAM', 'CDM'];
+      const rarities = ['Bronze', 'Silver', 'Gold', 'Elite', 'Legend'];
+      const listings = [];
+
+      for (let i = 0; i < 156; i++) {
+        const player = players[Math.floor(Math.random() * players.length)];
+        const seller = sellers[Math.floor(Math.random() * sellers.length)];
+        const position = positions[Math.floor(Math.random() * positions.length)];
+        const rarity = rarities[Math.floor(Math.random() * rarities.length)];
+        const rating = Math.floor(Math.random() * 30) + 60;
+        const basePrice = Math.floor(Math.random() * 500) + 50;
+        const markup = Math.random() * 2 + 0.8; // 80% to 280% markup
+
+        // Don't show user's own cards
+        if (seller === currentUser?.username) continue;
+
+        listings.push({
+          id: i + 1,
+          seller_username: seller,
+          sale_price: Math.floor(basePrice * markup),
+          listed_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+          card: {
+            id: i + 1,
+            player_id: (i % players.length) + 1,
+            rarity: rarity,
+            special_type: 'Regular',
+            base_price: basePrice,
+            player: {
+              id: (i % players.length) + 1,
+              name: player,
+              position1: position,
+              fifa_rating: rating,
+              fantasy_points: Math.floor(Math.random() * 10)
+            }
+          }
+        });
+      }
+
+      return listings.sort(() => Math.random() - 0.5);
+    }
+
+    function updateUserBalance() {
+      document.getElementById('user-balance').textContent = currentUser.coins.toLocaleString();
+      
+      // Count user's cards for sale (mock)
+      const userCardsForSale = Math.floor(Math.random() * 8) + 2;
+      document.getElementById('user-cards-for-sale').textContent = userCardsForSale;
+    }
+
+    function displayStats(stats) {
+      document.getElementById('total-listings').textContent = stats.totalListings;
+      document.getElementById('avg-price').textContent = stats.avgPrice.toLocaleString();
+      document.getElementById('active-sellers').textContent = stats.activeSellers;
+      document.getElementById('legend-cards').textContent = stats.legendCards;
+    }
+
+    function displayListings(listings) {
+      const grid = document.getElementById('market-grid');
+      const resultsCount = document.getElementById('results-count');
+      
+      resultsCount.textContent = listings.length;
+      
+      if (listings.length === 0) {
+        grid.classList.add('hidden');
+        document.getElementById('no-results').classList.remove('hidden');
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      document.getElementById('no-results').classList.add('hidden');
+      
+      grid.innerHTML = '';
+      
+      listings.forEach(listing => {
+        const cardElement = createMarketCardElement(listing);
+        grid.appendChild(cardElement);
+      });
+    }
+
+    function createMarketCardElement(listing) {
+      const card = listing.card;
+      const rarityColors = {
+        Bronze: 'from-amber-600 to-amber-800',
+        Silver: 'from-gray-400 to-gray-600',
+        Gold: 'from-yellow-400 to-yellow-600',
+        Elite: 'from-purple-500 to-purple-700',
+        Legend: 'from-pink-500 to-pink-700'
+      };
+
+      const cardDiv = document.createElement('div');
+      cardDiv.className = `bg-gradient-to-br ${rarityColors[card.rarity]} rounded-xl p-4 text-center transform hover:scale-105 transition-transform cursor-pointer relative`;
+      cardDiv.addEventListener('click', () => openPurchaseModal(listing));
+
+      const timeSinceListing = getTimeAgo(new Date(listing.listed_at));
+      
+      // Check if user can afford this card
+      const canAfford = currentUser.coins >= listing.sale_price;
+
+      cardDiv.innerHTML = `
+        <div class="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+          ${timeSinceListing}
+        </div>
+        <div class="absolute top-2 right-2 ${canAfford ? 'bg-green-500' : 'bg-red-500'} text-white text-xs px-2 py-1 rounded-full">
+          ${canAfford ? '✓' : '✗'}
+        </div>
+        <div class="w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3 mt-6">
+          <span class="text-3xl">⚽</span>
+        </div>
+        <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
+        <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${card.rarity}</div>
+        <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
+        <div class="text-xs text-yellow-300 mb-2">Vendedor: ${listing.seller_username}</div>
+        <div class="text-lg font-bold text-green-300">${listing.sale_price.toLocaleString()} 💰</div>
+      `;
+
+      return cardDiv;
+    }
+
+    function openPurchaseModal(listing) {
+      if (currentUser.coins < listing.sale_price) {
+        alert('No tienes suficientes monedas para comprar esta carta');
+        return;
+      }
+
+      selectedListing = listing;
+      const card = listing.card;
+
+      document.getElementById('purchase-player-name').textContent = card.player.name;
+      document.getElementById('purchase-seller').textContent = listing.seller_username;
+      document.getElementById('purchase-price').textContent = listing.sale_price.toLocaleString() + ' 💰';
+      document.getElementById('current-balance').textContent = currentUser.coins.toLocaleString() + ' 💰';
+      document.getElementById('balance-after').textContent = (currentUser.coins - listing.sale_price).toLocaleString() + ' 💰';
+      
+      // Generate card preview
+      const preview = document.getElementById('purchase-card-preview');
+      preview.innerHTML = createMarketCardElement(listing).innerHTML;
+
+      document.getElementById('purchase-modal').classList.remove('hidden');
+    }
+
+    function closePurchaseModal() {
+      document.getElementById('purchase-modal').classList.add('hidden');
+      selectedListing = null;
+    }
+
+    function applySearch() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const rarityFilter = document.getElementById('rarity-filter').value;
+      const positionFilter = document.getElementById('position-filter').value;
+      const maxPriceFilter = parseInt(document.getElementById('max-price-filter').value) || Infinity;
+      const sortFilter = document.getElementById('sort-filter').value;
+
+      filteredListings = marketListings.filter(listing => {
+        const card = listing.card;
+        
+        if (searchTerm && !card.player.name.toLowerCase().includes(searchTerm)) return false;
+        if (rarityFilter && card.rarity !== rarityFilter) return false;
+        if (positionFilter && card.player.position1 !== positionFilter) return false;
+        if (listing.sale_price > maxPriceFilter) return false;
+
+        return true;
+      });
+
+      // Apply sorting
+      filteredListings.sort((a, b) => {
+        switch (sortFilter) {
+          case 'price_asc':
+            return a.sale_price - b.sale_price;
+          case 'price_desc':
+            return b.sale_price - a.sale_price;
+          case 'rating_desc':
+            return b.card.player.fifa_rating - a.card.player.fifa_rating;
+          case 'rarity_desc':
+            const rarityOrder = { Legend: 5, Elite: 4, Gold: 3, Silver: 2, Bronze: 1 };
+            return rarityOrder[b.card.rarity] - rarityOrder[a.card.rarity];
+          case 'recent':
+            return new Date(b.listed_at) - new Date(a.listed_at);
+          default:
+            return 0;
+        }
+      });
+
+      displayListings(filteredListings);
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('rarity-filter').value = '';
+      document.getElementById('position-filter').value = '';
+      document.getElementById('max-price-filter').value = '';
+      document.getElementById('sort-filter').value = 'price_asc';
+      
+      filteredListings = [...marketListings];
+      displayListings(filteredListings);
+    }
+
+    function purchaseCard() {
+      if (!selectedListing) return;
+
+      // Update user balance (mock)
+      currentUser.coins -= selectedListing.sale_price;
+      localStorage.setItem('nike_fc_user', JSON.stringify(currentUser));
+      
+      // Remove from listings
+      const listingIndex = marketListings.findIndex(l => l.id === selectedListing.id);
+      if (listingIndex !== -1) {
+        marketListings.splice(listingIndex, 1);
+      }
+      
+      // Update filtered listings
+      const filteredIndex = filteredListings.findIndex(l => l.id === selectedListing.id);
+      if (filteredIndex !== -1) {
+        filteredListings.splice(filteredIndex, 1);
+      }
+
+      // Refresh display
+      updateUserBalance();
+      displayListings(filteredListings);
+      closePurchaseModal();
+      
+      alert(`¡Has comprado ${selectedListing.card.player.name} por ${selectedListing.sale_price.toLocaleString()} monedas!`);
+    }
+
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+      
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes}m`;
+      } else if (diffInMinutes < 1440) {
+        return `${Math.floor(diffInMinutes / 60)}h`;
+      } else {
+        return `${Math.floor(diffInMinutes / 1440)}d`;
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!checkAuthState()) {
+        showSection('not-logged-in');
+        return;
+      }
+
+      showSection('loading');
+
+      const result = await fetchMarketListings();
+      
+      if (!result.success) {
+        alert('Error al cargar el mercado');
+        return;
+      }
+
+      marketListings = result.listings;
+      filteredListings = [...marketListings];
+
+      showSection('market-container');
+      updateUserBalance();
+      displayStats(result.stats);
+      displayListings(filteredListings);
+
+      // Event listeners
+      document.getElementById('search-btn').addEventListener('click', applySearch);
+      document.getElementById('clear-search-btn').addEventListener('click', clearSearch);
+      document.getElementById('clear-all-btn').addEventListener('click', clearSearch);
+      
+      document.getElementById('close-purchase-modal').addEventListener('click', closePurchaseModal);
+      document.getElementById('cancel-purchase-btn').addEventListener('click', closePurchaseModal);
+      document.getElementById('confirm-purchase-btn').addEventListener('click', purchaseCard);
+
+      // Search on Enter key
+      document.getElementById('search-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          applySearch();
+        }
+      });
+
+      // Close modal on backdrop click
+      document.getElementById('purchase-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'purchase-modal') {
+          closePurchaseModal();
+        }
+      });
+    });
+  </script>
+</Layout>

@@ -1,0 +1,410 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Quiz Diario - Nike FC Cards">
+  <div class="min-h-screen bg-gradient-to-br from-orange-900 via-orange-800 to-red-900">
+    <div class="container mx-auto px-4 py-20">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
+          🧠 Quiz Diario de Stats
+        </h1>
+        <p class="text-xl text-orange-100 max-w-2xl mx-auto">
+          Responde 5 preguntas sobre las estadísticas de los jugadores. 
+          ¡Gana 100 monedas por respuesta correcta!
+        </p>
+      </div>
+
+      <!-- Auth Check -->
+      <div id="not-logged-in" class="hidden text-center">
+        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
+          <p class="text-red-200 mb-6">Debes iniciar sesión para jugar el quiz diario</p>
+          <a href="/nike-fc-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
+            Iniciar Sesión
+          </a>
+        </div>
+      </div>
+
+      <!-- Quiz Container -->
+      <div id="quiz-container" class="hidden">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-white font-semibold">Pregunta <span id="current-question">1</span> de 5</span>
+            <span class="text-yellow-400 font-semibold">💰 <span id="coins-earned">0</span> monedas ganadas</span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-3">
+            <div id="progress-bar" class="bg-orange-500 h-3 rounded-full transition-all duration-300" style="width: 20%"></div>
+          </div>
+        </div>
+
+        <!-- Quiz Stats -->
+        <div id="quiz-stats" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-2xl font-bold text-white" id="questions-answered">0</div>
+            <div class="text-orange-200">Respondidas</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-2xl font-bold text-green-400" id="correct-answers">0</div>
+            <div class="text-orange-200">Correctas</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+            <div class="text-2xl font-bold text-yellow-400" id="total-coins">0</div>
+            <div class="text-orange-200">Monedas Totales</div>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div id="question-card" class="bg-white/10 backdrop-blur-md rounded-xl p-8 mb-8 max-w-4xl mx-auto">
+          <div class="flex flex-col md:flex-row items-center gap-8">
+            <!-- Player Image -->
+            <div class="flex-shrink-0">
+              <div class="w-32 h-32 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                <span class="text-4xl">⚽</span>
+              </div>
+              <div class="text-center mt-4">
+                <div class="text-xl font-bold text-white" id="player-name">Cargando...</div>
+                <div class="text-orange-200" id="player-position">FC Bufas</div>
+              </div>
+            </div>
+
+            <!-- Question -->
+            <div class="flex-1">
+              <div class="text-2xl font-bold text-white mb-6" id="question-text">
+                ¿Cuál es el valor de <span class="text-orange-400" id="stat-name">Ritmo</span> de este jugador?
+              </div>
+
+              <!-- Answer Options -->
+              <div class="grid grid-cols-1 gap-4" id="answer-options">
+                <button class="answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all" data-answer="a">
+                  A) <span class="option-value">75</span>
+                </button>
+                <button class="answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all" data-answer="b">
+                  B) <span class="option-value">80</span>
+                </button>
+                <button class="answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all" data-answer="c">
+                  C) <span class="option-value">85</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Message -->
+        <div id="result-message" class="hidden text-center mb-8">
+          <div id="correct-message" class="hidden bg-green-500/20 backdrop-blur-md rounded-xl p-6 max-w-md mx-auto">
+            <div class="text-4xl mb-4">🎉</div>
+            <div class="text-2xl font-bold text-green-400 mb-2">¡Correcto!</div>
+            <div class="text-green-200">+100 monedas</div>
+          </div>
+          <div id="wrong-message" class="hidden bg-red-500/20 backdrop-blur-md rounded-xl p-6 max-w-md mx-auto">
+            <div class="text-4xl mb-4">❌</div>
+            <div class="text-2xl font-bold text-red-400 mb-2">Incorrecto</div>
+            <div class="text-red-200">La respuesta correcta era: <span id="correct-answer-text">85</span></div>
+          </div>
+        </div>
+
+        <!-- Next/Finish Button -->
+        <div class="text-center">
+          <button id="next-question" class="hidden px-8 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors">
+            Siguiente Pregunta
+          </button>
+          <button id="finish-quiz" class="hidden px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+            Ver Resultados Finales
+          </button>
+        </div>
+      </div>
+
+      <!-- Quiz Completed -->
+      <div id="quiz-completed" class="hidden text-center">
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
+          <div class="text-6xl mb-6">🏆</div>
+          <h2 class="text-3xl font-bold text-white mb-4">¡Quiz Completado!</h2>
+          <div class="grid grid-cols-2 gap-6 mb-8">
+            <div>
+              <div class="text-3xl font-bold text-green-400" id="final-correct">0</div>
+              <div class="text-orange-200">Respuestas Correctas</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-yellow-400" id="final-coins">0</div>
+              <div class="text-orange-200">Monedas Ganadas</div>
+            </div>
+          </div>
+          <p class="text-orange-200 mb-6">¡Vuelve mañana para otro quiz diario!</p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/nike-fc-cards" class="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors">
+              Volver al Dashboard
+            </a>
+            <a href="/nike-fc-cards/packs" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+              Abrir Sobres
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Already Completed Today -->
+      <div id="already-completed" class="hidden text-center">
+        <div class="bg-blue-500/20 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
+          <div class="text-6xl mb-6">⏰</div>
+          <h2 class="text-3xl font-bold text-white mb-4">Quiz Ya Completado</h2>
+          <p class="text-blue-200 mb-6">Ya has completado el quiz de hoy. ¡Vuelve mañana para más preguntas!</p>
+          <div class="grid grid-cols-2 gap-6 mb-8">
+            <div>
+              <div class="text-3xl font-bold text-green-400" id="today-correct">0</div>
+              <div class="text-blue-200">Correctas Hoy</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-yellow-400" id="today-coins">0</div>
+              <div class="text-blue-200">Monedas Hoy</div>
+            </div>
+          </div>
+          <a href="/nike-fc-cards" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors">
+            Volver al Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentUser = null;
+    let authToken = null;
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let correctAnswers = 0;
+    let coinsEarned = 0;
+
+    // Load auth state
+    function checkAuthState() {
+      const token = localStorage.getItem('nike_fc_token');
+      const user = localStorage.getItem('nike_fc_user');
+      
+      if (token && user) {
+        try {
+          authToken = token;
+          currentUser = JSON.parse(user);
+          return true;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          localStorage.removeItem('nike_fc_token');
+          localStorage.removeItem('nike_fc_user');
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // API calls
+    async function fetchQuizData() {
+      try {
+        const response = await fetch('/api/nike-fc-cards/quiz/daily', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching quiz data:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    async function submitAnswer(questionId, selectedAnswer) {
+      try {
+        const response = await fetch('/api/nike-fc-cards/quiz/answer', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}` 
+          },
+          body: JSON.stringify({ questionId, selectedAnswer })
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error submitting answer:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    // UI functions
+    function showSection(sectionId) {
+      const sections = ['not-logged-in', 'quiz-container', 'quiz-completed', 'already-completed'];
+      sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.classList.toggle('hidden', id !== sectionId);
+        }
+      });
+    }
+
+    function displayQuestion(question) {
+      document.getElementById('player-name').textContent = question.player.name;
+      document.getElementById('player-position').textContent = `${question.player.position1} - FC Bufas`;
+      document.getElementById('stat-name').textContent = getStatDisplayName(question.stat_name);
+      
+      const options = document.querySelectorAll('.answer-option');
+      const values = [question.options.a, question.options.b, question.options.c];
+      
+      options.forEach((option, index) => {
+        const letter = ['a', 'b', 'c'][index];
+        option.dataset.answer = letter;
+        option.querySelector('.option-value').textContent = values[index];
+        option.disabled = false;
+        option.className = 'answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all';
+      });
+
+      document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+      document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / 5) * 100}%`;
+    }
+
+    function getStatDisplayName(statName) {
+      const names = {
+        pace: 'Ritmo',
+        shooting: 'Tiro',
+        passing: 'Pase',
+        defending: 'Defensa',
+        physical: 'Físico',
+        fifa_rating: 'Rating FIFA'
+      };
+      return names[statName] || statName;
+    }
+
+    function showResult(isCorrect, correctAnswer, earnedCoins = 0) {
+      document.getElementById('result-message').classList.remove('hidden');
+      
+      if (isCorrect) {
+        document.getElementById('correct-message').classList.remove('hidden');
+        document.getElementById('wrong-message').classList.add('hidden');
+        correctAnswers++;
+        coinsEarned += earnedCoins;
+        
+        // Update user coins in localStorage
+        if (currentUser && earnedCoins > 0) {
+          currentUser.coins += earnedCoins;
+          localStorage.setItem('nike_fc_user', JSON.stringify(currentUser));
+        }
+      } else {
+        document.getElementById('correct-message').classList.add('hidden');
+        document.getElementById('wrong-message').classList.remove('hidden');
+        document.getElementById('correct-answer-text').textContent = correctAnswer;
+      }
+
+      // Update stats
+      document.getElementById('questions-answered').textContent = currentQuestionIndex + 1;
+      document.getElementById('correct-answers').textContent = correctAnswers;
+      document.getElementById('coins-earned').textContent = coinsEarned;
+
+      // Show next button
+      if (currentQuestionIndex < questions.length - 1) {
+        document.getElementById('next-question').classList.remove('hidden');
+      } else {
+        document.getElementById('finish-quiz').classList.remove('hidden');
+      }
+    }
+
+    async function initializeQuiz() {
+      const result = await fetchQuizData();
+      
+      if (!result.success) {
+        alert('Error al cargar el quiz: ' + result.error);
+        return;
+      }
+
+      if (result.alreadyCompleted) {
+        // Show already completed state
+        document.getElementById('today-correct').textContent = result.progress.correctAnswers;
+        document.getElementById('today-coins').textContent = result.progress.totalCoinsEarned;
+        showSection('already-completed');
+        return;
+      }
+
+      questions = result.questions;
+      currentQuestionIndex = 0;
+      correctAnswers = result.progress.correctAnswers;
+      coinsEarned = result.progress.totalCoinsEarned;
+
+      if (questions.length === 0) {
+        alert('No hay preguntas disponibles para hoy');
+        return;
+      }
+
+      showSection('quiz-container');
+      displayQuestion(questions[0]);
+
+      // Set up event listeners
+      document.querySelectorAll('.answer-option').forEach(button => {
+        button.addEventListener('click', handleAnswer);
+      });
+
+      document.getElementById('next-question').addEventListener('click', nextQuestion);
+      document.getElementById('finish-quiz').addEventListener('click', finishQuiz);
+    }
+
+    async function handleAnswer(event) {
+      const selectedButton = event.target.closest('.answer-option');
+      const selectedAnswer = parseInt(selectedButton.querySelector('.option-value').textContent);
+      const currentQuestion = questions[currentQuestionIndex];
+      
+      // Disable all buttons
+      document.querySelectorAll('.answer-option').forEach(btn => {
+        btn.disabled = true;
+        btn.classList.remove('hover:bg-white/30');
+      });
+
+      // Submit answer to API
+      const result = await submitAnswer(currentQuestion.id, selectedAnswer);
+      
+      if (!result.success) {
+        alert('Error al enviar respuesta: ' + result.error);
+        return;
+      }
+
+      // Highlight correct and wrong answers
+      document.querySelectorAll('.answer-option').forEach(btn => {
+        const value = parseInt(btn.querySelector('.option-value').textContent);
+        if (value === result.correctAnswer) {
+          btn.classList.add('bg-green-500/50');
+        } else if (btn === selectedButton && value !== result.correctAnswer) {
+          btn.classList.add('bg-red-500/50');
+        }
+      });
+
+      showResult(result.isCorrect, result.correctAnswer, result.coinsEarned);
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      
+      // Hide result and buttons
+      document.getElementById('result-message').classList.add('hidden');
+      document.getElementById('next-question').classList.add('hidden');
+      
+      // Show next question
+      displayQuestion(questions[currentQuestionIndex]);
+    }
+
+    function finishQuiz() {
+      document.getElementById('final-correct').textContent = correctAnswers;
+      document.getElementById('final-coins').textContent = coinsEarned;
+      showSection('quiz-completed');
+
+      // Update user coins in localStorage
+      if (currentUser) {
+        currentUser.coins += coinsEarned;
+        localStorage.setItem('nike_fc_user', JSON.stringify(currentUser));
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!checkAuthState()) {
+        showSection('not-logged-in');
+        return;
+      }
+
+      // Initialize quiz with API data
+      await initializeQuiz();
+    });
+  </script>
+</Layout>
