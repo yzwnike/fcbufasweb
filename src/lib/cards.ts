@@ -28,7 +28,10 @@ export const PACK_PRICES = {
 
 // Obtener todos los jugadores
 export async function getAllPlayers(): Promise<Player[]> {
-  return await executeQuery<Player>('SELECT * FROM players ORDER BY fifa_rating DESC, name ASC');
+  // Preferir jugadores elegibles para quiz si existe la columna
+  return await executeQuery<Player>(
+    "SELECT * FROM players WHERE (eligible_for_quiz IS NULL OR eligible_for_quiz = 1) ORDER BY fifa_rating DESC, name ASC"
+  );
 }
 
 // Obtener jugador por ID
@@ -62,6 +65,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
     special_type: result.special_type,
     special_month: result.special_month,
     base_price: result.base_price,
+    image_path: result.image_path,
     created_at: result.created_at,
     player: {
       id: result.player_id,
@@ -86,7 +90,9 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
 // Obtener todas las cartas de un usuario
 export async function getUserCards(userId: number): Promise<UserCardWithDetails[]> {
   const results = await executeQuery<any>(
-    `SELECT uc.*, c.*, p.* FROM user_cards uc
+    `SELECT uc.*, c.*, p.*,
+            c.image_path AS card_image_path
+     FROM user_cards uc
      JOIN cards c ON uc.card_id = c.id
      JOIN players p ON c.player_id = p.id
      WHERE uc.user_id = ?
@@ -108,6 +114,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
       special_type: result.special_type,
       special_month: result.special_month,
       base_price: result.base_price,
+      image_path: result.card_image_path,
       created_at: result.created_at,
       player: {
         id: result.player_id,
@@ -247,45 +254,81 @@ export async function giveCardToUser(userId: number, cardId: number): Promise<bo
 }
 
 // Abrir sobre de cartas
-export async function openCardPack(userId: number, packType: 'FREE_DAILY' | 'PREMIUM' | 'SPECIAL' = 'FREE_DAILY'): Promise<{
+export async function openCardPack(
+  userId: number,
+  packType: 'FREE_DAILY' | 'PREMIUM' | 'SPECIAL' = 'FREE_DAILY',
+  existingConnection?: any
+): Promise<{
   success: boolean;
   cards?: CardWithPlayer[];
   error?: string;
 }> {
   try {
-    const numCards = packType === 'SPECIAL' ? 5 : packType === 'PREMIUM' ? 3 : 1;
+    const numCards = 1; // Todos los sobres entregan 1 carta
     const openedCards: CardWithPlayer[] = [];
 
-    await executeTransaction(async (connection) => {
+    // helper: pick a random card id by special group
+    async function pickRandomCardIdByGroup(conn: any, group: 'BASE_OG' | 'LEGEND' | 'RARE'): Promise<Card | null> {
+      async function pick(sql: string): Promise<Card | null> {
+        const [rows] = await conn.execute(sql);
+        if (Array.isArray(rows) && rows.length > 0) return rows[0] as Card;
+        return null;
+      }
+      // Primary pick
+      if (group === 'BASE_OG') {
+        const c = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RAND() LIMIT 1");
+        if (c) return c;
+      }
+      if (group === 'LEGEND') {
+        // Solo POTM cuenta como legendaria
+        const c = await pick("SELECT * FROM cards WHERE special_type = 'PLAYER_OF_THE_MONTH' ORDER BY RAND() LIMIT 1");
+        if (c) return c;
+        // Fallbacks si no hay POTM en la BD
+        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RAND() LIMIT 1");
+        if (c2) return c2;
+        const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RAND() LIMIT 1");
+        return c3;
+      }
+      if (group === 'RARE') {
+        // Especial no legendaria: todas las especiales excepto BASE/OG y POTM
+        const c = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RAND() LIMIT 1");
+        if (c) return c;
+        // Fallbacks seguros
+        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RAND() LIMIT 1");
+        return c2;
+      }
+      // Last safety
+      const any = await pick("SELECT * FROM cards ORDER BY RAND() LIMIT 1");
+      return any;
+    }
+
+    const runWithConnection = async (connection: any) => {
       for (let i = 0; i < numCards; i++) {
-        // Determinar rareza
-        let rarity = determineCardRarity();
-        
-        // Para sobres especiales, garantizar al menos una carta Elite o Legend
-        if (packType === 'SPECIAL' && i === 0) {
-          rarity = Math.random() < 0.3 ? 'Legend' : 'Elite';
+        let group: 'BASE_OG' | 'LEGEND' | 'RARE';
+        const r = Math.random();
+        if (packType === 'SPECIAL') {
+          // Especial: 70% especiales no legendarias (TOTW, MM, RR, AE, CH), 30% legendarias (POTM)
+          group = r < 0.70 ? 'RARE' : 'LEGEND';
+        } else {
+          // Gratis/Premium: 75% Base/OG, 9% Legend (POTM), 16% Especial no legendaria (incluye TOTW)
+          if (r < 0.75) group = 'BASE_OG';
+          else if (r < 0.75 + 0.09) group = 'LEGEND';
+          else group = 'RARE';
         }
 
-        // Obtener cartas disponibles para esa rareza
-        const [availableCards] = await connection.execute(
-          'SELECT * FROM cards WHERE rarity = ? ORDER BY RAND() LIMIT 1',
-          [rarity]
+        const selectedCard = await pickRandomCardIdByGroup(connection, group);
+        if (!selectedCard) continue;
+
+        // Dar la carta al usuario
+        await connection.execute(
+          'INSERT INTO user_cards (user_id, card_id) VALUES (?, ?)',
+          [userId, selectedCard.id]
         );
 
-        if (Array.isArray(availableCards) && availableCards.length > 0) {
-          const selectedCard = availableCards[0] as Card;
-
-          // Dar la carta al usuario
-          await connection.execute(
-            'INSERT INTO user_cards (user_id, card_id) VALUES (?, ?)',
-            [userId, selectedCard.id]
-          );
-
-          // Obtener información completa de la carta
-          const cardWithPlayer = await getCardWithPlayer(selectedCard.id);
-          if (cardWithPlayer) {
-            openedCards.push(cardWithPlayer);
-          }
+        // Obtener información completa de la carta
+        const cardWithPlayer = await getCardWithPlayer(selectedCard.id);
+        if (cardWithPlayer) {
+          openedCards.push(cardWithPlayer);
         }
       }
 
@@ -294,7 +337,15 @@ export async function openCardPack(userId: number, packType: 'FREE_DAILY' | 'PRE
         'UPDATE users SET total_cards_opened = total_cards_opened + ? WHERE id = ?',
         [numCards, userId]
       );
-    });
+    };
+
+    if (existingConnection) {
+      await runWithConnection(existingConnection);
+    } else {
+      await executeTransaction(async (connection) => {
+        await runWithConnection(connection);
+      });
+    }
 
     return { success: true, cards: openedCards };
   } catch (error) {
@@ -312,21 +363,25 @@ export function calculateCardSellPrice(card: CardWithPlayer): number {
     Gold: 2.5,
     Elite: 4,
     Legend: 6
-  };
+  } as const;
 
-  const specialTypeMultiplier = {
+  const specialTypeMultiplier: Record<string, number> = {
     Regular: 1,
     PLAYER_OF_THE_MONTH: 2,
     RATING_RELOAD: 1.8,
     ASSIST_ENGINE: 1.6,
     MARKET_MASTER: 1.7,
-    COMEBACK_HERO: 1.9
+    COMEBACK_HERO: 1.9,
+    TEAM_OF_THE_WEEK: 1.8,
+    OLD_GENERATION: 1.1,
   };
+
+  const typeMult = specialTypeMultiplier[card.special_type] ?? 1;
 
   const finalPrice = Math.floor(
     basePrice * 
     rarityMultiplier[card.rarity] * 
-    specialTypeMultiplier[card.special_type] * 
+    typeMult * 
     (card.player.fifa_rating / 80) // Factor basado en rating FIFA
   );
 

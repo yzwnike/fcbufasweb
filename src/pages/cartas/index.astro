@@ -12,7 +12,7 @@ import { players } from "../../lib/players";
 
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
       {players.map((p) => (
-        <a href={`/cartas/${p.slug}`} class="group block relative rounded-xl overflow-hidden bg-white/5 backdrop-blur border border-white/10 shadow hover:shadow-lg transition-all duration-200">
+        <a href={`/cartas/BASE/${p.slug}`} class="group block relative rounded-xl overflow-hidden bg-white/5 backdrop-blur border border-white/10 shadow hover:shadow-lg transition-all duration-200">
           <div class="relative">
             <img
               src={p.image}

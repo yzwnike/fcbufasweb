@@ -236,20 +236,10 @@ import Layout from '@/layouts/Layout.astro';
 
     // Auth functions
     function checkAuthState() {
-      const token = localStorage.getItem('nike_fc_token');
-      const user = localStorage.getItem('nike_fc_user');
-      
-      if (token && user) {
-        try {
-          authToken = token;
-          currentUser = JSON.parse(user);
-          return true;
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('nike_fc_token');
-          localStorage.removeItem('nike_fc_user');
-          return false;
-        }
+      const token = sessionStorage.getItem('nike_fc_token');
+      if (token) {
+        authToken = token;
+        return true;
       }
       return false;
     }
@@ -265,70 +255,20 @@ import Layout from '@/layouts/Layout.astro';
       });
     }
 
-    // Fetch user collection (mock for now - replace with API call)
+    // Fetch user collection from API
     async function fetchUserCollection() {
-      // Mock data - replace with actual API call when cards API is available
-      return {
-        success: true,
-        cards: generateMockCards(),
-        stats: {
-          totalCards: 42,
-          totalValue: 15250,
-          uniquePlayers: 28,
-          cardsByRarity: {
-            Bronze: 18,
-            Silver: 12,
-            Gold: 8,
-            Elite: 3,
-            Legend: 1
-          }
-        }
-      };
-    }
-
-    function generateMockCards() {
-      const players = [
-        'Nico Vehi', 'Pablo Vehi', 'Albert Rodriguez', 'Marc Sanchez', 
-        'Mario Roca', 'Marcos Lopez', 'Nico Uriburu', 'Javo Ayesta',
-        'Marc Permanyer', 'Fan Xu'
-      ];
-
-      const positions = ['ST', 'CM', 'CB', 'GK', 'LW', 'RW', 'CAM', 'CDM'];
-      const rarities = ['Bronze', 'Silver', 'Gold', 'Elite', 'Legend'];
-      const cards = [];
-
-      for (let i = 0; i < 42; i++) {
-        const player = players[Math.floor(Math.random() * players.length)];
-        const position = positions[Math.floor(Math.random() * positions.length)];
-        const rarity = rarities[Math.floor(Math.random() * rarities.length)];
-        const isForSale = Math.random() > 0.8;
-
-        cards.push({
-          id: i + 1,
-          user_id: currentUser.id,
-          card_id: i + 1,
-          obtained_at: new Date().toISOString(),
-          is_for_sale: isForSale,
-          sale_price: isForSale ? Math.floor(Math.random() * 1000) + 100 : null,
-          card: {
-            id: i + 1,
-            player_id: (i % 10) + 1,
-            rarity: rarity,
-            special_type: 'Regular',
-            base_price: Math.floor(Math.random() * 500) + 50,
-            player: {
-              id: (i % 10) + 1,
-              name: player,
-              position1: position,
-              fifa_rating: Math.floor(Math.random() * 30) + 60,
-              fantasy_points: Math.floor(Math.random() * 10)
-            }
-          }
+      try {
+        const token = sessionStorage.getItem('nike_fc_token');
+        const res = await fetch('/api/nike-fc-cards/collection', {
+          headers: { Authorization: `Bearer ${token}` }
         });
+        return await res.json();
+      } catch (e) {
+        return { success: false, error: 'Error de conexión' };
       }
-
-      return cards;
     }
+
+    function generateMockCards() { /* deprecated */ return []; }
 
     function displayStats(stats) {
       document.getElementById('total-cards').textContent = stats.totalCards;
@@ -389,11 +329,14 @@ import Layout from '@/layouts/Layout.astro';
         `;
       }
 
-      cardDiv.innerHTML = `
-        ${saleIndicator}
+      const img = card.image_path ? `<img src="${card.image_path}" alt="${card.player.name}" class="w-full rounded-lg mb-3" />` : `
         <div class="w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3">
           <span class="text-3xl">⚽</span>
-        </div>
+        </div>`;
+
+      cardDiv.innerHTML = `
+        ${saleIndicator}
+        ${img}
         <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
         <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${card.rarity}</div>
         <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
@@ -467,8 +410,7 @@ import Layout from '@/layouts/Layout.astro';
       displayCards(filteredCards);
     }
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', async () => {
+    async function startCollectionPage() {
       if (!checkAuthState()) {
         showSection('not-logged-in');
         return;
@@ -483,11 +425,16 @@ import Layout from '@/layouts/Layout.astro';
         return;
       }
 
-      userCards = result.cards;
+      userCards = result.cards || [];
       filteredCards = [...userCards];
 
       showSection('collection-container');
-      displayStats(result.stats);
+      displayStats({
+        totalCards: result.stats?.totalCards || 0,
+        totalValue: result.stats?.totalValue || 0,
+        uniquePlayers: result.stats?.uniquePlayers || 0,
+        cardsByRarity: result.stats?.cardsByRarity || { Bronze:0, Silver:0, Gold:0, Elite:0, Legend:0 }
+      });
       displayCards(filteredCards);
 
       // Event listeners
@@ -544,6 +491,10 @@ import Layout from '@/layouts/Layout.astro';
           closeCardModal();
         }
       });
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', startCollectionPage);
+    document.addEventListener('astro:page-load', startCollectionPage);
+    document.addEventListener('astro:after-swap', startCollectionPage);
   </script>
 </Layout>

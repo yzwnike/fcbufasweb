@@ -172,6 +172,7 @@ import Layout from '@/layouts/Layout.astro';
     // State management
     let currentUser = null;
     let authToken = null;
+    const storage = window.sessionStorage;
     let questions = [];
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
@@ -179,21 +180,8 @@ import Layout from '@/layouts/Layout.astro';
 
     // Load auth state
     function checkAuthState() {
-      const token = localStorage.getItem('nike_fc_token');
-      const user = localStorage.getItem('nike_fc_user');
-      
-      if (token && user) {
-        try {
-          authToken = token;
-          currentUser = JSON.parse(user);
-          return true;
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('nike_fc_token');
-          localStorage.removeItem('nike_fc_user');
-          return false;
-        }
-      }
+      const token = storage.getItem('nike_fc_token');
+      if (token) { authToken = token; return true; }
       return false;
     }
 
@@ -278,12 +266,6 @@ import Layout from '@/layouts/Layout.astro';
         document.getElementById('wrong-message').classList.add('hidden');
         correctAnswers++;
         coinsEarned += earnedCoins;
-        
-        // Update user coins in localStorage
-        if (currentUser && earnedCoins > 0) {
-          currentUser.coins += earnedCoins;
-          localStorage.setItem('nike_fc_user', JSON.stringify(currentUser));
-        }
       } else {
         document.getElementById('correct-message').classList.add('hidden');
         document.getElementById('wrong-message').classList.remove('hidden');
@@ -389,22 +371,21 @@ import Layout from '@/layouts/Layout.astro';
       document.getElementById('final-coins').textContent = coinsEarned;
       showSection('quiz-completed');
 
-      // Update user coins in localStorage
-      if (currentUser) {
-        currentUser.coins += coinsEarned;
-        localStorage.setItem('nike_fc_user', JSON.stringify(currentUser));
-      }
+      // Coins are already updated in DB by API
     }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', async () => {
+    // Initialization function to support SPA navigations
+    async function startQuizPage() {
       if (!checkAuthState()) {
         showSection('not-logged-in');
         return;
       }
-
-      // Initialize quiz with API data
       await initializeQuiz();
-    });
+    }
+
+    // Initialize on page load and Astro transitions
+    document.addEventListener('DOMContentLoaded', startQuizPage);
+    document.addEventListener('astro:page-load', startQuizPage);
+    document.addEventListener('astro:after-swap', startQuizPage);
   </script>
 </Layout>

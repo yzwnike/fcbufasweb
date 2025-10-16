@@ -187,6 +187,7 @@ import Layout from '@/layouts/Layout.astro';
     // State management
     let currentUser = null;
     let authToken = null;
+    const storage = window.sessionStorage;
     let eligiblePlayers = { forwards: [], midfielders: [], defenders: [] };
     let currentSelection = null;
     let selectedPlayers = {
@@ -197,20 +198,10 @@ import Layout from '@/layouts/Layout.astro';
 
     // Auth functions
     function checkAuthState() {
-      const token = localStorage.getItem('nike_fc_token');
-      const user = localStorage.getItem('nike_fc_user');
-      
-      if (token && user) {
-        try {
-          authToken = token;
-          currentUser = JSON.parse(user);
-          return true;
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('nike_fc_token');
-          localStorage.removeItem('nike_fc_user');
-          return false;
-        }
+      const token = storage.getItem('nike_fc_token');
+      if (token) {
+        authToken = token;
+        return true;
       }
       return false;
     }
@@ -410,8 +401,7 @@ import Layout from '@/layouts/Layout.astro';
       confirmBtn.disabled = !allSelected;
     }
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', async () => {
+    async function startFantasyPage() {
       if (!checkAuthState()) {
         showSection('not-logged-in');
         return;
@@ -472,7 +462,12 @@ import Layout from '@/layouts/Layout.astro';
           confirmBtn.textContent = 'Confirmar Selección';
         }
       });
-    });
+    }
+
+    // Initialize on load and Astro transitions
+    document.addEventListener('DOMContentLoaded', startFantasyPage);
+    document.addEventListener('astro:page-load', startFantasyPage);
+    document.addEventListener('astro:after-swap', startFantasyPage);
 
     // Utility functions
     function getWeekStart(date = new Date()) {

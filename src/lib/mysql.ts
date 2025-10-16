@@ -1,12 +1,11 @@
 import mysql from 'mysql2/promise';
-import { mockExecuteQuery, mockExecuteQuerySingle, mockExecuteTransaction } from './mock-data';
 
 // Configuración de la base de datos
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'nike_fc_cards',
+  database: process.env.DB_NAME || 'bufas_cards',
   port: parseInt(process.env.DB_PORT || '3306'),
   charset: 'utf8mb4',
   waitForConnections: true,
@@ -18,15 +17,9 @@ const dbConfig = {
 
 // Pool de conexiones para mejor rendimiento
 let pool: mysql.Pool | null = null;
-let useMockData = false;
 
-// Intentar crear el pool de conexiones
-try {
-  pool = mysql.createPool(dbConfig);
-} catch (error) {
-  console.warn('❌ MySQL no disponible, usando datos simulados');
-  useMockData = true;
-}
+// Crear el pool de conexiones (lanzar error si falla para no usar datos mock)
+pool = mysql.createPool(dbConfig);
 
 export { pool };
 
@@ -35,22 +28,12 @@ export async function executeQuery<T = any>(
   query: string,
   params?: any[]
 ): Promise<T[]> {
-  // Usar datos simulados si MySQL no está disponible
-  if (useMockData || !pool) {
-    return await mockExecuteQuery<T>(query, params);
-  }
-  
+  if (!pool) throw new Error('MySQL pool not initialized');
   try {
     const [rows] = await pool.execute(query, params);
     return rows as T[];
   } catch (error) {
     console.error('Database query error:', error);
-    // Cambiar a modo simulado si hay error de conexión
-    if ((error as any).code === 'ECONNREFUSED' || (error as any).code === 'ENOTFOUND') {
-      console.warn('⚠️ MySQL no disponible, cambiando a datos simulados');
-      useMockData = true;
-      return await mockExecuteQuery<T>(query, params);
-    }
     throw new Error(`Database error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -60,21 +43,11 @@ export async function executeQuerySingle<T = any>(
   query: string,
   params?: any[]
 ): Promise<T | null> {
-  // Usar datos simulados si MySQL no está disponible
-  if (useMockData || !pool) {
-    return await mockExecuteQuerySingle<T>(query, params);
-  }
-  
+  if (!pool) throw new Error('MySQL pool not initialized');
   try {
     const rows = await executeQuery<T>(query, params);
     return rows.length > 0 ? rows[0] : null;
   } catch (error) {
-    // Cambiar a modo simulado si hay error de conexión
-    if ((error as any).code === 'ECONNREFUSED' || (error as any).code === 'ENOTFOUND') {
-      console.warn('⚠️ MySQL no disponible, cambiando a datos simulados');
-      useMockData = true;
-      return await mockExecuteQuerySingle<T>(query, params);
-    }
     throw error;
   }
 }
@@ -83,11 +56,7 @@ export async function executeQuerySingle<T = any>(
 export async function executeTransaction<T>(
   callback: (connection: mysql.PoolConnection) => Promise<T>
 ): Promise<T> {
-  // Usar datos simulados si MySQL no está disponible
-  if (useMockData || !pool) {
-    return await mockExecuteTransaction<T>(callback as any);
-  }
-  
+  if (!pool) throw new Error('MySQL pool not initialized');
   let connection: mysql.PoolConnection | null = null;
   try {
     connection = await pool.getConnection();
@@ -98,12 +67,6 @@ export async function executeTransaction<T>(
   } catch (error) {
     if (connection) {
       await connection.rollback();
-    }
-    // Cambiar a modo simulado si hay error de conexión
-    if ((error as any).code === 'ECONNREFUSED' || (error as any).code === 'ENOTFOUND') {
-      console.warn('⚠️ MySQL no disponible, cambiando a datos simulados');
-      useMockData = true;
-      return await mockExecuteTransaction<T>(callback as any);
     }
     throw error;
   } finally {
@@ -149,9 +112,10 @@ export interface Card {
   id: number;
   player_id: number;
   rarity: 'Bronze' | 'Silver' | 'Gold' | 'Elite' | 'Legend';
-  special_type: 'Regular' | 'PLAYER_OF_THE_MONTH' | 'RATING_RELOAD' | 'ASSIST_ENGINE' | 'MARKET_MASTER' | 'COMEBACK_HERO';
+  special_type: 'Regular' | 'PLAYER_OF_THE_MONTH' | 'RATING_RELOAD' | 'ASSIST_ENGINE' | 'MARKET_MASTER' | 'COMEBACK_HERO' | 'TEAM_OF_THE_WEEK' | 'OLD_GENERATION';
   special_month: string | null;
   base_price: number;
+  image_path?: string | null;
   created_at: string;
 }
 
@@ -225,7 +189,7 @@ export interface CoinTransaction {
   id: number;
   user_id: number;
   amount: number;
-  type: 'DAILY_QUIZ' | 'FANTASY_RUSH' | 'PACK_PURCHASE' | 'PACK_SPEEDUP' | 'CARD_SALE' | 'CARD_PURCHASE' | 'INITIAL_BONUS';
+  type: 'DAILY_QUIZ' | 'FANTASY_RUSH' | 'PACK_PURCHASE' | 'PACK_SPEEDUP' | 'CARD_SALE' | 'CARD_PURCHASE' | 'INITIAL_BONUS' | 'ADMIN_GRANT' | 'ADMIN_DEDUCT';
   description: string;
   created_at: string;
 }

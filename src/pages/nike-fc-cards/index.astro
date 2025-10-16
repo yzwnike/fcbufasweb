@@ -178,24 +178,14 @@ import Layout from '@/layouts/Layout.astro';
   // Auth State Management
   let currentUser = null;
   let authToken = null;
+  const storage = window.sessionStorage;
 
   // Check if user is logged in
   function checkAuthState() {
-    const token = localStorage.getItem('nike_fc_token');
-    const user = localStorage.getItem('nike_fc_user');
-    
-    if (token && user) {
-      try {
-        authToken = token;
-        currentUser = JSON.parse(user);
-        showLoggedInState();
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        // Clear corrupted data
-        localStorage.removeItem('nike_fc_token');
-        localStorage.removeItem('nike_fc_user');
-        showLoggedOutState();
-      }
+    const token = storage.getItem('nike_fc_token');
+    if (token) {
+      authToken = token;
+      fetchMe();
     } else {
       showLoggedOutState();
     }
@@ -227,6 +217,21 @@ import Layout from '@/layouts/Layout.astro';
     if (loggedOut) loggedOut.classList.remove('hidden');
     if (loggedIn) loggedIn.classList.add('hidden');
     if (quickActions) quickActions.classList.add('hidden');
+  }
+
+  async function fetchMe() {
+    try {
+      const res = await fetch('/api/nike-fc-cards/auth/me', { headers: { Authorization: `Bearer ${authToken}` } });
+      const data = await res.json();
+      if (data.success) {
+        currentUser = data.user;
+        showLoggedInState();
+      } else {
+        showLoggedOutState();
+      }
+    } catch {
+      showLoggedOutState();
+    }
   }
 
   // Modal functions
@@ -269,11 +274,9 @@ import Layout from '@/layouts/Layout.astro';
       console.log('Login response:', data);
       
       if (data.success) {
-        localStorage.setItem('nike_fc_token', data.token);
-        localStorage.setItem('nike_fc_user', JSON.stringify(data.user));
+        storage.setItem('nike_fc_token', data.token);
         authToken = data.token;
-        currentUser = data.user;
-        showLoggedInState();
+        await fetchMe();
         closeModal('login-modal');
         // Forzar sincronización de estado en toda la app
         window.location.reload();
@@ -300,11 +303,9 @@ import Layout from '@/layouts/Layout.astro';
       console.log('Register response:', data);
       
       if (data.success) {
-        localStorage.setItem('nike_fc_token', data.token);
-        localStorage.setItem('nike_fc_user', JSON.stringify(data.user));
+        storage.setItem('nike_fc_token', data.token);
         authToken = data.token;
-        currentUser = data.user;
-        showLoggedInState();
+        await fetchMe();
         closeModal('register-modal');
         // Forzar sincronización de estado en toda la app
         window.location.reload();
@@ -323,6 +324,9 @@ import Layout from '@/layouts/Layout.astro';
   } else {
     initializeApp();
   }
+  // Ensure initialization on SPA navigations (Astro View Transitions)
+  document.addEventListener('astro:page-load', initializeApp);
+  document.addEventListener('astro:after-swap', initializeApp);
 
   function initializeApp() {
     console.log('Initializing Nike FC Cards app...');

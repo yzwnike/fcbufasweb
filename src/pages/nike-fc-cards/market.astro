@@ -244,24 +244,12 @@ import Layout from '@/layouts/Layout.astro';
     let marketListings = [];
     let filteredListings = [];
     let selectedListing = null;
+    const storage = window.sessionStorage;
 
     // Auth functions
     function checkAuthState() {
-      const token = localStorage.getItem('nike_fc_token');
-      const user = localStorage.getItem('nike_fc_user');
-      
-      if (token && user) {
-        try {
-          authToken = token;
-          currentUser = JSON.parse(user);
-          return true;
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('nike_fc_token');
-          localStorage.removeItem('nike_fc_user');
-          return false;
-        }
-      }
+      const token = storage.getItem('nike_fc_token');
+      if (token) { authToken = token; return true; }
       return false;
     }
 
@@ -276,76 +264,30 @@ import Layout from '@/layouts/Layout.astro';
       });
     }
 
-    // Fetch market data (mock for now)
+    // Fetch market data from API
     async function fetchMarketListings() {
-      // Mock data - replace with actual API call
-      return {
-        success: true,
-        listings: generateMockListings(),
-        stats: {
-          totalListings: 156,
-          avgPrice: 340,
-          activeSellers: 28,
-          legendCards: 12
-        }
-      };
-    }
-
-    function generateMockListings() {
-      const players = [
-        'Nico Vehi', 'Pablo Vehi', 'Albert Rodriguez', 'Marc Sanchez', 
-        'Mario Roca', 'Marcos Lopez', 'Nico Uriburu', 'Javo Ayesta',
-        'Marc Permanyer', 'Fan Xu', 'Joan Oriol', 'Dani Malaga'
-      ];
-
-      const sellers = ['CardsKing23', 'Collector99', 'ProTrader', 'FCBufasFan', 'MegaDealer'];
-      const positions = ['ST', 'CM', 'CB', 'GK', 'LW', 'RW', 'CAM', 'CDM'];
-      const rarities = ['Bronze', 'Silver', 'Gold', 'Elite', 'Legend'];
-      const listings = [];
-
-      for (let i = 0; i < 156; i++) {
-        const player = players[Math.floor(Math.random() * players.length)];
-        const seller = sellers[Math.floor(Math.random() * sellers.length)];
-        const position = positions[Math.floor(Math.random() * positions.length)];
-        const rarity = rarities[Math.floor(Math.random() * rarities.length)];
-        const rating = Math.floor(Math.random() * 30) + 60;
-        const basePrice = Math.floor(Math.random() * 500) + 50;
-        const markup = Math.random() * 2 + 0.8; // 80% to 280% markup
-
-        // Don't show user's own cards
-        if (seller === currentUser?.username) continue;
-
-        listings.push({
-          id: i + 1,
-          seller_username: seller,
-          sale_price: Math.floor(basePrice * markup),
-          listed_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          card: {
-            id: i + 1,
-            player_id: (i % players.length) + 1,
-            rarity: rarity,
-            special_type: 'Regular',
-            base_price: basePrice,
-            player: {
-              id: (i % players.length) + 1,
-              name: player,
-              position1: position,
-              fifa_rating: rating,
-              fantasy_points: Math.floor(Math.random() * 10)
-            }
-          }
-        });
+      try {
+        const res = await fetch('/api/nike-fc-cards/market', { headers: { Authorization: `Bearer ${authToken}` } });
+        return await res.json();
+      } catch (e) {
+        return { success: false, error: 'Error de conexión' };
       }
-
-      return listings.sort(() => Math.random() - 0.5);
     }
 
-    function updateUserBalance() {
-      document.getElementById('user-balance').textContent = currentUser.coins.toLocaleString();
-      
-      // Count user's cards for sale (mock)
-      const userCardsForSale = Math.floor(Math.random() * 8) + 2;
-      document.getElementById('user-cards-for-sale').textContent = userCardsForSale;
+    function generateMockListings() { /* deprecated */ return []; }
+
+    async function fetchMe() {
+      try {
+        const res = await fetch('/api/nike-fc-cards/auth/me', { headers: { Authorization: `Bearer ${authToken}` } });
+        const data = await res.json();
+        if (data.success) currentUser = data.user;
+      } catch {}
+    }
+
+    async function updateUserBalance() {
+      await fetchMe();
+      document.getElementById('user-balance').textContent = (currentUser?.coins || 0).toLocaleString();
+      document.getElementById('user-cards-for-sale').textContent = 0;
     }
 
     function displayStats(stats) {
@@ -395,7 +337,10 @@ import Layout from '@/layouts/Layout.astro';
       const timeSinceListing = getTimeAgo(new Date(listing.listed_at));
       
       // Check if user can afford this card
-      const canAfford = currentUser.coins >= listing.sale_price;
+      const canAfford = (currentUser?.coins || 0) >= listing.sale_price;
+
+      const img = card.image_path ? `<img src="${card.image_path}" alt="${card.player.name}" class="w-full rounded-lg mb-3 mt-6" />` : `
+        <div class=\"w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3 mt-6\">⚽</div>`;
 
       cardDiv.innerHTML = `
         <div class="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
@@ -404,9 +349,7 @@ import Layout from '@/layouts/Layout.astro';
         <div class="absolute top-2 right-2 ${canAfford ? 'bg-green-500' : 'bg-red-500'} text-white text-xs px-2 py-1 rounded-full">
           ${canAfford ? '✓' : '✗'}
         </div>
-        <div class="w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3 mt-6">
-          <span class="text-3xl">⚽</span>
-        </div>
+        ${img}
         <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
         <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${card.rarity}</div>
         <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
@@ -497,29 +440,8 @@ import Layout from '@/layouts/Layout.astro';
 
     function purchaseCard() {
       if (!selectedListing) return;
-
-      // Update user balance (mock)
-      currentUser.coins -= selectedListing.sale_price;
-      localStorage.setItem('nike_fc_user', JSON.stringify(currentUser));
-      
-      // Remove from listings
-      const listingIndex = marketListings.findIndex(l => l.id === selectedListing.id);
-      if (listingIndex !== -1) {
-        marketListings.splice(listingIndex, 1);
-      }
-      
-      // Update filtered listings
-      const filteredIndex = filteredListings.findIndex(l => l.id === selectedListing.id);
-      if (filteredIndex !== -1) {
-        filteredListings.splice(filteredIndex, 1);
-      }
-
-      // Refresh display
-      updateUserBalance();
-      displayListings(filteredListings);
+      alert('Compra en mercado: pendiente de implementar en API.');
       closePurchaseModal();
-      
-      alert(`¡Has comprado ${selectedListing.card.player.name} por ${selectedListing.sale_price.toLocaleString()} monedas!`);
     }
 
     function getTimeAgo(date) {
@@ -535,8 +457,7 @@ import Layout from '@/layouts/Layout.astro';
       }
     }
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', async () => {
+    async function startMarketPage() {
       if (!checkAuthState()) {
         showSection('not-logged-in');
         return;
@@ -551,12 +472,12 @@ import Layout from '@/layouts/Layout.astro';
         return;
       }
 
-      marketListings = result.listings;
+      marketListings = result.listings || [];
       filteredListings = [...marketListings];
 
       showSection('market-container');
-      updateUserBalance();
-      displayStats(result.stats);
+      await updateUserBalance();
+      displayStats(result.stats || { totalListings: marketListings.length, avgPrice: 0, activeSellers: 0, legendCards: 0 });
       displayListings(filteredListings);
 
       // Event listeners
@@ -581,6 +502,10 @@ import Layout from '@/layouts/Layout.astro';
           closePurchaseModal();
         }
       });
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', startMarketPage);
+    document.addEventListener('astro:page-load', startMarketPage);
+    document.addEventListener('astro:after-swap', startMarketPage);
   </script>
 </Layout>

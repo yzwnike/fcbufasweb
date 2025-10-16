@@ -187,8 +187,8 @@ export async function speedupFreePack(userId: number): Promise<{
         [userId, -speedupCost, 'PACK_SPEEDUP', `Acelerar sobre gratuito (${cooldown.hoursRemaining}h ${cooldown.minutesRemaining}m)`]
       );
 
-      // Abrir el sobre
-      const packResult = await openCardPack(userId, 'FREE_DAILY');
+      // Abrir el sobre usando la MISMA conexión (evitar nested transactions)
+      const packResult = await openCardPack(userId, 'FREE_DAILY', connection);
       
       if (!packResult.success) {
         throw new Error(packResult.error || 'Error al abrir el sobre');
@@ -256,8 +256,8 @@ export async function buyPremiumPack(userId: number): Promise<{
         [userId, -cost, 'PACK_PURCHASE', 'Compra de sobre premium']
       );
 
-      // Abrir el sobre
-      const packResult = await openCardPack(userId, 'PREMIUM');
+      // Abrir el sobre usando la MISMA conexión (evitar nested transactions)
+      const packResult = await openCardPack(userId, 'PREMIUM', connection);
       
       if (!packResult.success) {
         throw new Error(packResult.error || 'Error al abrir el sobre');
@@ -325,8 +325,8 @@ export async function buySpecialPack(userId: number): Promise<{
         [userId, -cost, 'PACK_PURCHASE', 'Compra de sobre especial']
       );
 
-      // Abrir el sobre
-      const packResult = await openCardPack(userId, 'SPECIAL');
+      // Abrir el sobre usando la MISMA conexión (evitar nested transactions)
+      const packResult = await openCardPack(userId, 'SPECIAL', connection);
       
       if (!packResult.success) {
         throw new Error(packResult.error || 'Error al abrir el sobre');

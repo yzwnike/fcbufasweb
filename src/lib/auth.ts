@@ -222,6 +222,26 @@ export async function getUserById(userId: number): Promise<AuthUser | null> {
   }
 }
 
+// Obtener usuario por username
+export async function getUserByUsername(username: string): Promise<AuthUser | null> {
+  try {
+    const user = await executeQuerySingle<User>(
+      'SELECT id, username, email, coins FROM users WHERE username = ?',
+      [username]
+    );
+    if (!user) return null;
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      coins: user.coins,
+    };
+  } catch (error) {
+    console.error('Get user by username error:', error);
+    return null;
+  }
+}
+
 // Actualizar monedas del usuario
 export async function updateUserCoins(userId: number, newAmount: number): Promise<boolean> {
   try {
