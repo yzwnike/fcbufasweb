@@ -1,9 +1,16 @@
 ---
 import Layout from '@/layouts/Layout.astro';
+import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
 <Layout title="Nike FC Cards - Dashboard">
   <div class="min-h-screen bg-gradient-to-br from-orange-900 via-orange-800 to-red-900">
+    <!-- Subheader Nav -->
+    <div class="pt-28 px-4">
+      <div class="max-w-7xl mx-auto mb-6">
+        <Subheader variant="full" />
+      </div>
+    </div>
     <!-- Hero Section -->
     <section class="relative pt-32 pb-20 px-4">
       <div class="max-w-7xl mx-auto text-center">
@@ -47,11 +54,16 @@ import Layout from '@/layouts/Layout.astro';
                   <p id="coins" class="text-2xl font-bold text-yellow-400">0</p>
                 </div>
               </div>
-            </div>
           </div>
         </div>
+        <div class="text-center mt-4">
+          <button id="logout-btn" class="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors">
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
 
-        <!-- Game Features -->
+      <!-- Game Features -->
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
           <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center hover:bg-white/20 transition-colors group">
             <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -328,6 +340,15 @@ import Layout from '@/layouts/Layout.astro';
   document.addEventListener('astro:page-load', initializeApp);
   document.addEventListener('astro:after-swap', initializeApp);
 
+  function doLogout() {
+    try {
+      storage.removeItem('nike_fc_token');
+      authToken = null;
+      currentUser = null;
+      window.location.href = '/nike-fc-cards';
+    } catch {}
+  }
+
   function initializeApp() {
     console.log('Initializing Nike FC Cards app...');
     
@@ -367,6 +388,9 @@ import Layout from '@/layouts/Layout.astro';
       closeRegisterBtn.addEventListener('click', () => closeModal('register-modal'));
     }
 
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', doLogout);
+    
     // Form submissions
     const loginForm = document.getElementById('login-form');
     if (loginForm) {

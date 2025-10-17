@@ -1,10 +1,13 @@
 ---
 import Layout from '@/layouts/Layout.astro';
+import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
 <Layout title="Sobres de Cartas - Nike FC Cards">
   <div class="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-teal-900">
     <div class="container mx-auto px-4 py-20">
+      <!-- Subheader Nav -->
+      <Subheader variant="minimal" />
       <!-- Header -->
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
@@ -126,6 +129,7 @@ import Layout from '@/layouts/Layout.astro';
       <!-- Pack Opening Fullscreen Overlay -->
       <div id="pack-opening" class="hidden fixed inset-0 bg-black/95 text-white flex items-center justify-center z-50">
         <div id="reveal-sequence" class="text-center">
+          <div id="loading-indicator" class="mt-6 text-green-300 text-xl animate-pulse">Abriendo sobre…</div>
           <div id="reveal-pos" class="text-6xl font-extrabold opacity-0 transition-opacity duration-500"></div>
           <div id="reveal-rating" class="text-7xl text-yellow-400 font-extrabold mt-4 opacity-0 transition-opacity duration-500"></div>
           <div id="card-zoom" class="mt-8 opacity-0 transform scale-50 transition-all duration-700"></div>
@@ -170,6 +174,16 @@ import Layout from '@/layouts/Layout.astro';
   </div>
 
   <script>
+    // Helpers
+    function translatePosition(pos) {
+      const map = {
+        GK: 'PORTERO', CB: 'DEFENSA', LB: 'LATERAL IZQ', RB: 'LATERAL DCH',
+        CDM: 'MCD', CM: 'CENTROCAMPISTA', CAM: 'MCO',
+        LM: 'MI', RM: 'MD', LW: 'EI', RW: 'ED', ST: 'DELANTERO'
+      };
+      return map[pos] || pos || '';
+    }
+
     // State management
     let currentUser = null;
     let authToken = null;
@@ -371,10 +385,12 @@ import Layout from '@/layouts/Layout.astro';
         const ratingEl = document.getElementById('reveal-rating');
         const zoom = document.getElementById('card-zoom');
         const confirmBtn = document.getElementById('confirm-reveal-btn');
+        const loadingEl = document.getElementById('loading-indicator');
         if (posEl) posEl.classList.add('opacity-0');
         if (ratingEl) ratingEl.classList.add('opacity-0');
         if (zoom) { zoom.classList.add('opacity-0','scale-50'); zoom.innerHTML=''; }
         if (confirmBtn) confirmBtn.classList.add('hidden');
+        if (loadingEl) loadingEl.classList.remove('hidden');
 
         // Execute API call first
         let result;
@@ -384,15 +400,19 @@ import Layout from '@/layouts/Layout.astro';
 
         if (!result || !result.success || !result.cards || result.cards.length === 0) {
           const msg = result?.error || 'Error desconocido';
+          if (loadingEl) loadingEl.classList.add('hidden');
           alert('Error al abrir sobre: ' + msg);
           showSection('pack-selection');
           return;
         }
 
         lastRevealedCard = result.cards[0];
+        if (loadingEl) loadingEl.classList.add('hidden');
         await updateUserDisplay();
         await runRevealSequence(lastRevealedCard);
       } catch (e) {
+        const loadingEl = document.getElementById('loading-indicator');
+        if (loadingEl) loadingEl.classList.add('hidden');
         console.error('openPack fatal error', e);
         alert('Error al abrir sobre');
         showSection('pack-selection');
@@ -405,9 +425,12 @@ import Layout from '@/layouts/Layout.astro';
         const ratingEl = document.getElementById('reveal-rating');
         const zoom = document.getElementById('card-zoom');
         const confirmBtn = document.getElementById('confirm-reveal-btn');
+        const loadingEl = document.getElementById('loading-indicator');
+
+        if (loadingEl) loadingEl.classList.add('hidden');
 
         if (posEl) {
-          posEl.textContent = card?.player?.position1 || '';
+          posEl.textContent = translatePosition(card?.player?.position1);
           setTimeout(()=>posEl.classList.remove('opacity-0'), 150);
           setTimeout(()=>posEl.classList.add('opacity-0'), 1000);
         }
@@ -599,7 +622,7 @@ import Layout from '@/layouts/Layout.astro';
       cardDiv.innerHTML = `
         ${img}
         <div class="text-white font-bold text-sm mb-1">${card.player?.name || 'Jugador'}</div>
-        <div class="text-xs text-white/80 mb-2">${card.player?.position1 || ''} - ${card.rarity || ''}</div>
+        <div class=\"text-xs text-white/80 mb-2\">${translatePosition(card.player?.position1) || ''} - ${card.rarity || ''}</div>
         <div class="text-xs text-yellow-300 font-bold">${card.base_price || 0} 💰</div>
         <div class="text-xs text-white/90 mt-1">FIFA: ${card.player?.fifa_rating || ''}</div>
       `;

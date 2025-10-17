@@ -38,40 +38,73 @@ function getWeekStart(date: Date = new Date()): string {
   return monday.toISOString().split('T')[0];
 }
 
-// Obtener jugadores elegibles para cada posición que el usuario posee
+// Tipo básico para elegibles (apto para UI)
+export type EligiblePlayer = {
+  id: number;
+  name: string;
+  position1: Player['position1'];
+  position2: Player['position2'];
+  fifa_rating: number;
+  fantasy_points: number;
+  image_path: string | null;
+  owned: boolean; // posee carta base (Regular)
+};
+
+// Obtener SOLO los 10 jugadores base, marcando si el usuario posee su carta base (Regular)
 export async function getEligiblePlayers(userId: number): Promise<{
-  forwards: Player[];
-  midfielders: Player[];
-  defenders: Player[];
+  forwards: EligiblePlayer[];
+  midfielders: EligiblePlayer[];
+  defenders: EligiblePlayer[];
 }> {
   try {
-    // Obtener todas las cartas del usuario
-    const userCards = await getUserCards(userId);
-    
-    // Extraer jugadores únicos
-    const uniquePlayers = new Map<number, Player>();
-    userCards.forEach(uc => {
-      if (!uniquePlayers.has(uc.card.player.id)) {
-        uniquePlayers.set(uc.card.player.id, uc.card.player);
-      }
-    });
+    // Lista de roster base (10)
+    const baseNames = [
+      'Nico Vehi','Pablo Vehi','Albert Rodriguez','Marc Sanchez','Mario Roca',
+      'Marcos Lopez','Nico Uriburu','Javo Ayesta','Marc Permanyer','Fan Xu'
+    ];
 
-    const players = Array.from(uniquePlayers.values());
+    // Traer datos base + si posee carta Regular + imagen base
+    const rows = await executeQuery<any>(
+      `SELECT 
+         p.id, p.name, p.position1, p.position2, p.fifa_rating, p.fantasy_points,
+         (
+           SELECT c.image_path FROM cards c 
+           WHERE c.player_id = p.id AND c.special_type = 'Regular' 
+           ORDER BY c.id ASC LIMIT 1
+         ) AS image_path,
+         EXISTS(
+           SELECT 1 FROM user_cards uc 
+           JOIN cards c2 ON uc.card_id = c2.id 
+           WHERE uc.user_id = ? AND c2.player_id = p.id AND c2.special_type = 'Regular'
+         ) AS owned
+       FROM players p
+       WHERE p.name IN (${baseNames.map(()=>'?').join(',')})
+       ORDER BY p.name ASC`,
+      [userId, ...baseNames]
+    );
 
-    // Categorizar por posición
-    const forwards = players.filter(p => 
+    const mapped: EligiblePlayer[] = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      position1: r.name === 'Nico Vehi' ? 'GK' : r.name === 'Marc Sanchez' ? 'CB' : r.name === 'Pablo Vehi' ? (r.position1 === 'RB' ? 'RB' : r.position1) : r.position1,
+      position2: r.name === 'Nico Vehi' ? null : r.name === 'Marc Sanchez' ? null : r.name === 'Pablo Vehi' ? 'CM' : r.position2,
+      fifa_rating: r.fifa_rating,
+      fantasy_points: r.fantasy_points,
+      image_path: r.image_path || null,
+      owned: !!r.owned,
+    }));
+
+    const forwards = mapped.filter(p => 
       FANTASY_CONFIG.POSITIONS.FORWARD.includes(p.position1) || 
-      (p.position2 && FANTASY_CONFIG.POSITIONS.FORWARD.includes(p.position2))
+      (p.position2 && FANTASY_CONFIG.POSITIONS.FORWARD.includes(p.position2 as any))
     );
-
-    const midfielders = players.filter(p => 
+    const midfielders = mapped.filter(p => 
       FANTASY_CONFIG.POSITIONS.MIDFIELDER.includes(p.position1) || 
-      (p.position2 && FANTASY_CONFIG.POSITIONS.MIDFIELDER.includes(p.position2))
+      (p.position2 && FANTASY_CONFIG.POSITIONS.MIDFIELDER.includes(p.position2 as any))
     );
-
-    const defenders = players.filter(p => 
+    const defenders = mapped.filter(p => 
       FANTASY_CONFIG.POSITIONS.DEFENDER.includes(p.position1) || 
-      (p.position2 && FANTASY_CONFIG.POSITIONS.DEFENDER.includes(p.position2))
+      (p.position2 && FANTASY_CONFIG.POSITIONS.DEFENDER.includes(p.position2 as any))
     );
 
     return { forwards, midfielders, defenders };
@@ -150,16 +183,26 @@ export async function createFantasySelection(
       };
     }
 
-    // Verificar que el usuario posee cartas de estos jugadores
-    const userCards = await getUserCards(userId);
-    const userPlayerIds = new Set(userCards.map(uc => uc.card.player.id));
+    // Verificar que el usuario posee la CARTA BASE (Regular) de cada jugador seleccionado
+    const ownsBase = async (pid: number) => {
+      const row = await executeQuerySingle<any>(
+        `SELECT 1 FROM user_cards uc JOIN cards c ON uc.card_id = c.id 
+         WHERE uc.user_id = ? AND c.player_id = ? AND c.special_type = 'Regular' LIMIT 1`,
+        [userId, pid]
+      );
+      return !!row;
+    };
 
-    if (!userPlayerIds.has(selection.forwardPlayerId) ||
-        !userPlayerIds.has(selection.midfielderPlayerId) ||
-        !userPlayerIds.has(selection.defenderPlayerId)) {
+    const [okF, okM, okD] = await Promise.all([
+      ownsBase(selection.forwardPlayerId),
+      ownsBase(selection.midfielderPlayerId),
+      ownsBase(selection.defenderPlayerId)
+    ]);
+
+    if (!okF || !okM || !okD) {
       return {
         success: false,
-        error: 'No posees cartas de uno o más jugadores seleccionados'
+        error: 'Necesitas la carta base de cada jugador seleccionado'
       };
     }
 
@@ -241,15 +284,25 @@ export async function updateFantasySelection(
       };
     }
 
-    const userCards = await getUserCards(userId);
-    const userPlayerIds = new Set(userCards.map(uc => uc.card.player.id));
+    const ownsBase = async (pid: number) => {
+      const row = await executeQuerySingle<any>(
+        `SELECT 1 FROM user_cards uc JOIN cards c ON uc.card_id = c.id 
+         WHERE uc.user_id = ? AND c.player_id = ? AND c.special_type = 'Regular' LIMIT 1`,
+        [userId, pid]
+      );
+      return !!row;
+    };
 
-    if (!userPlayerIds.has(selection.forwardPlayerId) ||
-        !userPlayerIds.has(selection.midfielderPlayerId) ||
-        !userPlayerIds.has(selection.defenderPlayerId)) {
+    const [okF, okM, okD] = await Promise.all([
+      ownsBase(selection.forwardPlayerId),
+      ownsBase(selection.midfielderPlayerId),
+      ownsBase(selection.defenderPlayerId)
+    ]);
+
+    if (!okF || !okM || !okD) {
       return {
         success: false,
-        error: 'No posees cartas de uno o más jugadores seleccionados'
+        error: 'Necesitas la carta base de cada jugador seleccionado'
       };
     }
 

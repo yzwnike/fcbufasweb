@@ -1,10 +1,13 @@
 ---
 import Layout from '@/layouts/Layout.astro';
+import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
 <Layout title="Mi Colección - Nike FC Cards">
   <div class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
     <div class="container mx-auto px-4 py-20">
+      <!-- Subheader Nav -->
+      <Subheader variant="minimal" />
       <!-- Header -->
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
@@ -421,7 +424,8 @@ import Layout from '@/layouts/Layout.astro';
       const result = await fetchUserCollection();
       
       if (!result.success) {
-        alert('Error al cargar la colección');
+        console.error('Collection load failed:', result);
+        alert('Error al cargar la colección' + (result.error ? (': ' + result.error) : '') + (result.details ? ('\n' + result.details) : ''));
         return;
       }
 
@@ -456,33 +460,66 @@ import Layout from '@/layouts/Layout.astro';
         document.getElementById('action-buttons').classList.remove('hidden');
       });
 
-      document.getElementById('put-on-sale-btn').addEventListener('click', () => {
+      document.getElementById('put-on-sale-btn').addEventListener('click', async () => {
         const price = parseInt(document.getElementById('sale-price-input').value);
-        if (price >= 50) {
-          // Update card in mock data
-          selectedCard.is_for_sale = true;
-          selectedCard.sale_price = price;
-          
-          // Refresh display
-          applyFilters();
-          closeCardModal();
-          
-          alert(`Carta puesta en venta por ${price} monedas`);
-        } else {
+        if (!selectedCard) return;
+        if (Number.isNaN(price) || price < 50) {
           alert('El precio mínimo es 50 monedas');
+          return;
+        }
+        try {
+          const res = await fetch('/api/nike-fc-cards/market/put', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ user_card_id: selectedCard.id, price })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            alert('No se pudo poner en venta: ' + (data.error || 'error desconocido'));
+            return;
+          }
+          // Recargar colección desde API para reflejar estado real
+          const result = await fetchUserCollection();
+          if (result.success) {
+            userCards = result.cards || [];
+            applyFilters();
+          }
+          closeCardModal();
+          alert(`Carta puesta en venta por ${price} monedas`);
+        } catch (e) {
+          alert('Error de red al poner en venta');
         }
       });
 
-      document.getElementById('remove-from-sale-btn').addEventListener('click', () => {
-        // Update card in mock data
-        selectedCard.is_for_sale = false;
-        selectedCard.sale_price = null;
-        
-        // Refresh display
-        applyFilters();
-        closeCardModal();
-        
-        alert('Carta retirada del mercado');
+      document.getElementById('remove-from-sale-btn').addEventListener('click', async () => {
+        if (!selectedCard) return;
+        try {
+          const res = await fetch('/api/nike-fc-cards/market/remove', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ user_card_id: selectedCard.id })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            alert('No se pudo quitar de venta: ' + (data.error || 'error desconocido'));
+            return;
+          }
+          const result = await fetchUserCollection();
+          if (result.success) {
+            userCards = result.cards || [];
+            applyFilters();
+          }
+          closeCardModal();
+          alert('Carta retirada del mercado');
+        } catch (e) {
+          alert('Error de red al quitar de venta');
+        }
       });
 
       // Close modal on backdrop click

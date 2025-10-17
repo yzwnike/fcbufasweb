@@ -14,6 +14,7 @@ export const GET: APIRoute = async ({ request }) => {
       `SELECT ct.id,
               ct.price as sale_price,
               ct.created_at as listed_at,
+              u.id as seller_id,
               u.username as seller_username,
               c.id as card_id,
               c.rarity,
@@ -36,9 +37,11 @@ export const GET: APIRoute = async ({ request }) => {
 
     const normalized = listings.map((row) => ({
       id: row.id,
+      seller_id: row.seller_id,
       seller_username: row.seller_username,
       sale_price: row.sale_price,
       listed_at: row.listed_at,
+      is_own: row.seller_id === auth.id,
       card: {
         id: row.card_id,
         rarity: row.rarity,

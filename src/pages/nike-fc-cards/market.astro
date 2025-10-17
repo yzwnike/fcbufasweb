@@ -1,10 +1,13 @@
 ---
 import Layout from '@/layouts/Layout.astro';
+import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
 <Layout title="Mercado - Nike FC Cards">
   <div class="min-h-screen bg-gradient-to-br from-yellow-900 via-yellow-800 to-orange-900">
     <div class="container mx-auto px-4 py-20">
+      <!-- Subheader Nav -->
+      <Subheader variant="minimal" />
       <!-- Header -->
       <div class="text-center mb-12">
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
@@ -334,20 +337,16 @@ import Layout from '@/layouts/Layout.astro';
       cardDiv.className = `bg-gradient-to-br ${rarityColors[card.rarity]} rounded-xl p-4 text-center transform hover:scale-105 transition-transform cursor-pointer relative`;
       cardDiv.addEventListener('click', () => openPurchaseModal(listing));
 
-      const timeSinceListing = getTimeAgo(new Date(listing.listed_at));
-      
       // Check if user can afford this card
       const canAfford = (currentUser?.coins || 0) >= listing.sale_price;
+      const isOwn = !!listing.is_own || listing.seller_username === (currentUser?.username || '');
 
       const img = card.image_path ? `<img src="${card.image_path}" alt="${card.player.name}" class="w-full rounded-lg mb-3 mt-6" />` : `
         <div class=\"w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3 mt-6\">⚽</div>`;
 
       cardDiv.innerHTML = `
-        <div class="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-          ${timeSinceListing}
-        </div>
-        <div class="absolute top-2 right-2 ${canAfford ? 'bg-green-500' : 'bg-red-500'} text-white text-xs px-2 py-1 rounded-full">
-          ${canAfford ? '✓' : '✗'}
+        <div class="absolute top-2 right-2 ${isOwn ? 'bg-blue-500' : (canAfford ? 'bg-green-500' : 'bg-red-500')} text-white text-xs px-2 py-1 rounded-full">
+          ${isOwn ? 'TUYA' : (canAfford ? '✓' : '✗')}
         </div>
         ${img}
         <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
@@ -357,10 +356,18 @@ import Layout from '@/layouts/Layout.astro';
         <div class="text-lg font-bold text-green-300">${listing.sale_price.toLocaleString()} 💰</div>
       `;
 
+      if (isOwn) {
+        cardDiv.classList.add('opacity-70','cursor-not-allowed');
+      }
+
       return cardDiv;
     }
 
     function openPurchaseModal(listing) {
+      if (listing.is_own || listing.seller_username === (currentUser?.username || '')) {
+        alert('Esta carta es tuya; no puedes comprarla.');
+        return;
+      }
       if (currentUser.coins < listing.sale_price) {
         alert('No tienes suficientes monedas para comprar esta carta');
         return;
@@ -444,18 +451,7 @@ import Layout from '@/layouts/Layout.astro';
       closePurchaseModal();
     }
 
-    function getTimeAgo(date) {
-      const now = new Date();
-      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-      
-      if (diffInMinutes < 60) {
-        return `${diffInMinutes}m`;
-      } else if (diffInMinutes < 1440) {
-        return `${Math.floor(diffInMinutes / 60)}h`;
-      } else {
-        return `${Math.floor(diffInMinutes / 1440)}d`;
-      }
-    }
+    // (badge de tiempo eliminado)
 
     async function startMarketPage() {
       if (!checkAuthState()) {

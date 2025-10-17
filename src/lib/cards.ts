@@ -47,10 +47,64 @@ export async function getCardsByPlayer(playerId: number): Promise<Card[]> {
   );
 }
 
-// Obtener carta con información del jugador
+// Obtener carta con información del jugador (con stats efectivos por carta)
 export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer | null> {
   const result = await executeQuerySingle<any>(
-    `SELECT c.*, p.* FROM cards c 
+    `SELECT 
+       c.*, 
+       p.*, 
+       c.image_path AS card_image_path,
+       COALESCE(c.position1_override, p.position1) AS eff_position1,
+       COALESCE(c.position2_override, p.position2) AS eff_position2,
+       LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+         WHEN 'RATING_RELOAD' THEN 2
+         WHEN 'ASSIST_ENGINE' THEN 2
+         WHEN 'MARKET_MASTER' THEN 2
+         WHEN 'COMEBACK_HERO' THEN 3
+         ELSE 0 END)) AS eff_fifa_rating,
+       LEAST(99, COALESCE(c.pace_override, p.pace + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+         WHEN 'RATING_RELOAD' THEN 2
+         WHEN 'ASSIST_ENGINE' THEN 1
+         WHEN 'MARKET_MASTER' THEN 1
+         WHEN 'COMEBACK_HERO' THEN 2
+         ELSE 0 END)) AS eff_pace,
+       LEAST(99, COALESCE(c.shooting_override, p.shooting + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+         WHEN 'RATING_RELOAD' THEN 3
+         WHEN 'ASSIST_ENGINE' THEN 1
+         WHEN 'MARKET_MASTER' THEN 1
+         WHEN 'COMEBACK_HERO' THEN 1
+         ELSE 0 END)) AS eff_shooting,
+       LEAST(99, COALESCE(c.passing_override, p.passing + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+         WHEN 'RATING_RELOAD' THEN 1
+         WHEN 'ASSIST_ENGINE' THEN 3
+         WHEN 'MARKET_MASTER' THEN 2
+         WHEN 'COMEBACK_HERO' THEN 1
+         ELSE 0 END)) AS eff_passing,
+       LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 2
+         WHEN 'RATING_RELOAD' THEN 0
+         WHEN 'ASSIST_ENGINE' THEN 0
+         WHEN 'MARKET_MASTER' THEN 1
+         WHEN 'COMEBACK_HERO' THEN 2
+         ELSE 0 END)) AS eff_defending,
+       LEAST(99, COALESCE(c.physical_override, p.physical + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+         WHEN 'RATING_RELOAD' THEN 1
+         WHEN 'ASSIST_ENGINE' THEN 1
+         WHEN 'MARKET_MASTER' THEN 2
+         WHEN 'COMEBACK_HERO' THEN 2
+         ELSE 0 END)) AS eff_physical
+     FROM cards c 
      JOIN players p ON c.player_id = p.id 
      WHERE c.id = ?`,
     [cardId]
@@ -65,20 +119,20 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
     special_type: result.special_type,
     special_month: result.special_month,
     base_price: result.base_price,
-    image_path: result.image_path,
+    image_path: result.card_image_path || result.image_path,
     created_at: result.created_at,
     player: {
       id: result.player_id,
       name: result.name,
       team: result.team,
-      position1: result.position1,
-      position2: result.position2,
-      pace: result.pace,
-      shooting: result.shooting,
-      passing: result.passing,
-      defending: result.defending,
-      physical: result.physical,
-      fifa_rating: result.fifa_rating,
+      position1: result.eff_position1,
+      position2: result.eff_position2,
+      pace: result.eff_pace,
+      shooting: result.eff_shooting,
+      passing: result.eff_passing,
+      defending: result.eff_defending,
+      physical: result.eff_physical,
+      fifa_rating: result.eff_fifa_rating,
       market_value: result.market_value,
       fantasy_points: result.fantasy_points,
       image_url: result.image_url,
@@ -87,21 +141,75 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
   };
 }
 
-// Obtener todas las cartas de un usuario
+// Obtener todas las cartas de un usuario (stats efectivos por carta)
 export async function getUserCards(userId: number): Promise<UserCardWithDetails[]> {
   const results = await executeQuery<any>(
-    `SELECT uc.*, c.*, p.*,
-            c.image_path AS card_image_path
+    `SELECT 
+            uc.*, 
+            uc.id AS user_card_id,
+            c.*, 
+            p.*, 
+            c.image_path AS card_image_path,
+            COALESCE(c.position1_override, p.position1) AS eff_position1,
+            COALESCE(c.position2_override, p.position2) AS eff_position2,
+            LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+              WHEN 'RATING_RELOAD' THEN 2
+              WHEN 'ASSIST_ENGINE' THEN 2
+              WHEN 'MARKET_MASTER' THEN 2
+              WHEN 'COMEBACK_HERO' THEN 3
+              ELSE 0 END)) AS eff_fifa_rating,
+            LEAST(99, COALESCE(c.pace_override, p.pace + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+              WHEN 'RATING_RELOAD' THEN 2
+              WHEN 'ASSIST_ENGINE' THEN 1
+              WHEN 'MARKET_MASTER' THEN 1
+              WHEN 'COMEBACK_HERO' THEN 2
+              ELSE 0 END)) AS eff_pace,
+            LEAST(99, COALESCE(c.shooting_override, p.shooting + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+              WHEN 'RATING_RELOAD' THEN 3
+              WHEN 'ASSIST_ENGINE' THEN 1
+              WHEN 'MARKET_MASTER' THEN 1
+              WHEN 'COMEBACK_HERO' THEN 1
+              ELSE 0 END)) AS eff_shooting,
+            LEAST(99, COALESCE(c.passing_override, p.passing + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+              WHEN 'RATING_RELOAD' THEN 1
+              WHEN 'ASSIST_ENGINE' THEN 3
+              WHEN 'MARKET_MASTER' THEN 2
+              WHEN 'COMEBACK_HERO' THEN 1
+              ELSE 0 END)) AS eff_passing,
+            LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 2
+              WHEN 'RATING_RELOAD' THEN 0
+              WHEN 'ASSIST_ENGINE' THEN 0
+              WHEN 'MARKET_MASTER' THEN 1
+              WHEN 'COMEBACK_HERO' THEN 2
+              ELSE 0 END)) AS eff_defending,
+            LEAST(99, COALESCE(c.physical_override, p.physical + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+              WHEN 'RATING_RELOAD' THEN 1
+              WHEN 'ASSIST_ENGINE' THEN 1
+              WHEN 'MARKET_MASTER' THEN 2
+              WHEN 'COMEBACK_HERO' THEN 2
+              ELSE 0 END)) AS eff_physical
      FROM user_cards uc
      JOIN cards c ON uc.card_id = c.id
      JOIN players p ON c.player_id = p.id
      WHERE uc.user_id = ?
-     ORDER BY c.rarity DESC, p.fifa_rating DESC`,
+     ORDER BY c.rarity DESC, eff_fifa_rating DESC`,
     [userId]
   );
 
   return results.map(result => ({
-    id: result.id,
+    id: result.user_card_id,
     user_id: result.user_id,
     card_id: result.card_id,
     obtained_at: result.obtained_at,
@@ -120,14 +228,14 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
         id: result.player_id,
         name: result.name,
         team: result.team,
-        position1: result.position1,
-        position2: result.position2,
-        pace: result.pace,
-        shooting: result.shooting,
-        passing: result.passing,
-        defending: result.defending,
-        physical: result.physical,
-        fifa_rating: result.fifa_rating,
+        position1: result.eff_position1,
+        position2: result.eff_position2,
+        pace: result.eff_pace,
+        shooting: result.eff_shooting,
+        passing: result.eff_passing,
+        defending: result.eff_defending,
+        physical: result.eff_physical,
+        fifa_rating: result.eff_fifa_rating,
         market_value: result.market_value,
         fantasy_points: result.fantasy_points,
         image_url: result.image_url,
@@ -137,7 +245,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
   }));
 }
 
-// Filtrar cartas de usuario
+// Filtrar cartas de usuario (usando stats efectivos)
 export async function getUserCardsFiltered(
   userId: number,
   filters: {
@@ -148,7 +256,63 @@ export async function getUserCardsFiltered(
   }
 ): Promise<UserCardWithDetails[]> {
   let query = `
-    SELECT uc.*, c.*, p.* FROM user_cards uc
+    SELECT 
+           uc.*, 
+           uc.id AS user_card_id,
+           c.*, 
+           p.*, 
+           c.image_path AS card_image_path,
+           COALESCE(c.position1_override, p.position1) AS eff_position1,
+           COALESCE(c.position2_override, p.position2) AS eff_position2,
+           LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+             WHEN 'TEAM_OF_THE_WEEK' THEN 2
+             WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+             WHEN 'RATING_RELOAD' THEN 2
+             WHEN 'ASSIST_ENGINE' THEN 2
+             WHEN 'MARKET_MASTER' THEN 2
+             WHEN 'COMEBACK_HERO' THEN 3
+             ELSE 0 END)) AS eff_fifa_rating,
+           LEAST(99, COALESCE(c.pace_override, p.pace + CASE c.special_type
+             WHEN 'TEAM_OF_THE_WEEK' THEN 2
+             WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+             WHEN 'RATING_RELOAD' THEN 2
+             WHEN 'ASSIST_ENGINE' THEN 1
+             WHEN 'MARKET_MASTER' THEN 1
+             WHEN 'COMEBACK_HERO' THEN 2
+             ELSE 0 END)) AS eff_pace,
+           LEAST(99, COALESCE(c.shooting_override, p.shooting + CASE c.special_type
+             WHEN 'TEAM_OF_THE_WEEK' THEN 2
+             WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+             WHEN 'RATING_RELOAD' THEN 3
+             WHEN 'ASSIST_ENGINE' THEN 1
+             WHEN 'MARKET_MASTER' THEN 1
+             WHEN 'COMEBACK_HERO' THEN 1
+             ELSE 0 END)) AS eff_shooting,
+           LEAST(99, COALESCE(c.passing_override, p.passing + CASE c.special_type
+             WHEN 'TEAM_OF_THE_WEEK' THEN 2
+             WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+             WHEN 'RATING_RELOAD' THEN 1
+             WHEN 'ASSIST_ENGINE' THEN 3
+             WHEN 'MARKET_MASTER' THEN 2
+             WHEN 'COMEBACK_HERO' THEN 1
+             ELSE 0 END)) AS eff_passing,
+           LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
+             WHEN 'TEAM_OF_THE_WEEK' THEN 2
+             WHEN 'PLAYER_OF_THE_MONTH' THEN 2
+             WHEN 'RATING_RELOAD' THEN 0
+             WHEN 'ASSIST_ENGINE' THEN 0
+             WHEN 'MARKET_MASTER' THEN 1
+             WHEN 'COMEBACK_HERO' THEN 2
+             ELSE 0 END)) AS eff_defending,
+           LEAST(99, COALESCE(c.physical_override, p.physical + CASE c.special_type
+             WHEN 'TEAM_OF_THE_WEEK' THEN 2
+             WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+             WHEN 'RATING_RELOAD' THEN 1
+             WHEN 'ASSIST_ENGINE' THEN 1
+             WHEN 'MARKET_MASTER' THEN 2
+             WHEN 'COMEBACK_HERO' THEN 2
+             ELSE 0 END)) AS eff_physical
+    FROM user_cards uc
     JOIN cards c ON uc.card_id = c.id
     JOIN players p ON c.player_id = p.id
     WHERE uc.user_id = ?
@@ -162,12 +326,19 @@ export async function getUserCardsFiltered(
   }
 
   if (filters.position) {
-    query += ' AND (p.position1 = ? OR p.position2 = ?)';
+    query += ' AND (COALESCE(c.position1_override, p.position1) = ? OR COALESCE(c.position2_override, p.position2) = ?)';
     params.push(filters.position, filters.position);
   }
 
   if (filters.minRating) {
-    query += ' AND p.fifa_rating >= ?';
+    query += ' AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type\
+             WHEN \"TEAM_OF_THE_WEEK\" THEN 2\
+             WHEN \"PLAYER_OF_THE_MONTH\" THEN 4\
+             WHEN \"RATING_RELOAD\" THEN 2\
+             WHEN \"ASSIST_ENGINE\" THEN 2\
+             WHEN \"MARKET_MASTER\" THEN 2\
+             WHEN \"COMEBACK_HERO\" THEN 3\
+             ELSE 0 END)) >= ?';
     params.push(filters.minRating);
   }
 
@@ -176,12 +347,12 @@ export async function getUserCardsFiltered(
     params.push(filters.forSale);
   }
 
-  query += ' ORDER BY c.rarity DESC, p.fifa_rating DESC';
+  query += ' ORDER BY c.rarity DESC, eff_fifa_rating DESC';
 
   const results = await executeQuery<any>(query, params);
 
   return results.map(result => ({
-    id: result.id,
+    id: result.user_card_id,
     user_id: result.user_id,
     card_id: result.card_id,
     obtained_at: result.obtained_at,
@@ -199,14 +370,14 @@ export async function getUserCardsFiltered(
         id: result.player_id,
         name: result.name,
         team: result.team,
-        position1: result.position1,
-        position2: result.position2,
-        pace: result.pace,
-        shooting: result.shooting,
-        passing: result.passing,
-        defending: result.defending,
-        physical: result.physical,
-        fifa_rating: result.fifa_rating,
+        position1: result.eff_position1,
+        position2: result.eff_position2,
+        pace: result.eff_pace,
+        shooting: result.eff_shooting,
+        passing: result.eff_passing,
+        defending: result.eff_defending,
+        physical: result.eff_physical,
+        fifa_rating: result.eff_fifa_rating,
         market_value: result.market_value,
         fantasy_points: result.fantasy_points,
         image_url: result.image_url,

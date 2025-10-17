@@ -1,16 +1,19 @@
 ---
 import Layout from '@/layouts/Layout.astro';
+import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
 <Layout title="Fantasy Rush - Nike FC Cards">
   <div class="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900">
-    <div class="container mx-auto px-4 py-20">
+    <div class="container mx-auto px-4 py-2">
+      <!-- Subheader Nav -->
+      <Subheader variant="minimal" />
       <!-- Header -->
-      <div class="text-center mb-12">
+      <div class="text-center mb-2">
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
           ⚡ Fantasy Rush
         </h1>
-        <p class="text-xl text-purple-100 max-w-2xl mx-auto">
+        <p class="hidden">
           Elige tu equipo semanal: 1 Delantero, 1 Centrocampista, 1 Defensa/Portero. 
           Los puntos fantasy se convierten en monedas x20
         </p>
@@ -29,89 +32,14 @@ import Layout from '@/layouts/Layout.astro';
 
       <!-- Fantasy Rush Container -->
       <div id="fantasy-container" class="hidden">
-        <!-- Week Info -->
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-md mx-auto">
-          <div class="text-center">
-            <h3 class="text-xl font-bold text-white mb-2">Semana Actual</h3>
-            <div class="text-purple-200" id="week-info">Cargando...</div>
-            <div class="mt-4">
-              <div class="text-sm text-purple-200">Multiplicador de puntos:</div>
-              <div class="text-2xl font-bold text-yellow-400">x20 monedas</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Current Selection Display -->
-        <div id="current-selection" class="hidden mb-8">
-          <h2 class="text-2xl font-bold text-white text-center mb-6">Tu Selección Actual</h2>
-          <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-6">
-            <!-- Forward -->
-            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-              <div class="text-4xl mb-4">⚽</div>
-              <h3 class="text-lg font-bold text-white mb-2">Delantero</h3>
-              <div class="player-card">
-                <div class="text-xl font-bold text-purple-300" id="selected-forward-name">-</div>
-                <div class="text-purple-200" id="selected-forward-position">-</div>
-                <div class="text-sm text-yellow-400 mt-2">
-                  Puntos: <span id="selected-forward-points">0</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Midfielder -->
-            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-              <div class="text-4xl mb-4">🎯</div>
-              <h3 class="text-lg font-bold text-white mb-2">Centrocampista</h3>
-              <div class="player-card">
-                <div class="text-xl font-bold text-purple-300" id="selected-midfielder-name">-</div>
-                <div class="text-purple-200" id="selected-midfielder-position">-</div>
-                <div class="text-sm text-yellow-400 mt-2">
-                  Puntos: <span id="selected-midfielder-points">0</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Defender -->
-            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-              <div class="text-4xl mb-4">🛡️</div>
-              <h3 class="text-lg font-bold text-white mb-2">Defensa/Portero</h3>
-              <div class="player-card">
-                <div class="text-xl font-bold text-purple-300" id="selected-defender-name">-</div>
-                <div class="text-purple-200" id="selected-defender-position">-</div>
-                <div class="text-sm text-yellow-400 mt-2">
-                  Puntos: <span id="selected-defender-points">0</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Weekly Results -->
-          <div id="weekly-results" class="bg-white/10 backdrop-blur-md rounded-xl p-6 max-w-2xl mx-auto mb-6">
-            <div class="grid grid-cols-2 gap-6 text-center">
-              <div>
-                <div class="text-3xl font-bold text-purple-300" id="total-points">0</div>
-                <div class="text-purple-200">Puntos Totales</div>
-              </div>
-              <div>
-                <div class="text-3xl font-bold text-yellow-400" id="coins-earned">0</div>
-                <div class="text-purple-200">Monedas Ganadas</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="text-center">
-            <button id="change-selection-btn" class="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">
-              Cambiar Selección
-            </button>
-          </div>
-        </div>
+        
 
         <!-- Player Selection -->
         <div id="player-selection" class="space-y-8">
           <h2 class="text-2xl font-bold text-white text-center mb-6">Selecciona Tu Equipo</h2>
 
           <!-- Position Tabs -->
-          <div class="flex justify-center mb-6">
+          <div class="flex justify-center mb-6 hidden">
             <div class="bg-white/10 rounded-lg p-1">
               <button id="tab-forward" class="tab-button px-4 py-2 rounded-lg font-semibold transition-colors bg-purple-500 text-white">
                 Delanteros
@@ -125,17 +53,16 @@ import Layout from '@/layouts/Layout.astro';
             </div>
           </div>
 
-          <!-- Player Lists -->
-          <div id="forwards-list" class="player-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            <!-- Forward players will be loaded here -->
-          </div>
-
-          <div id="midfielders-list" class="player-list hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            <!-- Midfielder players will be loaded here -->
-          </div>
-
-          <div id="defenders-list" class="player-list hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            <!-- Defender players will be loaded here -->
+          <!-- Selector en 2 filas (7 columnas fijas) con separadores arriba: 2/3/2 -->
+          <div class="w-full max-w-none space-y-2">
+            <!-- Vertical separators at 2/7 and 5/7 -->
+            <div class="pointer-events-none absolute inset-0 z-0">
+              <div class="absolute top-0 bottom-0 w-px bg-white" style="left: calc(100% * 2 / 7);"></div>
+              <div class="absolute top-0 bottom-0 w-px bg-white" style="left: calc(100% * 5 / 7);"></div>
+            </div>
+            <div id="labels" class="relative z-10 grid grid-cols-7 gap-2 w-full"></div>
+            <div id="row1" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
+            <div id="row2" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
           </div>
 
           <!-- Selection Summary -->
@@ -189,6 +116,8 @@ import Layout from '@/layouts/Layout.astro';
     let authToken = null;
     const storage = window.sessionStorage;
     let eligiblePlayers = { forwards: [], midfielders: [], defenders: [] };
+    
+    function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-96 object-cover\"/>` : `<div class=\\\"w-full h-96 bg-purple-500\\\"></div>`; }
     let currentSelection = null;
     let selectedPlayers = {
       forward: null,
@@ -289,86 +218,102 @@ import Layout from '@/layouts/Layout.astro';
 
     // Display functions
     function displayCurrentSelection(selection) {
-      if (!selection) {
-        document.getElementById('current-selection').classList.add('hidden');
-        document.getElementById('player-selection').classList.remove('hidden');
-        return;
-      }
-
-      // Show current selection
-      document.getElementById('current-selection').classList.remove('hidden');
-      document.getElementById('player-selection').classList.add('hidden');
-
-      // Display player details
-      document.getElementById('selected-forward-name').textContent = selection.forward_player.name;
-      document.getElementById('selected-forward-position').textContent = selection.forward_player.position1;
-      document.getElementById('selected-forward-points').textContent = selection.forward_player.fantasy_points;
-
-      document.getElementById('selected-midfielder-name').textContent = selection.midfielder_player.name;
-      document.getElementById('selected-midfielder-position').textContent = selection.midfielder_player.position1;
-      document.getElementById('selected-midfielder-points').textContent = selection.midfielder_player.fantasy_points;
-
-      document.getElementById('selected-defender-name').textContent = selection.defender_player.name;
-      document.getElementById('selected-defender-position').textContent = selection.defender_player.position1;
-      document.getElementById('selected-defender-points').textContent = selection.defender_player.fantasy_points;
-
-      // Display totals
-      const totalPoints = selection.total_points || (
-        selection.forward_player.fantasy_points + 
-        selection.midfielder_player.fantasy_points + 
-        selection.defender_player.fantasy_points
-      );
-      document.getElementById('total-points').textContent = totalPoints;
-      document.getElementById('coins-earned').textContent = totalPoints * 20;
+      // Mantener siempre visible el selector; no mostrar paneles de semana/resultados
+      document.getElementById('player-selection').classList.remove('hidden');
     }
 
     function displayPlayers() {
-      // Display forwards
-      const forwardsList = document.getElementById('forwards-list');
-      forwardsList.innerHTML = '';
-      eligiblePlayers.forwards.forEach(player => {
-        const playerCard = createPlayerCard(player, 'forward');
-        forwardsList.appendChild(playerCard);
-      });
+      const labels = document.getElementById('labels');
+      const row1 = document.getElementById('row1');
+      const row2 = document.getElementById('row2');
+      if (!labels || !row1 || !row2) return;
 
-      // Display midfielders
-      const midfieldersList = document.getElementById('midfielders-list');
-      midfieldersList.innerHTML = '';
-      eligiblePlayers.midfielders.forEach(player => {
-        const playerCard = createPlayerCard(player, 'midfielder');
-        midfieldersList.appendChild(playerCard);
-      });
+      [labels, row1, row2].forEach(el => el.innerHTML = '');
 
-      // Display defenders
-      const defendersList = document.getElementById('defenders-list');
-      defendersList.innerHTML = '';
-      eligiblePlayers.defenders.forEach(player => {
-        const playerCard = createPlayerCard(player, 'defender');
-        defendersList.appendChild(playerCard);
-      });
+      const fw = (eligiblePlayers.forwards || []).slice(0, 4);
+      const mids = (eligiblePlayers.midfielders || []).slice(0, 6);
+      const defs = (eligiblePlayers.defenders || []).slice(0, 4);
+
+      // Build label row with exact spans and without flex (prevents drift)
+      const makeLabelGroup = (text, span, borderRight) => {
+        const g = document.createElement('div');
+        g.className = `col-span-${span} ${borderRight ? 'border-r border-white' : ''}`;
+        const s = document.createElement('span');
+        s.className = 'block w-full text-center px-6 py-2 rounded-md bg-black/60 border border-white/10 text-white text-xl font-extrabold tracking-wide';
+        s.textContent = text;
+        g.appendChild(s);
+        return g;
+      };
+      labels.appendChild(makeLabelGroup('DELANTERO', 2, true));
+      labels.appendChild(makeLabelGroup('CENTROCAMPISTA', 3, true));
+      labels.appendChild(makeLabelGroup('DEFENSA & PORTERO', 2, false));
+
+      // Row builders: create group wrappers with borders and inner grids
+      const buildRow = (container, fwArr, midArr, defArr) => {
+        const g1 = document.createElement('div');
+        g1.className = 'col-span-2 border-r border-white';
+        const g1grid = document.createElement('div');
+        g1grid.className = 'grid grid-cols-2 gap-1';
+        fwArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'forward')); g1grid.appendChild(w); });
+        g1.appendChild(g1grid);
+
+        const g2 = document.createElement('div');
+        g2.className = 'col-span-3 border-r border-white';
+        const g2grid = document.createElement('div');
+        g2grid.className = 'grid grid-cols-3 gap-1';
+        midArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'midfielder')); g2grid.appendChild(w); });
+        g2.appendChild(g2grid);
+
+        const g3 = document.createElement('div');
+        g3.className = 'col-span-2';
+        const g3grid = document.createElement('div');
+        g3grid.className = 'grid grid-cols-2 gap-1';
+        defArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'defender')); g3grid.appendChild(w); });
+        g3.appendChild(g3grid);
+
+        container.appendChild(g1);
+        container.appendChild(g2);
+        container.appendChild(g3);
+      };
+
+      // Row 1: 2/3/2
+      buildRow(row1, fw.slice(0,2), mids.slice(0,3), defs.slice(0,2));
+      // Row 2: 2/3/2
+      buildRow(row2, fw.slice(2,4), mids.slice(3,6), defs.slice(2,4));
     }
 
     function createPlayerCard(player, position) {
       const card = document.createElement('div');
-      card.className = `player-card bg-white/10 backdrop-blur-md rounded-xl p-4 text-center hover:bg-white/20 transition-colors cursor-pointer border-2 border-transparent`;
+      const disabled = !player.owned; const owned = !!player.owned;
+      card.className = `player-card group relative inline-block w-full transition-all ${disabled ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`;
       card.dataset.playerId = player.id;
-      card.dataset.position = position;
+      card.dataset.position = position; card.dataset.owned = owned ? 'true' : 'false';
 
+      const img = playerImg(player.image_path);
       card.innerHTML = `
-        <div class="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-          <span class="text-2xl">⚽</span>
+        <div class=\"relative overflow-hidden rounded-lg\">
+          ${img}
+          <div class=\"absolute inset-0 -translate-x-full bg-gradient-to-tr from-transparent via-white/20 to-transparent transition-transform duration-700 ease-in-out group-hover:translate-x-full\"></div>
+          <div class=\"absolute inset-0 rounded-lg border-0 opacity-0 transition-all duration-300 group-hover:border-2 group-hover:opacity-100 border-pink-400/70\"></div>
+          <div class=\"absolute inset-0 flex translate-y-2 flex-col items-center justify-end rounded-lg bg-gradient-to-t from-pink-950/90 via-pink-950/40 to-transparent p-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100\">
+            <h3 class=\"text-pink-300 text-[10px] font-semibold tracking-wide drop-shadow\">${player.name}</h3>
+          </div>
+          <div class=\"bg-pink-400 absolute -bottom-1 left-1/2 h-1 w-0 -translate-x-1/2 transform rounded-t-md transition-all duration-300 group-hover:w-2/3\"></div>
         </div>
-        <div class="text-white font-bold text-sm mb-1">${player.name}</div>
-        <div class="text-purple-200 text-xs mb-2">${player.position1}${player.position2 ? `/${player.position2}` : ''}</div>
-        <div class="text-yellow-400 text-xs font-bold">${player.fantasy_points} pts</div>
-        <div class="text-xs text-purple-300 mt-1">FIFA: ${player.fifa_rating}</div>
+        ${disabled ? '<div class=\"text-[10px] text-purple-300 mt-1 text-center\">No tienes la base</div>' : ''}
       `;
 
-      card.addEventListener('click', () => selectPlayer(player, position));
+      if (!disabled) { // click only if not disabled by ownership; locks handled in handler
+        card.addEventListener('click', () => selectPlayer(player, position));
+      }
       return card;
     }
 
     function selectPlayer(player, position) {
+      // Ignore if this card is locked
+      const clicked = document.querySelector(`.player-card[data-player-id="${player.id}"][data-position="${position}"]`);
+      if (clicked && clicked.classList.contains('locked')) return;
+      if (!player.owned) return;
       selectedPlayers[position] = player;
       
       // Update visual selection
@@ -384,6 +329,7 @@ import Layout from '@/layouts/Layout.astro';
       }
 
       // Update summary
+      updateCrossPositionLocks();
       updateSelectionSummary();
     }
 
@@ -401,6 +347,30 @@ import Layout from '@/layouts/Layout.astro';
       confirmBtn.disabled = !allSelected;
     }
 
+    function updateCrossPositionLocks() {
+      // Lock duplicate appearances of selected players in other groups
+      const selectedIds = {
+        forward: selectedPlayers.forward?.id || null,
+        midfielder: selectedPlayers.midfielder?.id || null,
+        defender: selectedPlayers.defender?.id || null,
+      };
+      const cards = document.querySelectorAll('.player-card');
+      cards.forEach((el) => {
+        const id = el.getAttribute('data-player-id');
+        const pos = el.getAttribute('data-position');
+        const owned = el.getAttribute('data-owned') === 'true';
+        el.classList.remove('locked');
+        if (!owned) return; // already disabled by ownership
+        if (!id || !pos) return;
+        // If this id is selected in any other position, lock here
+        if ((selectedIds.forward && id === String(selectedIds.forward) && pos !== 'forward') ||
+            (selectedIds.midfielder && id === String(selectedIds.midfielder) && pos !== 'midfielder') ||
+            (selectedIds.defender && id === String(selectedIds.defender) && pos !== 'defender')) {
+          el.classList.add('locked');
+        }
+      });
+    }
+
     async function startFantasyPage() {
       if (!checkAuthState()) {
         showSection('not-logged-in');
@@ -409,10 +379,6 @@ import Layout from '@/layouts/Layout.astro';
 
       showSection('loading');
 
-      // Set week info
-      const now = new Date();
-      const weekStart = getWeekStart(now);
-      document.getElementById('week-info').textContent = `Semana del ${formatDate(weekStart)}`;
 
       // Load data
       const [playersResult, selectionResult] = await Promise.all([
@@ -429,23 +395,18 @@ import Layout from '@/layouts/Layout.astro';
       currentSelection = selectionResult.selection;
 
       showSection('fantasy-container');
-      
-      if (currentSelection) {
-        displayCurrentSelection(currentSelection);
-      } else {
-        displayCurrentSelection(null);
-        displayPlayers();
-      }
+
+      // Mostrar siempre el selector y renderizar todos los bloques
+      displayCurrentSelection(currentSelection);
+      displayPlayers();
+      updateCrossPositionLocks();
 
       // Set up event listeners
-      document.getElementById('tab-forward').addEventListener('click', () => showTab('forward'));
-      document.getElementById('tab-midfielder').addEventListener('click', () => showTab('midfielder'));
-      document.getElementById('tab-defender').addEventListener('click', () => showTab('defender'));
-
-      document.getElementById('change-selection-btn')?.addEventListener('click', () => {
-        displayCurrentSelection(null);
-        displayPlayers();
-      });
+      // Tabs deshabilitados (mostramos todas las listas a la vez)
+      // document.getElementById('tab-forward').addEventListener('click', () => showTab('forward'));
+      // document.getElementById('tab-midfielder').addEventListener('click', () => showTab('midfielder'));
+      // document.getElementById('tab-defender').addEventListener('click', () => showTab('defender'));
+      // Botón de cambio ya no es necesario (panel eliminado)
 
       document.getElementById('confirm-selection-btn').addEventListener('click', async () => {
         const confirmBtn = document.getElementById('confirm-selection-btn');
@@ -486,4 +447,16 @@ import Layout from '@/layouts/Layout.astro';
       });
     }
   </script>
+<style>
+  /* Minimal styles inspired by BoxerCard */
+  @media (prefers-reduced-motion) {
+    .player-card, .player-card:hover, .player-card img, .player-card div {
+      transition: opacity 0.3s ease !important;
+      transform: none !important;
+    }
+  }
+</style>
+<style>
+  .player-card.locked { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
+</style>
 </Layout>
