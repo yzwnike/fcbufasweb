@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { loginUser } from '@/lib/auth';
 
+export const runtime = 'node';
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const { email, password } = await request.json();

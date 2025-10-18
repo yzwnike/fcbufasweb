@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { verifyToken } from '@/lib/auth';
 import { getDailyQuestions, getUserQuizProgress } from '@/lib/quiz';
 
+export const runtime = 'node';
+
 export const GET: APIRoute = async ({ request }) => {
   try {
     const authHeader = request.headers.get('Authorization');

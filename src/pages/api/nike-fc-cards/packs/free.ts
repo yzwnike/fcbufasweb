@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { verifyToken } from '@/lib/auth';
 import { claimFreePack, speedupFreePack } from '@/lib/packs';
 
+export const runtime = 'node';
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const authHeader = request.headers.get('Authorization');
