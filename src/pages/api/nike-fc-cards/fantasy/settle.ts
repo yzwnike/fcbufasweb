@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getAuthUserFromRequest } from '@/lib/auth';
 import { executeQuerySingle, executeTransaction } from '@/lib/mysql';
+import { ECONOMY_CONFIG } from '@/lib/economy';
 
 // POST /api/nike-fc-cards/fantasy/settle
 // Body opcional: { jornada?: number }
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
       [fr.forward_player_id, fr.midfielder_player_id, fr.defender_player_id]
     );
     const pts = Number(ptsRow?.pts || 0);
-    const coins = pts * 20;
+    const coins = pts * ECONOMY_CONFIG.FANTASY.POINTS_MULTIPLIER;
 
     await executeTransaction(async (conn) => {
       await conn.execute('UPDATE fantasy_rush SET total_points = ?, coins_earned = ? WHERE id = ?', [pts, coins, fr.id]);

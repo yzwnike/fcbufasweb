@@ -54,31 +54,26 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         <!-- Rarity Distribution -->
         <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-4xl mx-auto">
           <h3 class="text-xl font-bold text-white text-center mb-4">Distribución por Rareza</h3>
-          <div class="grid grid-cols-5 gap-4">
+          <div class="grid grid-cols-4 gap-4">
             <div class="text-center">
-              <div class="w-12 h-12 bg-amber-600 rounded-lg mx-auto mb-2"></div>
-              <div class="text-white font-bold" id="bronze-count">0</div>
-              <div class="text-xs text-blue-200">Bronce</div>
+              <div class="w-12 h-12 bg-gray-500 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="normal-count">0</div>
+              <div class="text-xs text-blue-200">Normal</div>
             </div>
             <div class="text-center">
-              <div class="w-12 h-12 bg-gray-400 rounded-lg mx-auto mb-2"></div>
-              <div class="text-white font-bold" id="silver-count">0</div>
-              <div class="text-xs text-blue-200">Plata</div>
-            </div>
-            <div class="text-center">
-              <div class="w-12 h-12 bg-yellow-400 rounded-lg mx-auto mb-2"></div>
-              <div class="text-white font-bold" id="gold-count">0</div>
-              <div class="text-xs text-blue-200">Oro</div>
+              <div class="w-12 h-12 bg-blue-500 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="especial-count">0</div>
+              <div class="text-xs text-blue-200">Especial</div>
             </div>
             <div class="text-center">
               <div class="w-12 h-12 bg-purple-500 rounded-lg mx-auto mb-2"></div>
               <div class="text-white font-bold" id="elite-count">0</div>
-              <div class="text-xs text-blue-200">Élite</div>
+              <div class="text-xs text-blue-200">Elite</div>
             </div>
             <div class="text-center">
-              <div class="w-12 h-12 bg-pink-500 rounded-lg mx-auto mb-2"></div>
-              <div class="text-white font-bold" id="legend-count">0</div>
-              <div class="text-xs text-blue-200">Leyenda</div>
+              <div class="w-12 h-12 bg-yellow-400 rounded-lg mx-auto mb-2"></div>
+              <div class="text-white font-bold" id="legendario-count">0</div>
+              <div class="text-xs text-blue-200">Legendario</div>
             </div>
           </div>
         </div>
@@ -92,11 +87,10 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
               <label class="block text-sm font-medium text-blue-200 mb-2">Rareza</label>
               <select id="rarity-filter" class="w-full px-3 py-2 bg-blue-800/50 border border-blue-600 rounded-lg text-white">
                 <option value="">Todas</option>
-                <option value="Bronze">Bronce</option>
-                <option value="Silver">Plata</option>
-                <option value="Gold">Oro</option>
-                <option value="Elite">Élite</option>
-                <option value="Legend">Leyenda</option>
+                <option value="NORMAL">Normal</option>
+                <option value="ESPECIAL">Especial</option>
+                <option value="ELITE">Elite</option>
+                <option value="LEGENDARIO">Legendario</option>
               </select>
             </div>
 
@@ -365,12 +359,36 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       activeForSaleCount = cardsForSale;
       document.getElementById('cards-for-sale').textContent = cardsForSale;
 
-      // Rarity counts
-      document.getElementById('bronze-count').textContent = stats.cardsByRarity.Bronze || 0;
-      document.getElementById('silver-count').textContent = stats.cardsByRarity.Silver || 0;
-      document.getElementById('gold-count').textContent = stats.cardsByRarity.Gold || 0;
-      document.getElementById('elite-count').textContent = stats.cardsByRarity.Elite || 0;
-      document.getElementById('legend-count').textContent = stats.cardsByRarity.Legend || 0;
+      // Calcular conteos por nuevas rarezas basadas en special_type
+      function getDisplayRarity(specialType) {
+        switch (specialType) {
+          case 'Regular':
+          case 'OLD_GENERATION':
+            return 'NORMAL';
+          case 'TEAM_OF_THE_WEEK':
+            return 'ESPECIAL';
+          case 'MARKET_MASTER':
+          case 'RATING_RELOAD':
+          case 'COMEBACK_HERO':
+          case 'ASSIST_ENGINE':
+            return 'ELITE';
+          case 'PLAYER_OF_THE_MONTH':
+            return 'LEGENDARIO';
+          default:
+            return 'NORMAL';
+        }
+      }
+      
+      const rarityCounts = { NORMAL: 0, ESPECIAL: 0, ELITE: 0, LEGENDARIO: 0 };
+      (userCards || []).forEach(uc => {
+        const displayRarity = getDisplayRarity(uc.card.special_type);
+        rarityCounts[displayRarity] = (rarityCounts[displayRarity] || 0) + 1;
+      });
+      
+      document.getElementById('normal-count').textContent = rarityCounts.NORMAL;
+      document.getElementById('especial-count').textContent = rarityCounts.ESPECIAL;
+      document.getElementById('elite-count').textContent = rarityCounts.ELITE;
+      document.getElementById('legendario-count').textContent = rarityCounts.LEGENDARIO;
     }
 
     function displayCards(groups) {
@@ -424,16 +442,47 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
     function createCardElement(group) {
       const card = group.card;
-      const rarityColors = {
-        Bronze: 'from-amber-600 to-amber-800',
-        Silver: 'from-gray-400 to-gray-600',
-        Gold: 'from-yellow-400 to-yellow-600',
-        Elite: 'from-purple-500 to-purple-700',
-        Legend: 'from-pink-500 to-pink-700'
-      };
+      
+      // Función helper para obtener la rareza de UI basada en special_type
+      function getDisplayRarity(specialType) {
+        switch (specialType) {
+          case 'Regular':
+          case 'OLD_GENERATION':
+            return 'NORMAL';
+          case 'TEAM_OF_THE_WEEK':
+            return 'ESPECIAL';
+          case 'MARKET_MASTER':
+          case 'RATING_RELOAD':
+          case 'COMEBACK_HERO':
+          case 'ASSIST_ENGINE':
+            return 'ELITE';
+          case 'PLAYER_OF_THE_MONTH':
+            return 'LEGENDARIO';
+          default:
+            return 'NORMAL';
+        }
+      }
+      
+      function getRarityColor(displayRarity) {
+        switch (displayRarity) {
+          case 'NORMAL':
+            return 'from-gray-400 to-gray-600';
+          case 'ESPECIAL':
+            return 'from-blue-500 to-blue-700';
+          case 'ELITE':
+            return 'from-purple-500 to-purple-700';
+          case 'LEGENDARIO':
+            return 'from-yellow-400 to-orange-500';
+          default:
+            return 'from-gray-400 to-gray-600';
+        }
+      }
+      
+      const displayRarity = getDisplayRarity(card.special_type);
+      const rarityColor = getRarityColor(displayRarity);
 
       const cardDiv = document.createElement('div');
-      cardDiv.className = `bg-gradient-to-br ${rarityColors[card.rarity]} rounded-xl p-4 text-center transform hover:scale-105 transition-transform cursor-pointer relative`;
+      cardDiv.className = `bg-gradient-to-br ${rarityColor} rounded-xl p-4 text-center transform hover:scale-105 transition-transform cursor-pointer relative`;
       cardDiv.addEventListener('click', () => openCardModal(group));
 
       let saleIndicator = '';
@@ -471,7 +520,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         ${qtyBadge}
         ${img}
         <div class=\"text-white font-bold text-sm mb-1\">${card.player.name}</div>
-        <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${card.rarity}</div>
+        <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${displayRarity}</div>
         <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
         <div class="text-xs text-yellow-300 font-bold">${card.base_price} 💰</div>
         ${group.isListing ? `<div class=\"text-xs text-green-300 mt-1\">Precio: ${group.sale_price}</div>` : sellBtnHtml}
@@ -543,11 +592,36 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       const positionFilter = document.getElementById('position-filter').value;
       const ratingFilter = parseInt(document.getElementById('rating-filter').value) || 0;
       const saleFilter = document.getElementById('sale-filter').value;
+      
+      function getDisplayRarity(specialType) {
+        switch (specialType) {
+          case 'Regular':
+          case 'OLD_GENERATION':
+            return 'NORMAL';
+          case 'TEAM_OF_THE_WEEK':
+            return 'ESPECIAL';
+          case 'MARKET_MASTER':
+          case 'RATING_RELOAD':
+          case 'COMEBACK_HERO':
+          case 'ASSIST_ENGINE':
+            return 'ELITE';
+          case 'PLAYER_OF_THE_MONTH':
+            return 'LEGENDARIO';
+          default:
+            return 'NORMAL';
+        }
+      }
  
       groupedCards = computeGroups();
       filteredCards = groupedCards.filter(group => {
         const card = group.card;
-        if (rarityFilter && card.rarity !== rarityFilter) return false;
+        
+        // Filtrar por nueva rareza basada en special_type
+        if (rarityFilter) {
+          const cardDisplayRarity = getDisplayRarity(card.special_type);
+          if (cardDisplayRarity !== rarityFilter) return false;
+        }
+        
         if (positionFilter && card.player.position1 !== positionFilter) return false;
         if (ratingFilter && card.player.fifa_rating < ratingFilter) return false;
         if (saleFilter === 'true' && group.onSaleCount === 0) return false;

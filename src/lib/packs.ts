@@ -1,12 +1,13 @@
 import type { Pack, User } from './mysql';
 import { executeQuery, executeQuerySingle, executeTransaction } from './mysql';
 import { openCardPack, PACK_PRICES, type CardWithPlayer } from './cards';
+import { ECONOMY_CONFIG } from './economy';
 
-// Configuración de sobres
+// Configuración de sobres (ahora desde economy.ts)
 export const PACK_CONFIG = {
-  FREE_PACK_COOLDOWN_HOURS: 24,
-  SPEEDUP_COST_PER_HOUR: 10,
-  MAX_SPEEDUP_COST: 240 // Máximo 24 horas * 10 monedas
+  FREE_PACK_COOLDOWN_HOURS: ECONOMY_CONFIG.PACKS.BASIC.cooldownHours,
+  SPEEDUP_COST_PER_HOUR: ECONOMY_CONFIG.PACKS.BASIC.speedupCostPerHour,
+  MAX_SPEEDUP_COST: ECONOMY_CONFIG.PACKS.BASIC.cooldownHours * ECONOMY_CONFIG.PACKS.BASIC.speedupCostPerHour
 };
 
 // Obtener tiempo restante para el próximo sobre gratuito
@@ -33,7 +34,7 @@ export async function getFreePackCooldown(userId: number): Promise<{
 
     // Buscar el último sobre gratuito reclamado
     const lastFreePack = await executeQuerySingle<Pack>(
-      'SELECT * FROM packs WHERE user_id = ? AND type = "FREE_DAILY" ORDER BY created_at DESC LIMIT 1',
+'SELECT * FROM packs WHERE user_id = ? AND type = \'FREE_DAILY\' ORDER BY created_at DESC LIMIT 1',
       [userId]
     );
 
@@ -81,17 +82,13 @@ export async function getFreePackCooldown(userId: number): Promise<{
   }
 }
 
-// Calcular costo de acelerar el sobre gratuito
+// Calcular costo de acelerar el sobre gratuito (usando helper de economy)
 export function calculateSpeedupCost(hoursRemaining: number, minutesRemaining: number): number {
   const totalMinutesRemaining = (hoursRemaining * 60) + minutesRemaining;
-  const totalHoursRemaining = Math.ceil(totalMinutesRemaining / 60);
+  const totalHoursFloat = totalMinutesRemaining / 60;
   
-  const cost = Math.min(
-    totalHoursRemaining * PACK_CONFIG.SPEEDUP_COST_PER_HOUR,
-    PACK_CONFIG.MAX_SPEEDUP_COST
-  );
-  
-  return Math.max(cost, PACK_CONFIG.SPEEDUP_COST_PER_HOUR); // Mínimo 1 hora
+  // Usar la función de economy.ts que hace ceil
+  return Math.ceil(totalHoursFloat) * PACK_CONFIG.SPEEDUP_COST_PER_HOUR;
 }
 
 // Reclamar sobre gratuito

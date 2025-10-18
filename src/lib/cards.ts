@@ -10,7 +10,10 @@ export interface UserCardWithDetails extends UserCard {
   card: CardWithPlayer;
 }
 
-// Probabilidades de rareza en los sobres
+// Configuración de packs importada desde economy
+import { ECONOMY_CONFIG } from './economy';
+
+// Probabilidades de rareza en los sobres (legacy - mantenemos para compatibilidad)
 export const RARITY_PROBABILITIES = {
   Bronze: 0.50,    // 50%
   Silver: 0.30,    // 30%
@@ -19,18 +22,18 @@ export const RARITY_PROBABILITIES = {
   Legend: 0.01     // 1%
 };
 
-// Precios de sobres
+// Precios de sobres (actualizados según nueva economía)
 export const PACK_PRICES = {
-  FREE_DAILY: 0,
-  PREMIUM: 500,
-  SPECIAL: 1000
+  FREE_DAILY: ECONOMY_CONFIG.PACKS.BASIC.cost,
+  PREMIUM: ECONOMY_CONFIG.PACKS.PREMIUM.cost,
+  SPECIAL: ECONOMY_CONFIG.PACKS.SPECIAL.cost
 };
 
 // Obtener todos los jugadores
 export async function getAllPlayers(): Promise<Player[]> {
   // Preferir jugadores elegibles para quiz si existe la columna
   return await executeQuery<Player>(
-    "SELECT * FROM players WHERE (eligible_for_quiz IS NULL OR eligible_for_quiz = 1) ORDER BY fifa_rating DESC, name ASC"
+    "SELECT * FROM players WHERE (eligible_for_quiz IS NULL OR eligible_for_quiz = true) ORDER BY fifa_rating DESC, name ASC"
   );
 }
 
@@ -432,7 +435,7 @@ export function determineCardRarity(): Card['rarity'] {
 // Obtener cartas disponibles para una rareza específica
 export async function getCardsForRarity(rarity: Card['rarity']): Promise<Card[]> {
   return await executeQuery<Card>(
-    'SELECT * FROM cards WHERE rarity = ? ORDER BY RAND()',
+'SELECT * FROM cards WHERE rarity = ? ORDER BY RANDOM()',
     [rarity]
   );
 }
@@ -474,29 +477,29 @@ export async function openCardPack(
       }
       // Primary pick
       if (group === 'BASE_OG') {
-        const c = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RAND() LIMIT 1");
+        const c = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
       }
       if (group === 'LEGEND') {
         // Solo POTM cuenta como legendaria
-        const c = await pick("SELECT * FROM cards WHERE special_type = 'PLAYER_OF_THE_MONTH' ORDER BY RAND() LIMIT 1");
+        const c = await pick("SELECT * FROM cards WHERE special_type = 'PLAYER_OF_THE_MONTH' ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
         // Fallbacks si no hay POTM en la BD
-        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RAND() LIMIT 1");
+        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RANDOM() LIMIT 1");
         if (c2) return c2;
-        const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RAND() LIMIT 1");
+        const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
         return c3;
       }
       if (group === 'RARE') {
         // Especial no legendaria: todas las especiales excepto BASE/OG y POTM
-        const c = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RAND() LIMIT 1");
+        const c = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
         // Fallbacks seguros
-        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RAND() LIMIT 1");
+        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
         return c2;
       }
       // Last safety
-      const any = await pick("SELECT * FROM cards ORDER BY RAND() LIMIT 1");
+      const any = await pick("SELECT * FROM cards ORDER BY RANDOM() LIMIT 1");
       return any;
     }
 
@@ -504,14 +507,23 @@ export async function openCardPack(
       for (let i = 0; i < numCards; i++) {
         let group: 'BASE_OG' | 'LEGEND' | 'RARE';
         const r = Math.random();
+        
+        // Usar las nuevas odds de economy.ts
         if (packType === 'SPECIAL') {
-          // Especial: 70% especiales no legendarias (TOTW, MM, RR, AE, CH), 30% legendarias (POTM)
-          group = r < 0.70 ? 'RARE' : 'LEGEND';
+          const odds = ECONOMY_CONFIG.PACKS.SPECIAL.odds;
+          if (r < odds.ESPECIAL) group = 'RARE';
+          else group = 'LEGEND';
+        } else if (packType === 'PREMIUM') {
+          const odds = ECONOMY_CONFIG.PACKS.PREMIUM.odds;
+          if (r < odds.NORMAL) group = 'BASE_OG';
+          else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
+          else group = 'LEGEND';
         } else {
-          // Gratis/Premium: 75% Base/OG, 9% Legend (POTM), 16% Especial no legendaria (incluye TOTW)
-          if (r < 0.75) group = 'BASE_OG';
-          else if (r < 0.75 + 0.09) group = 'LEGEND';
-          else group = 'RARE';
+          // FREE_DAILY
+          const odds = ECONOMY_CONFIG.PACKS.BASIC.odds;
+          if (r < odds.NORMAL) group = 'BASE_OG';
+          else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
+          else group = 'LEGEND';
         }
 
         const selectedCard = await pickRandomCardIdByGroup(connection, group);
@@ -552,8 +564,16 @@ export async function openCardPack(
   }
 }
 
-// Calcular precio de venta de una carta basado en rareza y stats
+// Obtener precio de una carta directamente desde base_price
+// Los precios son fijos y se manejan manualmente en la base de datos
 export function calculateCardSellPrice(card: CardWithPlayer): number {
+  // Usar directamente el precio base de la carta sin multiplicadores
+  // Los precios se actualizan manualmente en la base de datos
+  return Math.max(card.base_price || 50, 50); // Mínimo 50 monedas
+}
+
+// Función legacy para cálculo automático (mantenida para referencia)
+export function calculateCardSellPriceLegacy(card: CardWithPlayer): number {
   const basePrice = card.base_price;
   const rarityMultiplier = {
     Bronze: 1,

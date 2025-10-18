@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { verifyToken } from '@/lib/auth';
-import { answerQuizQuestion } from '@/lib/quiz';
+import { answerQuizQuestion, getUserQuizProgress, processDailyQuizPayout, QUIZ_CONFIG } from '@/lib/quiz';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -43,7 +43,40 @@ export const POST: APIRoute = async ({ request }) => {
       if (!result.success) {
         return new Response(JSON.stringify({ success: false, error: result.error }), { status: 400, headers: { 'Content-Type': 'application/json' } });
       }
-      return new Response(JSON.stringify({ success: true, isCorrect: result.isCorrect, correctAnswer: result.correctAnswer, coinsEarned: result.coinsEarned }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      
+      // Verificar si completó todas las preguntas del día para calcular payout final
+      const today = new Date().toISOString().split('T')[0];
+      const progress = await getUserQuizProgress(userId, today);
+      
+      let finalPayout = result.coinsEarned;
+      let bonusInfo = null;
+      
+      // Si completó las 5 preguntas, procesar bonificaciones
+      if (progress.questionsAnswered === QUIZ_CONFIG.QUESTIONS_PER_DAY) {
+        await processDailyQuizPayout(userId, today);
+        
+        // Obtener info actualizada para respuesta
+        const updatedProgress = await getUserQuizProgress(userId, today);
+        bonusInfo = {
+          perfectBonus: progress.correctAnswers === QUIZ_CONFIG.QUESTIONS_PER_DAY ? QUIZ_CONFIG.PERFECT_BONUS : 0,
+          totalQuestions: QUIZ_CONFIG.QUESTIONS_PER_DAY,
+          correctAnswers: progress.correctAnswers,
+          completed: true
+        };
+      }
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        isCorrect: result.isCorrect, 
+        correctAnswer: result.correctAnswer, 
+        coinsEarned: finalPayout,
+        progress: {
+          questionsAnswered: progress.questionsAnswered,
+          correctAnswers: progress.correctAnswers,
+          totalQuestions: QUIZ_CONFIG.QUESTIONS_PER_DAY
+        },
+        bonus: bonusInfo
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
 
     // Ruta 2: compatibilidad con flujo random (cardId + statName)
@@ -80,26 +113,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Faltan parámetros
     return new Response(JSON.stringify({ success: false, error: 'Datos requeridos: questionId y selectedAnswer' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-
-    if (!result.success) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: result.error
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    return new Response(JSON.stringify({
-      success: true,
-      isCorrect: result.isCorrect,
-      correctAnswer: result.correctAnswer,
-      coinsEarned: result.coinsEarned
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
 
   } catch (error) {
     console.error('Quiz answer API error:', error);

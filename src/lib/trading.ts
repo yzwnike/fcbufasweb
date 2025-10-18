@@ -1,6 +1,7 @@
 import type { CardTrade, UserCard } from './mysql';
 import { executeQuery, executeQuerySingle, executeTransaction } from './mysql';
 import { getUserCardsFiltered, calculateCardSellPrice, type UserCardWithDetails, type CardWithPlayer } from './cards';
+import { ECONOMY_CONFIG } from './economy';
 
 // Filtros para el mercado de cartas
 export interface MarketFilters {
@@ -122,7 +123,7 @@ export async function removeCardFromSale(
   try {
     // Verificar que el intercambio existe y pertenece al usuario
     const trade = await executeQuerySingle<CardTrade>(
-      'SELECT * FROM card_trades WHERE id = ? AND seller_id = ? AND status = "ACTIVE"',
+      "SELECT * FROM card_trades WHERE id = ? AND seller_id = ? AND status = 'ACTIVE'",
       [tradeId, userId]
     );
 
@@ -137,7 +138,7 @@ export async function removeCardFromSale(
     await executeTransaction(async (connection) => {
       // Actualizar el estado del intercambio
       await connection.execute(
-        'UPDATE card_trades SET status = "CANCELLED" WHERE id = ?',
+        "UPDATE card_trades SET status = 'CANCELLED' WHERE id = ?",
         [tradeId]
       );
 
@@ -171,7 +172,7 @@ export async function buyCard(
   try {
     // Verificar que el intercambio existe y está activo
     const trade = await executeQuerySingle<CardTrade>(
-      'SELECT * FROM card_trades WHERE id = ? AND status = "ACTIVE"',
+      "SELECT * FROM card_trades WHERE id = ? AND status = 'ACTIVE'",
       [tradeId]
     );
 
@@ -224,7 +225,7 @@ export async function buyCard(
 
       // Marcar el intercambio como completado
       await connection.execute(
-        'UPDATE card_trades SET status = "SOLD", buyer_id = ?, completed_at = NOW() WHERE id = ?',
+        "UPDATE card_trades SET status = 'SOLD', buyer_id = ?, completed_at = NOW() WHERE id = ?",
         [buyerId, tradeId]
       );
 
@@ -238,6 +239,23 @@ export async function buyCard(
         'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
         [trade.seller_id, trade.price, 'CARD_SALE', `Venta de carta en el mercado`]
       );
+      
+      // Registrar venta para sistema de oferta/demanda
+      const cardInfo = await connection.execute(
+        'SELECT c.special_type FROM user_cards uc JOIN cards c ON uc.card_id = c.id WHERE uc.id = ?',
+        [trade.user_card_id]
+      );
+      
+      if (cardInfo[0] && Array.isArray(cardInfo[0]) && cardInfo[0].length > 0) {
+        const specialType = (cardInfo[0] as any)[0]?.special_type;
+        if (specialType && specialType !== 'Regular' && specialType !== 'OLD_GENERATION') {
+          // Insertar registro de venta para análisis de demanda
+          await connection.execute(
+            'INSERT INTO market_sales_history (special_type, price, sale_date) VALUES (?, ?, NOW())',
+            [specialType, trade.price]
+          );
+        }
+      }
     });
 
     return {
@@ -513,7 +531,7 @@ export async function getMarketStats(): Promise<{
     const volumeStats = await executeQuerySingle<any>(
       `SELECT SUM(price) as total_volume
        FROM card_trades 
-       WHERE status = 'SOLD' AND completed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)`
+       WHERE status = 'SOLD' AND completed_at >= NOW() - INTERVAL '7 days'`
     );
 
     return {
@@ -532,5 +550,107 @@ export async function getMarketStats(): Promise<{
       mostExpensiveCard: 0,
       totalVolume: 0
     };
+  }
+}
+
+// Obtener mediana de precios de venta para un tipo especial (última semana)
+export async function getMedianSalePrice(specialType: string): Promise<number> {
+  try {
+    const sales = await executeQuery<any>(
+'SELECT price FROM market_sales_history WHERE special_type = ? AND sale_date >= NOW() - INTERVAL \'7 days\' ORDER BY price',
+      [specialType]
+    );
+    
+    if (sales.length === 0) return 0;
+    
+    const middle = Math.floor(sales.length / 2);
+    if (sales.length % 2 === 0) {
+      return (sales[middle - 1].price + sales[middle].price) / 2;
+    } else {
+      return sales[middle].price;
+    }
+  } catch (error) {
+    console.error('Error getting median sale price:', error);
+    return 0;
+  }
+}
+
+// Obtener o crear coeficientes de demanda
+export async function getDemandCoefficients(): Promise<Record<string, number>> {
+  try {
+    const rows = await executeQuery<any>(
+'SELECT special_type, coefficient FROM demand_coefficients'
+    );
+    
+    const coefficients: Record<string, number> = {};
+    
+    // Cargar coeficientes existentes
+    for (const row of rows) {
+      coefficients[row.special_type] = row.coefficient;
+    }
+    
+    // Completar con valores por defecto para tipos no existentes
+    const initialCoeffs = ECONOMY_CONFIG.DEMAND_SYSTEM.INITIAL_COEFFICIENTS;
+    for (const [type, defaultValue] of Object.entries(initialCoeffs)) {
+      if (!(type in coefficients)) {
+        coefficients[type] = defaultValue;
+        // Insertar en BD
+        await executeQuery(
+'INSERT INTO demand_coefficients (special_type, coefficient) VALUES (?, ?) ON CONFLICT (special_type) DO NOTHING',
+          [type, defaultValue]
+        );
+      }
+    }
+    
+    return coefficients;
+  } catch (error) {
+    console.error('Error getting demand coefficients:', error);
+    // Retornar valores por defecto
+    return ECONOMY_CONFIG.DEMAND_SYSTEM.INITIAL_COEFFICIENTS;
+  }
+}
+
+// Actualizar coeficiente de demanda
+export async function updateDemandCoefficient(specialType: string, newCoefficient: number): Promise<boolean> {
+  try {
+    await executeQuery(
+      "INSERT INTO demand_coefficients (special_type, coefficient, updated_at) VALUES (?, ?, NOW()) ON CONFLICT (special_type) DO UPDATE SET coefficient = EXCLUDED.coefficient, updated_at = EXCLUDED.updated_at",
+      [specialType, newCoefficient]
+    );
+    return true;
+  } catch (error) {
+    console.error('Error updating demand coefficient:', error);
+    return false;
+  }
+}
+
+// Proceso semanal de ajuste de coeficientes de demanda
+export async function weeklyDemandAdjustment(): Promise<void> {
+  try {
+    const coefficients = await getDemandCoefficients();
+    
+    for (const [specialType, currentCoeff] of Object.entries(coefficients)) {
+      if (specialType === 'Regular' || specialType === 'OLD_GENERATION') continue;
+      
+      const medianPrice = await getMedianSalePrice(specialType);
+      if (medianPrice === 0) continue; // Sin ventas esta semana
+      
+      // Calcular precio target basado en configuración base
+      const basePrice = ECONOMY_CONFIG.CARD_TIERS.ESPECIAL.basePrice; // Asumir especiales por ahora
+      const multiplier = ECONOMY_CONFIG.SPECIAL_TYPE_MULTIPLIERS[specialType as keyof typeof ECONOMY_CONFIG.SPECIAL_TYPE_MULTIPLIERS] || 1.0;
+      const targetPrice = basePrice * multiplier;
+      
+      // Usar helper de economy.ts para ajustar
+      const { adjustDemandCoefficient } = await import('./economy');
+      const newCoeff = adjustDemandCoefficient(currentCoeff, medianPrice, targetPrice, specialType);
+      
+      // Solo actualizar si cambió significativamente
+      if (Math.abs(newCoeff - currentCoeff) > 0.01) {
+        await updateDemandCoefficient(specialType, newCoeff);
+        console.log(`Adjusted ${specialType} coefficient: ${currentCoeff} -> ${newCoeff} (median: ${medianPrice}, target: ${targetPrice})`);
+      }
+    }
+  } catch (error) {
+    console.error('Error in weekly demand adjustment:', error);
   }
 }

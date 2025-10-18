@@ -1,78 +1,123 @@
-import mysql from 'mysql2/promise';
+import 'dotenv/config';
+import { Pool } from 'pg';
 
-// Configuración de la base de datos
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'bufas_cards',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  charset: 'utf8mb4',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  acquireTimeout: 60000,
-  timeout: 60000,
-};
+// Cargar variables de entorno desde process.env o import.meta.env (Astro/Vite)
+const ENV_PROC: Record<string, any> = typeof process !== 'undefined' ? (process.env as any) : {};
+const ENV_VITE: Record<string, any> = (() => { try { return (import.meta as any)?.env ?? {}; } catch { return {}; } })();
+function envGet(key: string, def?: string) {
+  return (ENV_PROC?.[key] ?? ENV_VITE?.[key] ?? def) as string | undefined;
+}
 
-// Pool de conexiones para mejor rendimiento
-let pool: mysql.Pool | null = null;
+// Preferir conexión a PostgreSQL (Supabase)
+const PGHOST = envGet('PGHOST') || envGet('SUPABASE_HOST');
+const PGPORT = Number(envGet('PGPORT', '5432'));
+const PGUSER = envGet('PGUSER') || envGet('SUPABASE_USER') || 'postgres';
+const PGPASSWORD = envGet('PGPASSWORD') || envGet('SUPABASE_PASSWORD') || '';
+const PGDATABASE = envGet('PGDATABASE') || envGet('SUPABASE_DB') || 'postgres';
 
-// Crear el pool de conexiones (lanzar error si falla para no usar datos mock)
-pool = mysql.createPool(dbConfig);
+const pool = new Pool({
+  host: PGHOST,
+  port: PGPORT,
+  user: PGUSER,
+  password: PGPASSWORD,
+  database: PGDATABASE,
+  max: 10,
+  ssl: { rejectUnauthorized: false }, // Supabase requiere SSL
+});
+
+export function currentPgConfig() {
+  return {
+    host: PGHOST,
+    port: PGPORT,
+    user: PGUSER,
+    database: PGDATABASE,
+    hasPassword: Boolean(PGPASSWORD),
+  };
+}
 
 export { pool };
 
-// Función para ejecutar queries con manejo de errores
+// Util: transformar sintaxis MySQL -> Postgres de forma básica
+function transformSql(sql: string): string {
+  let q = sql;
+  // RAND() -> RANDOM()
+  q = q.replace(/\bRAND\(\)/gi, 'RANDOM()');
+  // DATE_SUB(NOW(), INTERVAL 7 DAY) -> NOW() - INTERVAL '7 days'
+  q = q.replace(/DATE_SUB\(NOW\(\),\s*INTERVAL\s+7\s+DAY\)/gi, "NOW() - INTERVAL '7 days'");
+  return q;
+}
+
+// Sustituir ? por $1, $2, ...
+function toPgParams(sql: string): { text: string; values: any[] } {
+  let idx = 0;
+  const values: any[] = [];
+  const text = sql.replace(/\?/g, () => {
+    idx += 1;
+    return `$${idx}`;
+  });
+  return { text, values };
+}
+
+async function pgExecute<T = any>(query: string, params?: any[]): Promise<T[]> {
+  const text = transformSql(query);
+  const { text: pgText } = toPgParams(text);
+  const res = await pool.query(pgText, params || []);
+  return res.rows as T[];
+}
+
+// Exponer API compatible
 export async function executeQuery<T = any>(
   query: string,
   params?: any[]
 ): Promise<T[]> {
-  if (!pool) throw new Error('MySQL pool not initialized');
   try {
-    const [rows] = await pool.execute(query, params);
-    return rows as T[];
+    return await pgExecute<T>(query, params);
   } catch (error) {
     console.error('Database query error:', error);
     throw new Error(`Database error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-// Función para obtener una sola fila
 export async function executeQuerySingle<T = any>(
   query: string,
   params?: any[]
 ): Promise<T | null> {
-  if (!pool) throw new Error('MySQL pool not initialized');
-  try {
-    const rows = await executeQuery<T>(query, params);
-    return rows.length > 0 ? rows[0] : null;
-  } catch (error) {
-    throw error;
-  }
+  const rows = await executeQuery<T>(query, params);
+  return rows.length > 0 ? rows[0] : null;
 }
 
-// Función para transacciones
 export async function executeTransaction<T>(
-  callback: (connection: mysql.PoolConnection) => Promise<T>
+  callback: (connection: { execute: (q: string, p?: any[]) => Promise<[any, any]> }) => Promise<T>
 ): Promise<T> {
-  if (!pool) throw new Error('MySQL pool not initialized');
-  let connection: mysql.PoolConnection | null = null;
+  const client = await pool.connect();
   try {
-    connection = await pool.getConnection();
-    await connection.beginTransaction();
-    const result = await callback(connection);
-    await connection.commit();
+    await client.query('BEGIN');
+    const wrapper = {
+      async execute(q: string, p?: any[]): Promise<[any, any]> {
+        // Detectar INSERT y devolver insertId al estilo mysql2
+        const isInsert = /^\s*insert\s+into\s+/i.test(q);
+        let text = transformSql(q);
+        if (isInsert && !/returning\s+/i.test(text)) {
+          text = `${text} RETURNING id`;
+        }
+        const { text: pgText } = toPgParams(text);
+        const res = await client.query(pgText, p || []);
+        if (isInsert) {
+          const insertId = res.rows?.[0]?.id ?? null;
+          return [{ insertId, rowCount: res.rowCount }, null];
+        }
+        // Imitar mysql2: [rows, fields]
+        return [res.rows, null];
+      },
+    };
+    const result = await callback(wrapper);
+    await client.query('COMMIT');
     return result;
-  } catch (error) {
-    if (connection) {
-      await connection.rollback();
-    }
-    throw error;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
   } finally {
-    if (connection) {
-      connection.release();
-    }
+    client.release();
   }
 }
 

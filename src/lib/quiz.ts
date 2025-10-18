@@ -1,13 +1,10 @@
 import type { DailyQuizQuestion, DailyQuizAnswer, Player } from './mysql';
 import { executeQuery, executeQuerySingle, executeTransaction } from './mysql';
 import { getAllPlayers } from './cards';
+import { ECONOMY_CONFIG, calculateQuizPayout } from './economy';
 
-// Configuración del quiz
-export const QUIZ_CONFIG = {
-  QUESTIONS_PER_DAY: 5,
-  COINS_PER_CORRECT_ANSWER: 100,
-  MAX_DAILY_COINS: 500
-};
+// Configuración del quiz (ahora desde economy.ts)
+export const QUIZ_CONFIG = ECONOMY_CONFIG.QUIZ;
 // Estadísticas disponibles para preguntas
 export const AVAILABLE_STATS = [
   'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physical', 'fifa_rating'
@@ -210,7 +207,7 @@ export async function getUserQuizProgress(
     const progress = await executeQuerySingle<any>(
       `SELECT 
         COUNT(*) as questions_answered,
-        SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) as correct_answers,
+        SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) as correct_answers,
         SUM(coins_earned) as total_coins_earned
        FROM daily_quiz_answers dqa
        JOIN daily_quiz_questions dqq ON dqa.question_id = dqq.id
@@ -292,19 +289,10 @@ export async function answerQuizQuestion(
       };
     }
 
-    // Verificar si el usuario ya alcanzó el máximo de monedas diarias
-    const progress = await getUserQuizProgress(userId, question.date);
-    if (progress.totalCoinsEarned >= QUIZ_CONFIG.MAX_DAILY_COINS) {
-      return {
-        success: false,
-        isCorrect: selectedAnswer === question.correct_answer,
-        correctAnswer: question.correct_answer,
-        coinsEarned: 0,
-        error: 'Ya has alcanzado el máximo de monedas diarias'
-      };
-    }
-
     const isCorrect = selectedAnswer === question.correct_answer;
+    
+    // Solo damos monedas por respuesta correcta durante el juego
+    // El payout final se calcula al completar todas las preguntas
     const coinsEarned = isCorrect ? QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER : 0;
 
     // Guardar respuesta y actualizar monedas en una transacción
@@ -329,8 +317,8 @@ export async function answerQuizQuestion(
         );
       }
 
-      // Actualizar última fecha de quiz y racha si es necesario
-      const today = new Date().toISOString().split('T')[0]
+      // Actualizar última fecha de quiz
+      const today = new Date().toISOString().split('T')[0];
       if (question.date === today) {
         await connection.execute(
           'UPDATE users SET last_daily_quiz = ? WHERE id = ?',
@@ -371,9 +359,9 @@ export async function getUserQuizStats(userId: number): Promise<{
     const stats = await executeQuerySingle<any>(
       `SELECT 
         COUNT(*) as total_questions_answered,
-        SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) as total_correct_answers,
+        SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) as total_correct_answers,
         SUM(coins_earned) as total_coins_earned,
-        COUNT(DISTINCT DATE(answered_at)) as days_played
+        COUNT(DISTINCT CAST(answered_at AS DATE)) as days_played
        FROM daily_quiz_answers
        WHERE user_id = ?`,
       [userId]
@@ -409,6 +397,107 @@ export async function getUserQuizStats(userId: number): Promise<{
       longestStreak: 0,
       daysPlayed: 0
     };
+  }
+}
+
+// Función para calcular el payout final del día (con bonificaciones)
+export async function calculateDailyQuizPayout(
+  userId: number,
+  date: string = new Date().toISOString().split('T')[0]
+): Promise<{
+  totalPayout: number;
+  correctAnswers: number;
+  perfectBonus: number;
+  streakBonus: number;
+  hadPerfectYesterday: boolean;
+}> {
+  try {
+    const progress = await getUserQuizProgress(userId, date);
+    const correctAnswers = progress.correctAnswers;
+    
+    // Verificar si ayer también completó 5/5
+    const yesterday = new Date(date);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    
+    const yesterdayProgress = await getUserQuizProgress(userId, yesterdayStr);
+    const hadPerfectYesterday = yesterdayProgress.correctAnswers === QUIZ_CONFIG.QUESTIONS_PER_DAY;
+    
+    // Calcular bonificaciones
+    const perfectBonus = correctAnswers === QUIZ_CONFIG.QUESTIONS_PER_DAY ? QUIZ_CONFIG.PERFECT_BONUS : 0;
+    const streakBonus = hadPerfectYesterday && correctAnswers === QUIZ_CONFIG.QUESTIONS_PER_DAY ? QUIZ_CONFIG.STREAK_BONUS : 0;
+    
+    const totalPayout = calculateQuizPayout(correctAnswers, hadPerfectYesterday);
+    
+    return {
+      totalPayout,
+      correctAnswers,
+      perfectBonus,
+      streakBonus,
+      hadPerfectYesterday
+    };
+  } catch (error) {
+    console.error('Error calculating daily quiz payout:', error);
+    return {
+      totalPayout: 0,
+      correctAnswers: 0,
+      perfectBonus: 0,
+      streakBonus: 0,
+      hadPerfectYesterday: false
+    };
+  }
+}
+
+// Procesar payout final del día (llamar al final del día)
+export async function processDailyQuizPayout(
+  userId: number,
+  date: string = new Date().toISOString().split('T')[0]
+): Promise<boolean> {
+  try {
+    const payoutData = await calculateDailyQuizPayout(userId, date);
+    
+    // Solo procesar si hay respuestas correctas y no se ha procesado ya
+    if (payoutData.correctAnswers === 0) {
+      return true; // No hay nada que procesar
+    }
+    
+    // Verificar si ya se procesaron las bonificaciones para este día
+    const existingBonus = await executeQuerySingle<any>(
+      'SELECT id FROM coin_transactions WHERE user_id = ? AND type = "DAILY_QUIZ_BONUS" AND description LIKE ? LIMIT 1',
+      [userId, `%${date}%`]
+    );
+    
+    if (existingBonus) {
+      return true; // Ya se procesó
+    }
+    
+    // Calcular bonificaciones adicionales (perfect y streak)
+    const bonusCoins = payoutData.perfectBonus + payoutData.streakBonus;
+    
+    if (bonusCoins > 0) {
+      await executeTransaction(async (connection) => {
+        // Dar monedas de bonificación
+        await connection.execute(
+          'UPDATE users SET coins = coins + ? WHERE id = ?',
+          [bonusCoins, userId]
+        );
+        
+        // Registrar transacción
+        let description = `Bonificación quiz diario ${date}`;
+        if (payoutData.perfectBonus > 0) description += ` - Perfecto +${payoutData.perfectBonus}`;
+        if (payoutData.streakBonus > 0) description += ` - Streak +${payoutData.streakBonus}`;
+        
+        await connection.execute(
+          'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
+          [userId, bonusCoins, 'DAILY_QUIZ_BONUS', description]
+        );
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error processing daily quiz payout:', error);
+    return false;
   }
 }
 
