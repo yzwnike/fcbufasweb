@@ -4,6 +4,8 @@ import { getCardWithPlayer } from '@/lib/cards';
 import { executeQuery } from '@/lib/mysql';
 import { AVAILABLE_STATS, type StatName } from '@/lib/quiz';
 
+export const runtime = 'node';
+
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -62,9 +64,9 @@ export const GET: APIRoute = async ({ request, url }) => {
     const prog = await executeQuery<any>(
       `SELECT answered_count, correct_count FROM daily_quiz_progress 
        WHERE user_id = ? AND window_start = (
-         CASE WHEN TIME(NOW()) >= '12:00:00'
-              THEN CONCAT(CURDATE(), ' 12:00:00')
-              ELSE CONCAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), ' 12:00:00')
+         CASE WHEN (now()::time >= time '12:00:00')
+              THEN date_trunc('day', now()) + interval '12 hours'
+              ELSE date_trunc('day', now()) - interval '12 hours'
          END
        )
        LIMIT 1`,
@@ -85,10 +87,10 @@ export const GET: APIRoute = async ({ request, url }) => {
             , p.id AS player_id, p.name, p.team, p.position1, p.position2
        FROM cards c
        JOIN players p ON c.player_id = p.id
-       WHERE (p.eligible_for_quiz IS NULL OR p.eligible_for_quiz = 1)
+       WHERE (p.eligible_for_quiz IS NULL OR p.eligible_for_quiz = true)
          AND c.special_type IN ('Regular','OLD_GENERATION')
          AND c.image_path IS NOT NULL
-       ORDER BY RAND()
+       ORDER BY RANDOM()
        LIMIT ?`,
       [count * 3] // oversample a bit more with filters
     );

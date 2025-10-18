@@ -74,7 +74,7 @@ export async function putCardForSale(
     const sameCardCountRow = await executeQuerySingle<any>(
       `SELECT COUNT(*) AS cnt FROM user_cards WHERE user_id = ? AND card_id = (
          SELECT card_id FROM user_cards WHERE id = ?
-       ) AND id <> ? AND is_for_sale = 0`,
+       ) AND id <> ? AND is_for_sale = false`,
       [userId, userCardId, userCardId]
     );
     const sameCardCount = Number(sameCardCountRow?.cnt || 0);
