@@ -88,6 +88,14 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
          WHEN 'MARKET_MASTER' THEN 2
          WHEN 'COMEBACK_HERO' THEN 1
          ELSE 0 END)) AS eff_passing,
+       LEAST(99, COALESCE(c.dribbling_override, p.dribbling + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+         WHEN 'RATING_RELOAD' THEN 1
+         WHEN 'ASSIST_ENGINE' THEN 2
+         WHEN 'MARKET_MASTER' THEN 1
+         WHEN 'COMEBACK_HERO' THEN 2
+         ELSE 0 END)) AS eff_dribbling,
        LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 2
@@ -130,6 +138,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
       pace: result.eff_pace,
       shooting: result.eff_shooting,
       passing: result.eff_passing,
+      dribbling: result.eff_dribbling,
       defending: result.eff_defending,
       physical: result.eff_physical,
       fifa_rating: result.eff_fifa_rating,
@@ -184,6 +193,14 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
               WHEN 'MARKET_MASTER' THEN 2
               WHEN 'COMEBACK_HERO' THEN 1
               ELSE 0 END)) AS eff_passing,
+            LEAST(99, COALESCE(c.dribbling_override, p.dribbling + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+              WHEN 'RATING_RELOAD' THEN 1
+              WHEN 'ASSIST_ENGINE' THEN 2
+              WHEN 'MARKET_MASTER' THEN 1
+              WHEN 'COMEBACK_HERO' THEN 2
+              ELSE 0 END)) AS eff_dribbling,
             LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 2
@@ -233,6 +250,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
         pace: result.eff_pace,
         shooting: result.eff_shooting,
         passing: result.eff_passing,
+        dribbling: result.eff_dribbling,
         defending: result.eff_defending,
         physical: result.eff_physical,
         fifa_rating: result.eff_fifa_rating,
@@ -296,6 +314,14 @@ export async function getUserCardsFiltered(
              WHEN 'MARKET_MASTER' THEN 2
              WHEN 'COMEBACK_HERO' THEN 1
              ELSE 0 END)) AS eff_passing,
+           LEAST(99, COALESCE(c.dribbling_override, p.dribbling + CASE c.special_type
+             WHEN 'TEAM_OF_THE_WEEK' THEN 2
+             WHEN 'PLAYER_OF_THE_MONTH' THEN 3
+             WHEN 'RATING_RELOAD' THEN 1
+             WHEN 'ASSIST_ENGINE' THEN 2
+             WHEN 'MARKET_MASTER' THEN 1
+             WHEN 'COMEBACK_HERO' THEN 2
+             ELSE 0 END)) AS eff_dribbling,
            LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 2
@@ -375,6 +401,7 @@ export async function getUserCardsFiltered(
         pace: result.eff_pace,
         shooting: result.eff_shooting,
         passing: result.eff_passing,
+        dribbling: result.eff_dribbling,
         defending: result.eff_defending,
         physical: result.eff_physical,
         fifa_rating: result.eff_fifa_rating,

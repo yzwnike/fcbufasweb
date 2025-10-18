@@ -270,7 +270,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     // Fetch market data from API
     async function fetchMarketListings() {
       try {
-        const res = await fetch('/api/nike-fc-cards/market', { headers: { Authorization: `Bearer ${authToken}` } });
+        const res = await fetch(`/api/nike-fc-cards/market?t=${Date.now()}`, { headers: { Authorization: `Bearer ${authToken}` }, cache: 'no-store' });
         return await res.json();
       } catch (e) {
         return { success: false, error: 'Error de conexión' };
@@ -365,7 +365,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
     function openPurchaseModal(listing) {
       if (listing.is_own || listing.seller_username === (currentUser?.username || '')) {
-        alert('Esta carta es tuya; no puedes comprarla.');
+        alert('Esta carta es tuya; no puedes comprarla.\nSi desea quitarlo del mercado busca la carta en venta desde Colección');
         return;
       }
       if (currentUser.coins < listing.sale_price) {
@@ -445,10 +445,34 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       displayListings(filteredListings);
     }
 
-    function purchaseCard() {
+    async function purchaseCard() {
       if (!selectedListing) return;
-      alert('Compra en mercado: pendiente de implementar en API.');
-      closePurchaseModal();
+      try {
+        const res = await fetch('/api/nike-fc-cards/market/buy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ trade_id: selectedListing.id })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert('No se pudo completar la compra: ' + (data.error || 'Error desconocido'));
+          return;
+        }
+        // Update local state
+        currentUser.coins -= selectedListing.sale_price;
+        document.getElementById('user-balance').textContent = currentUser.coins.toLocaleString();
+        // Remove listing from arrays
+        marketListings = marketListings.filter(l => l.id !== selectedListing.id);
+        filteredListings = filteredListings.filter(l => l.id !== selectedListing.id);
+        displayListings(filteredListings);
+        closePurchaseModal();
+        alert('Compra realizada con éxito. La carta se ha añadido a tu colección.');
+      } catch (e) {
+        alert('Error de conexión al comprar.');
+      }
     }
 
     // (badge de tiempo eliminado)

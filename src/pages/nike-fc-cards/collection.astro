@@ -154,9 +154,23 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           </div>
         </div>
 
-        <!-- Cards Grid -->
-        <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          <!-- Cards will be loaded here -->
+        <!-- Cards Grid (Unsold) -->
+        <div id="unsold-section">
+          <div id="cards-grid-unsold" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            <!-- Unsold cards will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Market Listings Section -->
+        <div id="market-section" class="hidden mt-10 max-w-7xl mx-auto">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex-1 h-px bg-white/20"></div>
+            <div class="text-white/80 text-sm uppercase tracking-wider">En mercado:</div>
+            <div class="flex-1 h-px bg-white/20"></div>
+          </div>
+          <div id="cards-grid-market" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Listings will be loaded here -->
+          </div>
         </div>
 
         <!-- Loading -->
@@ -234,8 +248,10 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     let currentUser = null;
     let authToken = null;
     let userCards = [];
+    let groupedCards = [];
     let filteredCards = [];
-    let selectedCard = null;
+    let selectedGroup = null;
+    let cardCounts = {};
 
     // Auth functions
     function checkAuthState() {
@@ -262,8 +278,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     async function fetchUserCollection() {
       try {
         const token = sessionStorage.getItem('nike_fc_token');
-        const res = await fetch('/api/nike-fc-cards/collection', {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await fetch(`/api/nike-fc-cards/collection?t=${Date.now()}` , {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store'
         });
         return await res.json();
       } catch (e) {
@@ -273,12 +290,79 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
     function generateMockCards() { /* deprecated */ return []; }
 
+    let activeForSaleCount = 0;
+
+    function recomputeCounts() {
+      cardCounts = {};
+      let saleCount = 0;
+      (userCards || []).forEach(uc => {
+        const id = uc.card?.id;
+        if (!id) return;
+        cardCounts[id] = (cardCounts[id] || 0) + 1;
+        const isOnSale = (uc.is_for_sale === true) || (uc.is_for_sale === 1) || (uc.is_for_sale === '1');
+        if (isOnSale) saleCount += 1;
+      });
+      activeForSaleCount = saleCount;
+    }
+
+    function computeGroups() {
+      const unsoldMap = new Map();
+      const listingGroups = [];
+      const seenListingIds = new Set();
+
+      (userCards || []).forEach(uc => {
+        const id = uc.card?.id;
+        if (!id) return;
+        const isOnSale = (uc.is_for_sale === true) || (uc.is_for_sale === 1) || (uc.is_for_sale === '1');
+        if (isOnSale) {
+          // Each listing becomes its own group to allow per-listing actions and price display
+          if (!seenListingIds.has(uc.id)) {
+            seenListingIds.add(uc.id);
+            listingGroups.push({
+              card: uc.card,
+              totalCount: 1,
+              unsoldCount: 0,
+              onSaleCount: 1,
+              unsoldIds: [],
+              onSaleIds: [uc.id],
+              isListing: true,
+              sale_price: uc.sale_price
+            });
+          }
+        } else {
+          let g = unsoldMap.get(id);
+          if (!g) {
+            g = {
+              card: uc.card,
+              totalCount: 0,
+              unsoldCount: 0,
+              onSaleCount: 0,
+              unsoldIds: [],
+              onSaleIds: [],
+              isListing: false
+            };
+            unsoldMap.set(id, g);
+          }
+          g.totalCount += 1;
+          g.unsoldCount += 1;
+          g.unsoldIds.push(uc.id);
+        }
+      });
+
+      const unsoldGroups = Array.from(unsoldMap.values());
+      return [...unsoldGroups, ...listingGroups];
+    }
+
     function displayStats(stats) {
       document.getElementById('total-cards').textContent = stats.totalCards;
       document.getElementById('total-value').textContent = stats.totalValue.toLocaleString();
       document.getElementById('unique-players').textContent = stats.uniquePlayers;
       
-      const cardsForSale = userCards.filter(uc => uc.is_for_sale).length;
+      const cardsForSale = (userCards || []).reduce((acc, uc) => {
+        const saleFlag = (uc.is_for_sale === true) || (uc.is_for_sale === 1) || (uc.is_for_sale === '1');
+        return acc + (saleFlag ? 1 : 0);
+      }, 0);
+      activeForSaleCount = cardsForSale;
       document.getElementById('cards-for-sale').textContent = cardsForSale;
 
       // Rarity counts
@@ -289,28 +373,57 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       document.getElementById('legend-count').textContent = stats.cardsByRarity.Legend || 0;
     }
 
-    function displayCards(cards) {
-      const grid = document.getElementById('cards-grid');
-      
-      if (cards.length === 0) {
-        grid.classList.add('hidden');
-        document.getElementById('no-cards').classList.remove('hidden');
+    function displayCards(groups) {
+      const unsold = groups.filter(g => !g.isListing);
+      const listings = groups.filter(g => g.isListing);
+
+      const unsoldGrid = document.getElementById('cards-grid-unsold');
+      const marketSection = document.getElementById('market-section');
+      const marketGrid = document.getElementById('cards-grid-market');
+
+      const noCards = document.getElementById('no-cards');
+
+      // Handle empty state
+      if (unsold.length === 0 && listings.length === 0) {
+        if (unsoldGrid) unsoldGrid.classList.add('hidden');
+        if (marketSection) marketSection.classList.add('hidden');
+        noCards.classList.remove('hidden');
         return;
       }
 
-      grid.classList.remove('hidden');
-      document.getElementById('no-cards').classList.add('hidden');
-      
-      grid.innerHTML = '';
-      
-      cards.forEach(userCard => {
-        const cardElement = createCardElement(userCard);
-        grid.appendChild(cardElement);
-      });
+      noCards.classList.add('hidden');
+
+      // Render unsold grid
+      if (unsoldGrid) {
+        if (unsold.length === 0) {
+          unsoldGrid.classList.add('hidden');
+        } else {
+          unsoldGrid.classList.remove('hidden');
+          unsoldGrid.innerHTML = '';
+          unsold.forEach(group => {
+            const el = createCardElement(group);
+            unsoldGrid.appendChild(el);
+          });
+        }
+      }
+
+      // Render market listings grid
+      if (marketSection && marketGrid) {
+        if (listings.length === 0) {
+          marketSection.classList.add('hidden');
+        } else {
+          marketSection.classList.remove('hidden');
+          marketGrid.innerHTML = '';
+          listings.forEach(group => {
+            const el = createCardElement(group);
+            marketGrid.appendChild(el);
+          });
+        }
+      }
     }
 
-    function createCardElement(userCard) {
-      const card = userCard.card;
+    function createCardElement(group) {
+      const card = group.card;
       const rarityColors = {
         Bronze: 'from-amber-600 to-amber-800',
         Silver: 'from-gray-400 to-gray-600',
@@ -321,66 +434,108 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
       const cardDiv = document.createElement('div');
       cardDiv.className = `bg-gradient-to-br ${rarityColors[card.rarity]} rounded-xl p-4 text-center transform hover:scale-105 transition-transform cursor-pointer relative`;
-      cardDiv.addEventListener('click', () => openCardModal(userCard));
+      cardDiv.addEventListener('click', () => openCardModal(group));
 
       let saleIndicator = '';
-      if (userCard.is_for_sale) {
+      if (group.isListing) {
         saleIndicator = `
-          <div class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+          <div class=\"absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full\">
             En Venta
           </div>
         `;
       }
+      // Quantity badge (duplicates) - show only for unsold grouped tile and use unsoldCount
+      const qty = group.unsoldCount || 0;
+      const qtyBadge = (!group.isListing && qty > 1)
+        ? `<div class=\"absolute -top-6 -left-6 z-10 bg-green-600 text-white text-[10px] sm:text-xs font-extrabold w-20 h-20 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/30 pointer-events-none\">TIENES: ${qty}</div>`
+        : '';
 
       const img = card.image_path ? `<img src="${card.image_path}" alt="${card.player.name}" class="w-full rounded-lg mb-3" />` : `
         <div class="w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3">
           <span class="text-3xl">⚽</span>
         </div>`;
 
+      const dupCount = group.totalCount;
+      const canSell = (!group.isListing) && (group.unsoldCount >= 1) && (dupCount >= 2) && (activeForSaleCount < 10);
+      let cantReason = '';
+      if (group.isListing) cantReason = 'Ya está en venta';
+      else if (!(group.unsoldCount >= 1)) cantReason = 'No hay copias disponibles';
+      else if (dupCount < 2) cantReason = 'Necesitas duplicado';
+      else if (activeForSaleCount >= 10) cantReason = 'Límite 10 en mercado';
+      const sellBtnHtml = !group.isListing 
+        ? `<button class=\"mt-2 px-3 py-1 rounded text-xs font-semibold ${canSell ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-600 text-gray-300 cursor-not-allowed'}\" ${canSell ? '' : ('data-disabled=\"1\" title=\"' + cantReason + '\"')} data-sell=\"1\">Vender</button>`
+        : '';
+
       cardDiv.innerHTML = `
         ${saleIndicator}
+        ${qtyBadge}
         ${img}
-        <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
+        <div class=\"text-white font-bold text-sm mb-1\">${card.player.name}</div>
         <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${card.rarity}</div>
         <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
         <div class="text-xs text-yellow-300 font-bold">${card.base_price} 💰</div>
-        ${userCard.is_for_sale ? `<div class="text-xs text-green-300 mt-1">Precio: ${userCard.sale_price}</div>` : ''}
+        ${group.isListing ? `<div class=\"text-xs text-green-300 mt-1\">Precio: ${group.sale_price}</div>` : sellBtnHtml}
       `;
+
+      // Wire sell button to open modal directly in sale mode
+      const sellBtn = cardDiv.querySelector('button[data-sell="1"]');
+      if (sellBtn) {
+        sellBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const isDisabled = sellBtn.getAttribute('data-disabled') === '1';
+          if (isDisabled) {
+            const reason = sellBtn.getAttribute('title') || 'No se puede vender';
+            alert(reason);
+            return;
+          }
+          selectedGroup = group;
+          openCardModal(group);
+          // Show sale section directly
+          document.getElementById('sale-section').classList.remove('hidden');
+          document.getElementById('action-buttons').classList.add('hidden');
+          const suggestedPrice = Math.floor(selectedGroup.card.base_price * 1.2);
+          document.getElementById('sale-price-input').value = suggestedPrice;
+        });
+      }
 
       return cardDiv;
     }
 
-    function openCardModal(userCard) {
-      selectedCard = userCard;
-      const card = userCard.card;
+    function openCardModal(group) {
+      selectedGroup = group;
+      const card = group.card;
 
       document.getElementById('modal-card-name').textContent = card.player.name;
       
       // Generate card preview
       const preview = document.getElementById('modal-card-preview');
-      preview.innerHTML = createCardElement(userCard).innerHTML;
+      preview.innerHTML = createCardElement(group).innerHTML;
 
       // Show/hide appropriate buttons
       const sellBtn = document.getElementById('sell-card-btn');
       const removeFromSaleBtn = document.getElementById('remove-from-sale-btn');
       const saleSection = document.getElementById('sale-section');
 
-      if (userCard.is_for_sale) {
+      // Actions depending on group type
+      if (group.isListing) {
         sellBtn.classList.add('hidden');
         removeFromSaleBtn.classList.remove('hidden');
-        saleSection.classList.add('hidden');
       } else {
-        sellBtn.classList.remove('hidden');
         removeFromSaleBtn.classList.add('hidden');
-        saleSection.classList.add('hidden');
+        if (group.totalCount >= 2 && group.unsoldCount >= 1) {
+          sellBtn.classList.remove('hidden');
+        } else {
+          sellBtn.classList.add('hidden');
+        }
       }
+      saleSection.classList.add('hidden');
 
       document.getElementById('card-modal').classList.remove('hidden');
     }
 
     function closeCardModal() {
       document.getElementById('card-modal').classList.add('hidden');
-      selectedCard = null;
+      selectedGroup = null;
     }
 
     function applyFilters() {
@@ -388,15 +543,15 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       const positionFilter = document.getElementById('position-filter').value;
       const ratingFilter = parseInt(document.getElementById('rating-filter').value) || 0;
       const saleFilter = document.getElementById('sale-filter').value;
-
-      filteredCards = userCards.filter(userCard => {
-        const card = userCard.card;
-        
+ 
+      groupedCards = computeGroups();
+      filteredCards = groupedCards.filter(group => {
+        const card = group.card;
         if (rarityFilter && card.rarity !== rarityFilter) return false;
         if (positionFilter && card.player.position1 !== positionFilter) return false;
         if (ratingFilter && card.player.fifa_rating < ratingFilter) return false;
-        if (saleFilter !== '' && userCard.is_for_sale.toString() !== saleFilter) return false;
-
+        if (saleFilter === 'true' && group.onSaleCount === 0) return false;
+        if (saleFilter === 'false' && group.unsoldCount === 0) return false;
         return true;
       });
 
@@ -430,9 +585,11 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       }
 
       userCards = result.cards || [];
-      filteredCards = [...userCards];
+      groupedCards = computeGroups();
+      filteredCards = [...groupedCards];
 
       showSection('collection-container');
+      recomputeCounts();
       displayStats({
         totalCards: result.stats?.totalCards || 0,
         totalValue: result.stats?.totalValue || 0,
@@ -451,7 +608,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         document.getElementById('action-buttons').classList.add('hidden');
         
         // Calculate suggested price
-        const suggestedPrice = Math.floor(selectedCard.card.base_price * 1.2);
+        const suggestedPrice = Math.floor(selectedGroup.card.base_price * 1.2);
         document.getElementById('sale-price-input').value = suggestedPrice;
       });
 
@@ -462,7 +619,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
       document.getElementById('put-on-sale-btn').addEventListener('click', async () => {
         const price = parseInt(document.getElementById('sale-price-input').value);
-        if (!selectedCard) return;
+        if (!selectedGroup) return;
         if (Number.isNaN(price) || price < 50) {
           alert('El precio mínimo es 50 monedas');
           return;
@@ -471,10 +628,10 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           const res = await fetch('/api/nike-fc-cards/market/put', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+'Content-Type': 'application/json',
               Authorization: `Bearer ${authToken}`
             },
-            body: JSON.stringify({ user_card_id: selectedCard.id, price })
+            body: JSON.stringify({ user_card_id: (selectedGroup.unsoldIds[0] || null), price })
           });
           const data = await res.json();
           if (!data.success) {
@@ -485,6 +642,11 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           const result = await fetchUserCollection();
           if (result.success) {
             userCards = result.cards || [];
+            recomputeCounts();
+            applyFilters();
+          } else {
+            // fallback recompute to keep UI consistent
+            recomputeCounts();
             applyFilters();
           }
           closeCardModal();
@@ -495,15 +657,20 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       });
 
       document.getElementById('remove-from-sale-btn').addEventListener('click', async () => {
-        if (!selectedCard) return;
+        if (!selectedGroup) return;
         try {
+          const removeId = selectedGroup.isListing ? selectedGroup.onSaleIds[0] : (selectedGroup.onSaleIds[0] || null);
+          if (!removeId) {
+            alert('No hay cartas en venta para quitar');
+            return;
+          }
           const res = await fetch('/api/nike-fc-cards/market/remove', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${authToken}`
             },
-            body: JSON.stringify({ user_card_id: selectedCard.id })
+            body: JSON.stringify({ user_card_id: removeId })
           });
           const data = await res.json();
           if (!data.success) {
@@ -513,6 +680,10 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           const result = await fetchUserCollection();
           if (result.success) {
             userCards = result.cards || [];
+            recomputeCounts();
+            applyFilters();
+          } else {
+            recomputeCounts();
             applyFilters();
           }
           closeCardModal();

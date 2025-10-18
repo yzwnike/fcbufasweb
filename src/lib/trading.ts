@@ -59,6 +59,28 @@ export async function putCardForSale(
       };
     }
 
+    // Limite: máximo 10 cartas en venta
+    const activeCountRow = await executeQuerySingle<any>(
+      "SELECT COUNT(*) AS cnt FROM card_trades WHERE seller_id = ? AND status = 'ACTIVE'",
+      [userId]
+    );
+    const activeCount = Number(activeCountRow?.cnt || 0);
+    if (activeCount >= 10) {
+      return { success: false, error: 'Límite de 10 cartas en el mercado alcanzado' };
+    }
+
+    // Debe ser duplicada: comprobar que el usuario tiene otra copia de la MISMA carta
+    const sameCardCountRow = await executeQuerySingle<any>(
+      `SELECT COUNT(*) AS cnt FROM user_cards WHERE user_id = ? AND card_id = (
+         SELECT card_id FROM user_cards WHERE id = ?
+       ) AND id <> ? AND is_for_sale = 0`,
+      [userId, userCardId, userCardId]
+    );
+    const sameCardCount = Number(sameCardCountRow?.cnt || 0);
+    if (sameCardCount <= 0) {
+      return { success: false, error: 'Solo puedes vender cartas duplicadas' };
+    }
+
     // Crear la entrada de intercambio en una transacción
     const tradeId = await executeTransaction(async (connection) => {
       // Marcar la carta como en venta

@@ -99,6 +99,7 @@ export interface Player {
   pace: number;
   shooting: number;
   passing: number;
+  dribbling: number;
   defending: number;
   physical: number;
   fifa_rating: number;
@@ -166,6 +167,7 @@ export interface FantasyRush {
   id: number;
   user_id: number;
   week_start: string;
+  jornada?: number | null;
   forward_player_id: number;
   midfielder_player_id: number;
   defender_player_id: number;
@@ -192,6 +194,37 @@ export interface CoinTransaction {
   type: 'DAILY_QUIZ' | 'FANTASY_RUSH' | 'PACK_PURCHASE' | 'PACK_SPEEDUP' | 'CARD_SALE' | 'CARD_PURCHASE' | 'INITIAL_BONUS' | 'ADMIN_GRANT' | 'ADMIN_DEDUCT';
   description: string;
   created_at: string;
+}
+
+// SBC Types
+export interface SbcChallenge {
+  id: number;
+  code: string;
+  title: string;
+  description: string | null;
+  start_at: string;
+  end_at: string;
+  requirements: any;
+  created_at: string;
+}
+
+export interface SbcReward {
+  id: number;
+  challenge_id: number;
+  reward_type: 'PACK' | 'CARD';
+  pack_type?: 'FREE_DAILY' | 'PREMIUM' | 'SPECIAL' | null;
+  card_id?: number | null;
+  amount: number;
+  // Optional preview fields for UI convenience
+  card_image_path?: string | null;
+  player_name?: string | null;
+}
+
+export interface SbcSubmission {
+  id: number;
+  challenge_id: number;
+  user_id: number;
+  submitted_at: string;
 }
 
 // Utilidades para validación

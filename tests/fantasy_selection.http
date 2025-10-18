@@ -1,0 +1,30 @@
+@name login
+# 1) Login para obtener token (sustituye {{PASSWORD}})
+POST http://localhost:4321/api/nike-fc-cards/auth/login
+Content-Type: application/json
+
+{
+  "username": "yazawa",
+  "password": "{{PASSWORD}}"
+}
+
+###
+@baseUrl = http://localhost:4321
+@auth = Bearer {{login.response.body.token}}
+
+# 2) POST selección (sustituye IDs por los que el usuario posee)
+POST {{baseUrl}}/api/nike-fc-cards/fantasy/selection
+Authorization: {{auth}}
+Content-Type: application/json
+
+{
+  "forwardPlayerId": 6,
+  "midfielderPlayerId": 9,
+  "defenderPlayerId": 4,
+  "jornada": 1
+}
+
+###
+# 3) GET selección actual
+GET {{baseUrl}}/api/nike-fc-cards/fantasy/selection
+Authorization: {{auth}}

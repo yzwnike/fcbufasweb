@@ -125,7 +125,8 @@ function isPlayerEligibleForPosition(player: Player, position: 'FORWARD' | 'MIDF
 export async function createFantasySelection(
   userId: number,
   selection: FantasySelection,
-  weekStart?: string
+  weekStart?: string,
+  jornada?: number
 ): Promise<{
   success: boolean;
   fantasyRushId?: number;
@@ -134,17 +135,18 @@ export async function createFantasySelection(
   try {
     const currentWeekStart = weekStart || getWeekStart();
 
-    // Verificar si ya existe una selección para esta semana
-    const existingSelection = await executeQuerySingle<FantasyRush>(
-      'SELECT id FROM fantasy_rush WHERE user_id = ? AND week_start = ?',
-      [userId, currentWeekStart]
-    );
-
-    if (existingSelection) {
-      return {
-        success: false,
-        error: 'Ya tienes una selección para esta semana'
-      };
+    // Si no se especifica jornada, mantener la validación semanal heredada (permitiendo múltiples jornadas en misma semana)
+    if (!(typeof jornada === 'number' && !Number.isNaN(jornada))) {
+      const existingSelection = await executeQuerySingle<FantasyRush>(
+        'SELECT id FROM fantasy_rush WHERE user_id = ? AND week_start = ?',
+        [userId, currentWeekStart]
+      );
+      if (existingSelection) {
+        return {
+          success: false,
+          error: 'Ya tienes una selección para esta semana'
+        };
+      }
     }
 
     // Obtener información de los jugadores seleccionados
@@ -206,22 +208,58 @@ export async function createFantasySelection(
       };
     }
 
-    // Crear la selección
-    const result = await executeQuery<any>(
-      `INSERT INTO fantasy_rush (user_id, week_start, forward_player_id, midfielder_player_id, defender_player_id, total_points, coins_earned) 
-       VALUES (?, ?, ?, ?, ?, 0, 0)`,
-      [userId, currentWeekStart, selection.forwardPlayerId, selection.midfielderPlayerId, selection.defenderPlayerId]
-    );
+    // Regla de descanso: no repetir jugadores de la jornada anterior
+    if (typeof jornada === 'number' && Number.isFinite(jornada)) {
+      const prevJ = jornada - 1;
+      if (prevJ >= 0) {
+        const prev = await executeQuerySingle<any>(
+          'SELECT forward_player_id, midfielder_player_id, defender_player_id FROM fantasy_rush WHERE user_id = ? AND jornada = ? LIMIT 1',
+          [userId, prevJ]
+        );
+        if (prev) {
+          const prevIds = new Set([prev.forward_player_id, prev.midfielder_player_id, prev.defender_player_id].filter(Boolean));
+          const conflicts = [selection.forwardPlayerId, selection.midfielderPlayerId, selection.defenderPlayerId].filter(id => prevIds.has(id));
+          if (conflicts.length) {
+            return { success: false, error: 'Descanso obligatorio: uno o más jugadores jugaron la jornada anterior' };
+          }
+        }
+      }
+    }
+
+    // Crear la selección de forma idempotente por (user_id, jornada)
+    // Usamos UPSERT para evitar condiciones de carrera (doble POST)
+    const newId = await executeTransaction<number>(async (conn) => {
+      // Nota: NO actualizamos jugadores en el DUPLICATE; solo devolvemos el id existente
+      await conn.execute(
+        `INSERT INTO fantasy_rush (user_id, jornada, forward_player_id, midfielder_player_id, defender_player_id, total_points, coins_earned)
+         VALUES (?, ?, ?, ?, ?, 0, 0)
+         ON DUPLICATE KEY UPDATE 
+           forward_player_id = VALUES(forward_player_id),
+           midfielder_player_id = VALUES(midfielder_player_id),
+           defender_player_id = VALUES(defender_player_id),
+           id = LAST_INSERT_ID(id)`,
+        [
+          userId,
+          (typeof jornada === 'number' && !Number.isNaN(jornada)) ? jornada : null,
+          selection.forwardPlayerId,
+          selection.midfielderPlayerId,
+          selection.defenderPlayerId
+        ]
+      );
+      const [rows] = await conn.execute('SELECT LAST_INSERT_ID() AS id');
+      const id = Array.isArray(rows) ? (rows[0] as any)?.id : (rows as any)?.id;
+      return Number(id);
+    });
 
     return {
       success: true,
-      fantasyRushId: result.insertId
+      fantasyRushId: newId
     };
   } catch (error) {
     console.error('Error creating fantasy selection:', error);
     return {
       success: false,
-      error: 'Error interno del servidor'
+      error: String((error as any)?.message || error)
     };
   }
 }
@@ -319,7 +357,7 @@ export async function updateFantasySelection(
     console.error('Error updating fantasy selection:', error);
     return {
       success: false,
-      error: 'Error interno del servidor'
+      error: String((error as any)?.message || error)
     };
   }
 }
@@ -327,23 +365,28 @@ export async function updateFantasySelection(
 // Obtener selección de Fantasy Rush del usuario para una semana
 export async function getUserFantasySelection(
   userId: number,
-  weekStart?: string
+  _weekStart?: string,
+  _preferMostRecent: boolean = true
 ): Promise<FantasyRushWithPlayers | null> {
   try {
-    const currentWeekStart = weekStart || getWeekStart();
-
+    // Fallback genérico: última selección del usuario (sin week_start)
     const result = await executeQuerySingle<any>(
       `SELECT 
         fr.*,
         p1.* as forward_player,
         p2.* as midfielder_player,
-        p3.* as defender_player
+        p3.* as defender_player,
+        (SELECT image_path FROM cards c WHERE c.player_id = p1.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS f_image_path,
+        (SELECT image_path FROM cards c WHERE c.player_id = p2.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS m_image_path,
+        (SELECT image_path FROM cards c WHERE c.player_id = p3.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS d_image_path
        FROM fantasy_rush fr
        JOIN players p1 ON fr.forward_player_id = p1.id
        JOIN players p2 ON fr.midfielder_player_id = p2.id
        JOIN players p3 ON fr.defender_player_id = p3.id
-       WHERE fr.user_id = ? AND fr.week_start = ?`,
-      [userId, currentWeekStart]
+       WHERE fr.user_id = ?
+       ORDER BY fr.id DESC
+       LIMIT 1`,
+      [userId]
     );
 
     if (!result) return null;
@@ -358,6 +401,9 @@ export async function getUserFantasySelection(
       total_points: result.total_points,
       coins_earned: result.coins_earned,
       created_at: result.created_at,
+      forward_card_image_path: result.f_image_path || null,
+      midfielder_card_image_path: result.m_image_path || null,
+      defender_card_image_path: result.d_image_path || null,
       forward_player: {
         id: result.forward_player_id,
         name: result.forward_player.name,

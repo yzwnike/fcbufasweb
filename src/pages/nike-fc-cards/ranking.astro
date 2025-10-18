@@ -1,0 +1,92 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Subheader from '@/components/nike-fc-cards/Subheader.astro';
+---
+
+<Layout title="Ranking - Nike FC Cards">
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
+    <div class="container mx-auto px-4 py-6 pt-28 relative z-10">
+      <Subheader variant="minimal" />
+
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-4 mb-6">Ranking</h1>
+      <p class="text-slate-200 mb-6">Progreso de tu colección por categoría</p>
+
+      <div class="overflow-x-auto bg-white/5 rounded-xl border border-white/10">
+        <table class="min-w-full text-sm text-white">
+          <thead>
+            <tr class="bg-white/10">
+              <th class="px-3 py-2 text-left">#</th>
+              <th class="px-3 py-2 text-left">Usuario</th>
+              <th class="px-3 py-2 text-left">Total</th>
+              <th class="px-3 py-2">BASE</th>
+              <th class="px-3 py-2">OG</th>
+              <th class="px-3 py-2">TOTW</th>
+              <th class="px-3 py-2">RR</th>
+              <th class="px-3 py-2">MM</th>
+              <th class="px-3 py-2">AE</th>
+              <th class="px-3 py-2">CH</th>
+              <th class="px-3 py-2">POTM</th>
+            </tr>
+          </thead>
+          <tbody id="rank-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const storage = window.sessionStorage;
+    let authToken = null;
+
+    function checkAuth() {
+      const t = storage.getItem('nike_fc_token');
+      if (!t) return false;
+      authToken = t; return true;
+    }
+
+    async function fetchRanking() {
+      const res = await fetch('/api/nike-fc-cards/ranking');
+      return await res.json();
+    }
+
+    function renderBoard(board) {
+      const tbody = document.getElementById('rank-body');
+      tbody.innerHTML = '';
+      const totals = board.totals || { totalAll: 0, byCode: {} };
+      const users = Array.isArray(board.users) ? board.users : [];
+      users.forEach((u, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = idx % 2 ? 'bg-white/0' : 'bg-white/5';
+        const cells = [
+          `<td class=\"px-3 py-2\">${idx+1}</td>`,
+          `<td class=\"px-3 py-2 font-semibold\">${u.username}</td>`,
+          `<td class=\"px-3 py-2\">${u.totalOwned}/${totals.totalAll}</td>`,
+          `<td class=\"px-3 py-2 text-center\">${u.byCode.BASE}/${totals.byCode.BASE||0}</td>`,
+          `<td class="px-3 py-2 text-center">${u.byCode.OG}/${totals.byCode.OG||0}</td>`,
+          `<td class="px-3 py-2 text-center">${u.byCode.TOTW}/${totals.byCode.TOTW||0}</td>`,
+          `<td class="px-3 py-2 text-center">${u.byCode.RR}/${totals.byCode.RR||0}</td>`,
+          `<td class="px-3 py-2 text-center">${u.byCode.MM}/${totals.byCode.MM||0}</td>`,
+          `<td class="px-3 py-2 text-center">${u.byCode.AE}/${totals.byCode.AE||0}</td>`,
+          `<td class="px-3 py-2 text-center">${u.byCode.CH}/${totals.byCode.CH||0}</td>`,
+          `<td class="px-3 py-2 text-center">${u.byCode.POTM}/${totals.byCode.POTM||0}</td>`,
+        ];
+        tr.innerHTML = cells.join('');
+        tbody.appendChild(tr);
+      });
+    }
+
+    let started = false;
+    async function start() {
+      if (started) return; started = true;
+      try {
+        const data = await fetchRanking();
+        if (data && data.success) renderBoard(data);
+        else console.error('Ranking: respuesta inválida', data);
+      } catch (e) {
+        console.error('Ranking: fetch error', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', start);
+  </script>
+</Layout>

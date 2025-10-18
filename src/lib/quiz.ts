@@ -8,10 +8,9 @@ export const QUIZ_CONFIG = {
   COINS_PER_CORRECT_ANSWER: 100,
   MAX_DAILY_COINS: 500
 };
-
 // Estadísticas disponibles para preguntas
 export const AVAILABLE_STATS = [
-  'pace', 'shooting', 'passing', 'defending', 'physical', 'fifa_rating'
+  'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physical', 'fifa_rating'
 ] as const;
 
 export type StatName = typeof AVAILABLE_STATS[number];
@@ -139,43 +138,56 @@ export async function getDailyQuestions(
     await generateDailyQuestions(date);
 
     // Obtener preguntas con información del jugador
-    const questions = await executeQuery<any>(
-      `SELECT q.*, p.* FROM daily_quiz_questions q
+    const rows = await executeQuery<any>(
+      `SELECT 
+         q.id AS question_id,
+         q.date,
+         q.question_number,
+         q.stat_name,
+         q.correct_answer,
+         q.option_a,
+         q.option_b,
+         q.option_c,
+         q.created_at AS question_created_at,
+         p.id AS player_id,
+         p.name,
+         p.position1,
+         p.position2,
+         p.pace,
+         p.shooting,
+         p.passing,
+         p.defending,
+         p.physical,
+         p.fifa_rating,
+         p.image_url
+       FROM daily_quiz_questions q
        JOIN players p ON q.player_id = p.id
        WHERE q.date = ?
        ORDER BY q.question_number`,
       [date]
     );
 
-    return questions.map(q => ({
-      id: q.id,
-      date: q.date,
-      question_number: q.question_number,
+    return rows.map(r => ({
+      id: r.question_id,
+      date: r.date,
+      question_number: r.question_number,
       player: {
-        id: q.player_id,
-        name: q.name,
-        team: q.team,
-        position1: q.position1,
-        position2: q.position2,
-        pace: q.pace,
-        shooting: q.shooting,
-        passing: q.passing,
-        defending: q.defending,
-        physical: q.physical,
-        fifa_rating: q.fifa_rating,
-        market_value: q.market_value,
-        fantasy_points: q.fantasy_points,
-        image_url: q.image_url,
-        created_at: q.created_at
+        id: r.player_id,
+        name: r.name,
+        position1: r.position1,
+        position2: r.position2,
+        fifa_rating: r.fifa_rating
       },
-      stat_name: q.stat_name,
-      correct_answer: q.correct_answer,
+      // Proveer imagen para el front (usa image_url del jugador)
+      image_path: r.image_url,
+      stat_name: r.stat_name,
+      correct_answer: r.correct_answer,
       options: {
-        a: q.option_a,
-        b: q.option_b,
-        c: q.option_c
+        a: r.option_a,
+        b: r.option_b,
+        c: r.option_c
       },
-      created_at: q.created_at
+      created_at: r.question_created_at
     }));
   } catch (error) {
     console.error('Error getting daily questions:', error);
@@ -318,7 +330,7 @@ export async function answerQuizQuestion(
       }
 
       // Actualizar última fecha de quiz y racha si es necesario
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0]
       if (question.date === today) {
         await connection.execute(
           'UPDATE users SET last_daily_quiz = ? WHERE id = ?',
@@ -406,6 +418,7 @@ export function getStatDisplayName(statName: StatName): string {
     pace: 'Ritmo',
     shooting: 'Tiro',
     passing: 'Pase',
+    dribbling: 'Regate',
     defending: 'Defensa',
     physical: 'Físico',
     fifa_rating: 'Rating FIFA'

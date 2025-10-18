@@ -36,7 +36,8 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
         <!-- Player Selection -->
         <div id="player-selection" class="space-y-8">
-          <h2 class="text-2xl font-bold text-white text-center mb-6">Selecciona Tu Equipo</h2>
+          <h2 class="text-2xl font-bold text-white text-center mb-2">Selecciona Tu Equipo</h2>
+          <div class="text-center text-purple-200 mb-4" id="week-label-top"></div>
 
           <!-- Position Tabs -->
           <div class="flex justify-center mb-6 hidden">
@@ -96,16 +97,45 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         </div>
       </div>
 
-      <!-- Selection Success -->
-      <div id="selection-success" class="hidden text-center">
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
-          <div class="text-6xl mb-6">🎉</div>
-          <h2 class="text-3xl font-bold text-white mb-4">¡Selección Confirmada!</h2>
-          <p class="text-purple-200 mb-6">Tu equipo ha sido registrado para esta semana. Los puntos se calcularán al final de la semana.</p>
-          <a href="/nike-fc-cards" class="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">
-            Volver al Dashboard
-          </a>
+      <!-- Selection Summary (final view) -->
+      <div id="selection-summary-view" class="hidden">
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-5xl mx-auto">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-3xl font-bold text-white">Tu Equipo</h2>
+            <div class="text-purple-200" id="week-label">Jornada</div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white/5 rounded-xl p-4 text-center">
+              <div class="text-purple-300 mb-2">Delantero</div>
+              <div id="view-forward" class="text-white">-</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-4 text-center">
+              <div class="text-purple-300 mb-2">Centrocampista</div>
+              <div id="view-midfielder" class="text-white">-</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-4 text-center">
+              <div class="text-purple-300 mb-2">Defensa/Portero</div>
+              <div id="view-defender" class="text-white">-</div>
+            </div>
+          </div>
+          <div class="mt-8 text-center">
+            <div id="points-info" class="text-xl text-yellow-300">Puntos al finalizar el partido</div>
+          </div>
+          <div class="mt-6 text-center">
+            <a href="/nike-fc-cards" class="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">Volver al Dashboard</a>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settle Modal (simple) -->
+  <div id="settle-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-bold mb-2">Resultados jornada anterior</h3>
+      <p class="text-gray-700 mb-4">Tus jugadores sumaron <span id="settle-points" class="font-bold">0</span> puntos. Recibirás <span id="settle-coins" class="font-bold">0</span> monedas (x20).</p>
+      <div class="flex gap-3 justify-end">
+        <button id="settle-confirm" class="px-4 py-2 rounded bg-green-600 text-white">Recibir monedas</button>
       </div>
     </div>
   </div>
@@ -119,11 +149,13 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     
     function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-96 object-cover\"/>` : `<div class=\\\"w-full h-96 bg-purple-500\\\"></div>`; }
     let currentSelection = null;
+    let currentJornadaNum = null;
     let selectedPlayers = {
       forward: null,
       midfielder: null,
       defender: null
     };
+    let restPlayerIds = [];
 
     // Auth functions
     function checkAuthState() {
@@ -206,10 +238,23 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           body: JSON.stringify({
             forwardPlayerId: selectedPlayers.forward.id,
             midfielderPlayerId: selectedPlayers.midfielder.id,
-            defenderPlayerId: selectedPlayers.defender.id
+            defenderPlayerId: selectedPlayers.defender.id,
+            jornada: (function(){
+              const v = localStorage.getItem('fantasy_jornada_override');
+              const n = Number(v);
+              return Number.isFinite(n) ? n : undefined;
+            })()
           })
         });
-        return await response.json();
+        if (!response.ok) {
+          const txt = await response.text();
+          console.log('selection HTTP error', response.status, txt);
+          alert('HTTP ' + response.status + ': ' + txt);
+          try { return JSON.parse(txt); } catch { return { success:false, error: txt }; }
+        }
+        const json = await response.json();
+        console.log('selection result', json);
+        return json;
       } catch (error) {
         console.error('Error creating selection:', error);
         return { success: false, error: 'Error de conexión' };
@@ -217,9 +262,50 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     // Display functions
+    function formatWeekLabel(weekStartStr) {
+      try {
+        const d = new Date(weekStartStr + 'T00:00:00');
+        return 'Jornada ' + d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+      } catch { return 'Jornada'; }
+    }
+
+    function renderPlayerMini(p, imagePathOverride) {
+      const imgPath = imagePathOverride || p?.image_path || p?.image_url || null;
+      if (!p) return '<div class="text-purple-200">-</div>';
+      const img = imgPath ? `<img src="${imgPath}" class="w-full h-48 object-cover rounded-lg"/>` : '';
+      return `
+        <div class="space-y-2">
+          ${img}
+          <div class="font-bold">${p.name}</div>
+          <div class="text-purple-200 text-sm">${p.position1}</div>
+        </div>`;
+    }
+
+    function showSummaryView(sel) {
+      // Hide selector container, show summary
+      document.getElementById('player-selection').classList.add('hidden');
+      document.getElementById('selection-summary-view').classList.remove('hidden');
+      // Week/Jornada label
+      const jLabel = (sel && sel.jornada) ? sel.jornada : (currentJornadaNum || null);
+      document.getElementById('week-label').textContent = (jLabel ? (`Jornada ${jLabel}`) : formatWeekLabel(sel?.week_start || (getWeekStart().toISOString().slice(0,10))));
+      // Players
+      document.getElementById('view-forward').innerHTML = renderPlayerMini(sel.forward_player || selectedPlayers.forward, sel.forward_card_image_path);
+      document.getElementById('view-midfielder').innerHTML = renderPlayerMini(sel.midfielder_player || selectedPlayers.midfielder, sel.midfielder_card_image_path);
+      document.getElementById('view-defender').innerHTML = renderPlayerMini(sel.defender_player || selectedPlayers.defender, sel.defender_card_image_path);
+      // Points info
+      const pts = sel.total_points || 0;
+      document.getElementById('points-info').textContent = pts > 0 ? (`Puntos: ${pts} (monedas x20)`) : 'Puntos al finalizar el partido';
+    }
+
     function displayCurrentSelection(selection) {
-      // Mantener siempre visible el selector; no mostrar paneles de semana/resultados
+      if (selection && selection.forward_player_id) {
+        // Already has a selection: show summary view
+        showSummaryView(selection);
+        return;
+      }
+      // Else: show selector to pick
       document.getElementById('player-selection').classList.remove('hidden');
+      document.getElementById('week-label-top').textContent = formatWeekLabel(getWeekStart().toISOString().slice(0,10));
     }
 
     function displayPlayers() {
@@ -285,13 +371,15 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     function createPlayerCard(player, position) {
       const card = document.createElement('div');
       const disabled = !player.owned; const owned = !!player.owned;
-      card.className = `player-card group relative inline-block w-full transition-all ${disabled ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`;
+      const resting = restPlayerIds.includes(player.id);
+      card.className = `player-card group relative inline-block w-full transition-all ${disabled || resting ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`;
       card.dataset.playerId = player.id;
       card.dataset.position = position; card.dataset.owned = owned ? 'true' : 'false';
 
       const img = playerImg(player.image_path);
       card.innerHTML = `
-        <div class=\"relative overflow-hidden rounded-lg\">
+        <div class=\"relative overflow-hidden rounded-lg\" ${resting ? 'title=\\\"Descanso: jugó la jornada anterior\\\"' : ''}>
+          ${resting ? '<div class=\"absolute inset-0 bg-red-700/40 z-10\"></div><div class=\"absolute top-2 left-2 z-20 text-red-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18\" /></svg></div><div class=\"absolute bottom-2 right-2 z-20 bg-red-600/90 text-white text-[10px] px-2 py-1 rounded\">DESCANSO</div>' : ''}
           ${img}
           <div class=\"absolute inset-0 -translate-x-full bg-gradient-to-tr from-transparent via-white/20 to-transparent transition-transform duration-700 ease-in-out group-hover:translate-x-full\"></div>
           <div class=\"absolute inset-0 rounded-lg border-0 opacity-0 transition-all duration-300 group-hover:border-2 group-hover:opacity-100 border-pink-400/70\"></div>
@@ -303,7 +391,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         ${disabled ? '<div class=\"text-[10px] text-purple-300 mt-1 text-center\">No tienes la base</div>' : ''}
       `;
 
-      if (!disabled) { // click only if not disabled by ownership; locks handled in handler
+      if (!disabled && !resting) { // click only if not disabled by ownership or rest
         card.addEventListener('click', () => selectPlayer(player, position));
       }
       return card;
@@ -311,8 +399,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
     function selectPlayer(player, position) {
       // Ignore if this card is locked
-      const clicked = document.querySelector(`.player-card[data-player-id="${player.id}"][data-position="${position}"]`);
+      const clicked = document.querySelector(`.player-card[data-player-id=\"${player.id}\"][data-position=\"${position}\"]`);
       if (clicked && clicked.classList.contains('locked')) return;
+      if (restPlayerIds.includes(player.id)) return; // rest lock
       if (!player.owned) return;
       selectedPlayers[position] = player;
       
@@ -386,6 +475,31 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         fetchCurrentSelection()
       ]);
 
+      // Show settle modal if previous jornada exists and not settled (guard DOM)
+      const prev = selectionResult && selectionResult.prev ? selectionResult.prev : null;
+      if (prev && prev.prevFantasyRushId && !prev.prevSettled && (prev.prevPoints != null)) {
+        const modal = document.getElementById('settle-modal');
+        const ptsEl = document.getElementById('settle-points');
+        const coinsEl = document.getElementById('settle-coins');
+        const btnConfirm = document.getElementById('settle-confirm');
+        if (modal && ptsEl && coinsEl && btnConfirm) {
+          ptsEl.textContent = String(prev.prevPoints || 0);
+          coinsEl.textContent = String(prev.prevCoins || 0);
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          btnConfirm.onclick = async () => {
+            try {
+              const res = await fetch('/api/nike-fc-cards/fantasy/settle', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({}) });
+              const data = await res.json();
+              if (!data.success) alert('No se pudo liquidar: ' + (data.error || ''));
+            } catch (e) {}
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+          };
+        }
+      }
+      currentJornadaNum = selectionResult?.currentJornada || null;
+      restPlayerIds = Array.isArray(selectionResult?.restPlayerIds) ? selectionResult.restPlayerIds : [];
+
       if (!playersResult.success) {
         alert('Error al cargar jugadores: ' + playersResult.error);
         return;
@@ -396,10 +510,20 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
       showSection('fantasy-container');
 
-      // Mostrar siempre el selector y renderizar todos los bloques
-      displayCurrentSelection(currentSelection);
-      displayPlayers();
-      updateCrossPositionLocks();
+      // Si ya hay selección, mostrar resumen; si no, mostrar selector
+      const hasSelection = !!(currentSelection && (currentSelection.jornada === currentJornadaNum) && currentSelection.forward_player_id);
+      if (hasSelection) {
+        showSummaryView(currentSelection);
+        try { localStorage.setItem('fantasy_last_selection', JSON.stringify(currentSelection)); } catch {}
+      } else {
+        // No fallback: limpiar cualquier selección almacenada y mostrar selector
+        try { localStorage.removeItem('fantasy_last_selection'); } catch {}
+        document.getElementById('selection-summary-view').classList.add('hidden');
+        document.getElementById('player-selection').classList.remove('hidden');
+        document.getElementById('week-label-top').textContent = (currentJornadaNum ? (`Jornada ${currentJornadaNum}`) : formatWeekLabel(getWeekStart().toISOString().slice(0,10)));
+        displayPlayers();
+        updateCrossPositionLocks();
+      }
 
       // Set up event listeners
       // Tabs deshabilitados (mostramos todas las listas a la vez)
@@ -408,21 +532,53 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       // document.getElementById('tab-defender').addEventListener('click', () => showTab('defender'));
       // Botón de cambio ya no es necesario (panel eliminado)
 
-      document.getElementById('confirm-selection-btn').addEventListener('click', async () => {
-        const confirmBtn = document.getElementById('confirm-selection-btn');
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Confirmando...';
+      const confirmBtnEl = document.getElementById('confirm-selection-btn');
+      if (confirmBtnEl && !confirmBtnEl.dataset.bound) {
+        confirmBtnEl.dataset.bound = 'true';
+        confirmBtnEl.addEventListener('click', async () => {
+          const confirmBtn = document.getElementById('confirm-selection-btn');
+          console.log('payload ids', {
+            forwardId: selectedPlayers.forward?.id,
+            midfielderId: selectedPlayers.midfielder?.id,
+            defenderId: selectedPlayers.defender?.id
+          });
+          if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Confirmando...';
+          }
 
-        const result = await createSelection();
-        
-        if (result.success) {
-          showSection('selection-success');
-        } else {
-          alert('Error al confirmar selección: ' + result.error);
-          confirmBtn.disabled = false;
-          confirmBtn.textContent = 'Confirmar Selección';
-        }
-      });
+          const result = await createSelection();
+          
+          if (result.success) {
+            // Refresca selección desde API y muestra resumen solo si es de la jornada actual
+            const latest = await fetchCurrentSelection();
+            const sel = latest?.selection || null;
+            if (sel && (sel.jornada === currentJornadaNum)) {
+              showSummaryView(sel);
+            } else if (sel && !sel.jornada && currentJornadaNum == null) {
+              // Caso sin jornada activa: muestra resumen
+              showSummaryView(sel);
+            } else {
+              // Mostrar resumen optimista con jugadores elegidos
+              const optimistic = {
+                week_start: getWeekStart().toISOString().slice(0,10),
+                jornada: currentJornadaNum,
+                forward_player: selectedPlayers.forward,
+                midfielder_player: selectedPlayers.midfielder,
+                defender_player: selectedPlayers.defender,
+                total_points: 0
+              };
+              showSummaryView(optimistic);
+            }
+          } else {
+            alert('Error al confirmar selección: ' + (result.error || ''));
+            if (confirmBtn) {
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = 'Confirmar Selección';
+            }
+          }
+        });
+      }
     }
 
     // Initialize on load and Astro transitions

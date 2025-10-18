@@ -35,7 +35,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         <!-- Progress Bar -->
         <div class="mb-8">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-white font-semibold">Pregunta <span id="current-question">1</span> de 5</span>
+            <span class="text-white font-semibold"><span id="question-progress">1/5</span></span>
             <span class="text-yellow-400 font-semibold">💰 <span id="coins-earned">0</span> monedas ganadas</span>
           </div>
           <div class="w-full bg-gray-700 rounded-full h-3">
@@ -62,10 +62,15 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         <!-- Question Card -->
         <div id="question-card" class="bg-white/10 backdrop-blur-md rounded-xl p-8 mb-8 max-w-4xl mx-auto">
           <div class="flex flex-col md:flex-row items-center gap-8">
-            <!-- Player Image -->
+            <!-- Card Image with masked substats -->
             <div class="flex-shrink-0">
-              <div class="w-32 h-32 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-                <span class="text-4xl">⚽</span>
+              <div class="relative w-48 h-72 md:w-56 md:h-80 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl overflow-hidden flex items-center justify-center">
+                <img id="card-image" alt="Carta" class="w-full h-full object-cover select-none" draggable="false" src="" />
+                <!-- Overlays to precisely hide info areas -->
+                <!-- Top small square (lowered, solid black) -->
+                <div class="pointer-events-none absolute top-[17%] left-[4%] w-[28%] h-[16%] bg-black"></div>
+                <!-- Bottom thin band for substats only (solid black) -->
+                <div class="pointer-events-none absolute bottom-[1.5%] left-0 right-0 h-[24%] bg-black"></div>
               </div>
               <div class="text-center mt-4">
                 <div class="text-xl font-bold text-white" id="player-name">Cargando...</div>
@@ -76,7 +81,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
             <!-- Question -->
             <div class="flex-1">
               <div class="text-2xl font-bold text-white mb-6" id="question-text">
-                ¿Cuál es el valor de <span class="text-orange-400" id="stat-name">Ritmo</span> de este jugador?
+                ¿Cuál es el valor de <span class="text-orange-400" id="stat-name">Ritmo</span> de esta carta?
               </div>
 
               <!-- Answer Options -->
@@ -111,10 +116,10 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
         <!-- Next/Finish Button -->
         <div class="text-center">
-          <button id="next-question" class="hidden px-8 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors">
+          <button id="next-question" type="button" class="hidden relative z-10 px-8 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors">
             Siguiente Pregunta
           </button>
-          <button id="finish-quiz" class="hidden px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+          <button id="finish-quiz" type="button" class="hidden relative z-10 px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
             Ver Resultados Finales
           </button>
         </div>
@@ -191,7 +196,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     // API calls
     async function fetchQuizData() {
       try {
-        const response = await fetch('/api/nike-fc-cards/quiz/daily', {
+        const response = await fetch('/api/nike-fc-cards/quiz/random?count=5', {
           headers: { 'Authorization': `Bearer ${authToken}` }
         });
         return await response.json();
@@ -201,7 +206,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       }
     }
 
-    async function submitAnswer(questionId, selectedAnswer) {
+    async function submitAnswer(cardId, statName, selectedAnswer) {
       try {
         const response = await fetch('/api/nike-fc-cards/quiz/answer', {
           method: 'POST',
@@ -209,7 +214,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}` 
           },
-          body: JSON.stringify({ questionId, selectedAnswer })
+          body: JSON.stringify({ cardId, statName, selectedAnswer })
         });
         return await response.json();
       } catch (error) {
@@ -233,6 +238,11 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       document.getElementById('player-name').textContent = question.player.name;
       document.getElementById('player-position').textContent = `${question.player.position1} - FC Bufas`;
       document.getElementById('stat-name').textContent = getStatDisplayName(question.stat_name);
+      const img = document.getElementById('card-image');
+      
+      if (img && question.image_path) {
+        img.setAttribute('src', question.image_path);
+      }
       
       const options = document.querySelectorAll('.answer-option');
       const values = [question.options.a, question.options.b, question.options.c];
@@ -245,8 +255,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         option.className = 'answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all';
       });
 
-      document.getElementById('current-question').textContent = currentQuestionIndex + 1;
-      document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / 5) * 100}%`;
+      const current = currentQuestionIndex + 1;
+      document.getElementById('question-progress').textContent = `${current}/5`;
+      document.getElementById('progress-bar').style.width = `${(current / 5) * 100}%`;
     }
 
     function getStatDisplayName(statName) {
@@ -254,6 +265,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         pace: 'Ritmo',
         shooting: 'Tiro',
         passing: 'Pase',
+        dribbling: 'Regate',
         defending: 'Defensa',
         physical: 'Físico',
         fifa_rating: 'Rating FIFA'
@@ -280,12 +292,31 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       document.getElementById('correct-answers').textContent = correctAnswers;
       document.getElementById('coins-earned').textContent = coinsEarned;
 
-      // Show next button
-      if (currentQuestionIndex < questions.length - 1) {
-        document.getElementById('next-question').classList.remove('hidden');
+      // Show next/finish button and (re)bind click handler to be safe on SPA swaps
+      const nextBtn = document.getElementById('next-question');
+      const finishBtn = document.getElementById('finish-quiz');
+      // Mostrar "Siguiente" mientras queden preguntas por responder (<5)
+      const answeredNow = parseInt(((document.getElementById('questions-answered') as HTMLElement).textContent) || '0');
+      if (answeredNow < 5) {
+        nextBtn.classList.remove('hidden');
+        nextBtn.disabled = false;
+        nextBtn.onclick = null;
+        nextBtn.addEventListener('click', nextQuestion, { once: true });
       } else {
-        document.getElementById('finish-quiz').classList.remove('hidden');
+        finishBtn.classList.remove('hidden');
+        finishBtn.disabled = false;
+        finishBtn.onclick = null;
+        finishBtn.addEventListener('click', finishQuiz, { once: true });
       }
+    }
+
+    // Helper to avoid duplicate listeners across SPA transitions
+    function bindOnce(el, event, handler) {
+      if (!el) return;
+      const key = `__bound_${event}`;
+      if (el[key]) return;
+      el.addEventListener(event, handler);
+      el[key] = true;
     }
 
     async function initializeQuiz() {
@@ -296,34 +327,64 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         return;
       }
 
+      // Already completed window
       if (result.alreadyCompleted) {
-        // Show already completed state
-        document.getElementById('today-correct').textContent = result.progress.correctAnswers;
-        document.getElementById('today-coins').textContent = result.progress.totalCoinsEarned;
+        document.getElementById('today-correct').textContent = (result.progress?.correct || 0).toString();
+        document.getElementById('today-coins').textContent = ((result.progress?.correct || 0) * 100).toString();
         showSection('already-completed');
         return;
       }
 
-      questions = result.questions;
+      questions = result.questions || [];
+      // Top-up to ensure 5 questions if backend returned fewer
+      if (questions.length < 5) {
+        let attempts = 0;
+        while (questions.length < 5 && attempts < 3) {
+          const need = 5 - questions.length;
+          try {
+            const r2 = await fetch('/api/nike-fc-cards/quiz/random?count=' + need, { headers: { 'Authorization': `Bearer ${authToken}` } });
+            const b2 = await r2.json();
+            if (b2 && b2.success && Array.isArray(b2.questions)) {
+              questions = questions.concat(b2.questions);
+            }
+          } catch {}
+          attempts++;
+        }
+      }
+      // Load persisted progress from server
+      const answeredSoFar = result.progress?.answered || 0;
+      const correctSoFar = result.progress?.correct || 0;
       currentQuestionIndex = 0;
-      correctAnswers = result.progress.correctAnswers;
-      coinsEarned = result.progress.totalCoinsEarned;
+      correctAnswers = correctSoFar;
+      coinsEarned = correctSoFar * 100;
+      document.getElementById('questions-answered').textContent = answeredSoFar.toString();
+      document.getElementById('correct-answers').textContent = correctSoFar.toString();
+      document.getElementById('coins-earned').textContent = coinsEarned.toString();
 
       if (questions.length === 0) {
-        alert('No hay preguntas disponibles para hoy');
+        alert('No hay preguntas disponibles');
         return;
       }
 
       showSection('quiz-container');
+      const nextOrdinal = (answeredSoFar % 5) + 1;
+      document.getElementById('question-progress').textContent = `${nextOrdinal}/5`;
+      document.getElementById('progress-bar').style.width = `${(nextOrdinal/5)*100}%`;
       displayQuestion(questions[0]);
 
       // Set up event listeners
       document.querySelectorAll('.answer-option').forEach(button => {
-        button.addEventListener('click', handleAnswer);
+        bindOnce(button, 'click', handleAnswer);
       });
 
-      document.getElementById('next-question').addEventListener('click', nextQuestion);
-      document.getElementById('finish-quiz').addEventListener('click', finishQuiz);
+      bindOnce(document.getElementById('next-question'), 'click', nextQuestion);
+      bindOnce(document.getElementById('finish-quiz'), 'click', finishQuiz);
+      // Fallback: event delegation in case listeners get detached after transitions
+      bindOnce(document, 'click', (e) => {
+        const t = e.target as HTMLElement;
+        if (t && (t.closest && t.closest('#next-question'))) nextQuestion();
+        if (t && (t.closest && t.closest('#finish-quiz'))) finishQuiz();
+      });
     }
 
     async function handleAnswer(event) {
@@ -338,7 +399,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       });
 
       // Submit answer to API
-      const result = await submitAnswer(currentQuestion.id, selectedAnswer);
+      const result = await submitAnswer(currentQuestion.cardId, currentQuestion.stat_name, selectedAnswer);
       
       if (!result.success) {
         alert('Error al enviar respuesta: ' + result.error);
@@ -355,16 +416,57 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         }
       });
 
+      // Update local counters to reflect server-side progress
+      const ansEl = document.getElementById('questions-answered');
+      const corrEl = document.getElementById('correct-answers');
+      const coinsEl = document.getElementById('coins-earned');
+      const prevAnswered = parseInt(ansEl.textContent || '0');
+      ansEl.textContent = (prevAnswered + 1).toString();
+      if (result.isCorrect) {
+        const prevCorrect = parseInt(corrEl.textContent || '0');
+        corrEl.textContent = (prevCorrect + 1).toString();
+        const prevCoins = parseInt(coinsEl.textContent || '0');
+        coinsEl.textContent = (prevCoins + (result.coinsEarned || 0)).toString();
+      }
+
       showResult(result.isCorrect, result.correctAnswer, result.coinsEarned);
     }
 
-    function nextQuestion() {
+    async function nextQuestion() {
       currentQuestionIndex++;
       
-      // Hide result and buttons
-      document.getElementById('result-message').classList.add('hidden');
-      document.getElementById('next-question').classList.add('hidden');
       
+      document.getElementById('result-message').classList.add('hidden');
+      document.getElementById('correct-message').classList.add('hidden');
+      document.getElementById('wrong-message').classList.add('hidden');
+      const nextBtn = document.getElementById('next-question');
+      const finishBtn = document.getElementById('finish-quiz');
+      nextBtn.classList.add('hidden');
+      finishBtn.classList.add('hidden');
+
+      // Si faltan preguntas en el array, traer 1 más para completar 5
+      if (currentQuestionIndex >= questions.length) {
+        try {
+          const res = await fetch('/api/nike-fc-cards/quiz/random?count=1', { headers: { 'Authorization': `Bearer ${authToken}` } });
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.questions) && data.questions.length) {
+            questions = questions.concat(data.questions);
+          } else {
+            finishQuiz();
+            return;
+          }
+        } catch (_) {
+          finishQuiz();
+          return;
+        }
+      }
+
+      // Update top progress (answered + 1 for the next ordinal)
+      const ans = parseInt(document.getElementById('questions-answered').textContent || '0');
+      const ordinal = (ans % 5) + 1;
+      document.getElementById('question-progress').textContent = `${ordinal}/5`;
+      document.getElementById('progress-bar').style.width = `${(ordinal/5)*100}%`;
+
       // Show next question
       displayQuestion(questions[currentQuestionIndex]);
     }

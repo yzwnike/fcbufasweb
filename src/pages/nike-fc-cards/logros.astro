@@ -1,0 +1,83 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Subheader from '@/components/nike-fc-cards/Subheader.astro';
+---
+
+<Layout title="Logros - Nike FC Cards">
+  <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900">
+    <div class="container mx-auto px-4 pt-28 pb-10">
+      <Subheader variant="minimal" />
+      <h1 class="text-4xl font-extrabold text-white mb-6">Logros</h1>
+      <p class="text-indigo-200 mb-4">Cumple objetivos y gana monedas</p>
+
+      <div id="achv-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+  </div>
+
+  <script>
+    const storage = window.sessionStorage;
+    let token = null;
+
+    function requireAuth() {
+      const t = storage.getItem('nike_fc_token');
+      if (!t) { window.location.href = '/nike-fc-cards'; return false; }
+      token = t; return true;
+    }
+
+    async function fetchAchievements() {
+      const res = await fetch('/api/nike-fc-cards/achievements', { headers: { Authorization: `Bearer ${token}` }});
+      return await res.json();
+    }
+
+    function render(list) {
+      const grid = document.getElementById('achv-grid');
+      grid.innerHTML = '';
+      list.forEach(a => {
+        const next = a.nextTarget;
+        const pct = a.thresholds.length ? Math.min(100, Math.round(100 * a.currentValue / a.thresholds[a.thresholds.length-1])) : 0;
+        const card = document.createElement('div');
+        card.className = 'rounded-xl bg-white/10 border border-white/10 backdrop-blur-md p-4 text-white';
+        const claimables = Array.isArray(a.claimable) ? a.claimable : [];
+        const rewardsText = claimables.length ? `+${claimables.reduce((s,x)=>s+x.coins,0)} monedas` : '';
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-lg font-bold">${a.title}</div>
+            <div class="text-sm text-indigo-200">${a.currentValue}</div>
+          </div>
+          <div class="w-full h-2 bg-white/10 rounded mb-2">
+            <div class="h-2 bg-emerald-500 rounded" style="width:${pct}%"></div>
+          </div>
+          <div class="text-sm text-indigo-200 mb-2">${next ? `Siguiente: ${next}` : 'Completado'}</div>
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-yellow-300">${rewardsText}</div>
+            <button class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-500" ${claimables.length? '' : 'disabled'} data-key="${a.key}">Reclamar</button>
+          </div>
+        `;
+        const btn = card.querySelector('button');
+        btn?.addEventListener('click', async () => {
+          try {
+            // Reclamar todos los claimables (de menor a mayor)
+            for (const c of claimables) {
+              const r = await fetch('/api/nike-fc-cards/achievements/claim', {
+                method: 'POST', headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ key: a.key, threshold: c.threshold })
+              });
+              await r.json();
+            }
+            alert('Recompensas acreditadas');
+            start();
+          } catch {}
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    async function start() {
+      if (!requireAuth()) return;
+      const data = await fetchAchievements();
+      if (data && data.success) render(data.achievements || []);
+    }
+
+    document.addEventListener('DOMContentLoaded', start);
+  </script>
+</Layout>
