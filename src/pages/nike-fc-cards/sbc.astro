@@ -1,21 +1,18 @@
 ---
-import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
+import Layout from '@/layouts/Layout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<NikeFCLayout title="SBC - Desafíos de Creación de Plantillas" helpKey="sbc">
+<Layout title="SBC - Desafíos de Creación de Plantillas">
   <div class="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900">
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4 py-20">
       <Subheader variant="minimal" />
 
-      <div class="text-center mb-6">
-        <h1 class="text-base md:text-lg font-bold text-white mb-4">SBC - Squad Building Challenges</h1>
-        <p class="text-sm md:text-base text-emerald-100 max-w-2xl mx-auto">
-          Completa desafíos mensuales creando plantillas y gana sobres o cartas
-        </p>
+      <div class="text-center mb-10">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-2">SBC</h1>
+        <p class="text-emerald-100">Completa desafíos mensuales creando plantillas y gana sobres o cartas</p>
       </div>
 
-      <!-- Auth Check -->
       <div id="not-logged-in" class="hidden text-center">
         <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
           <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
@@ -24,25 +21,81 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         </div>
       </div>
 
-      <!-- SBC Container -->
-      <div id="sbc-container" class="hidden">
-        <div class="max-w-4xl mx-auto">
-          <!-- SBC List -->
-          <div id="sbc-list" class="space-y-3">
-            <!-- SBC items will be loaded here -->
-          </div>
-          
-          <!-- Loading -->
-          <div id="loading" class="text-center py-8">
-            <div class="text-white">Cargando desafíos...</div>
+      <div id="sbc-container" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Challenges list -->
+        <div class="lg:col-span-1 bg-white/10 backdrop-blur-md rounded-xl p-6">
+          <h3 class="text-xl font-bold text-white mb-4">Desafíos Activos</h3>
+          <div id="challenges-list" class="space-y-3"></div>
+        </div>
+
+        <!-- Builder -->
+        <div class="lg:col-span-2 bg-white/10 backdrop-blur-md rounded-xl p-6">
+          <div id="no-challenge" class="text-center text-emerald-100">Selecciona un desafío para comenzar</div>
+
+          <!-- Requirements Gate -->
+          <div id="requirements-panel" class="hidden">
+            <div class="mb-4">
+              <h3 class="text-2xl font-bold text-white" id="challenge-title">-</h3>
+              <p class="text-emerald-100" id="challenge-desc">-</p>
+              <p class="text-emerald-200 text-sm" id="challenge-dates">-</p>
+            </div>
+            <div class="bg-black/20 rounded-lg p-4 mb-4">
+              <div class="text-emerald-100 text-sm mb-1">Requisitos</div>
+              <div class="text-emerald-200 text-sm" id="challenge-req">-</div>
+            </div>
+            <!-- Reward Preview -->
+            <div id="reward-preview" class="mb-6 text-center"></div>
+            <button id="accept-req-btn" class="px-5 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600">Aceptar</button>
           </div>
 
-          <!-- No SBC -->
-          <div id="no-sbc" class="hidden text-center py-8">
-            <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
-              <div class="text-6xl mb-4">🏆</div>
-              <h3 class="text-2xl font-bold text-white mb-4">Sin desafíos</h3>
-              <p class="text-emerald-200 mb-6">No hay desafíos SBC disponibles en este momento</p>
+          <div id="builder" class="hidden">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <h3 class="text-2xl font-bold text-white" id="challenge-title-builder">-</h3>
+                <p class="text-emerald-100" id="challenge-desc-builder">-</p>
+              </div>
+              <div class="text-right">
+                <div class="text-emerald-100 text-sm">Requisitos</div>
+                <div class="text-emerald-200 text-sm" id="challenge-req-builder">-</div>
+              </div>
+            </div>
+
+            <!-- Checklist -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div id="req-tile-count" class="rounded-lg p-4 bg-red-500/20">
+                <div class="text-emerald-100 text-sm">Cartas Seleccionadas</div>
+                <div class="text-2xl font-bold text-white"><span id="sel-count">0</span></div>
+                <div class="text-emerald-300 text-xs" id="req-count">1-7</div>
+              </div>
+              <div id="req-tile-avg" class="rounded-lg p-4 bg-red-500/20">
+                <div class="text-emerald-100 text-sm">Media de la Plantilla</div>
+                <div class="text-2xl font-bold text-white"><span id="sel-avg">0</span></div>
+                <div class="text-emerald-300 text-xs" id="req-avg">Mín 0</div>
+              </div>
+              <div id="req-tile-specials" class="rounded-lg p-4 bg-red-500/20">
+                <div class="text-emerald-100 text-sm">Cartas Especiales</div>
+                <div class="text-2xl font-bold text-white"><span id="sel-specials">0</span></div>
+                <div class="text-emerald-300 text-xs" id="req-specials">Mín 0</div>
+              </div>
+            </div>
+
+            <!-- Selected cards -->
+            <div class="mb-6">
+              <h4 class="text-white font-semibold mb-2">Plantilla</h4>
+              <div id="selected-grid" class="grid grid-cols-3 sm:grid-cols-5 gap-3 min-h-[100px]"></div>
+              <div id="slots-hint" class="text-emerald-200 text-xs mt-2"></div>
+            </div>
+
+            <!-- Collection picker -->
+            <div>
+              <h4 class="text-white font-semibold mb-2">Tu Colección</h4>
+              <input id="collection-search" class="w-full mb-3 px-3 py-2 rounded bg-emerald-900/40 border border-emerald-700 text-white placeholder-emerald-300" placeholder="Buscar jugador..." />
+              <div id="collection-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[360px] overflow-y-auto"></div>
+            </div>
+
+            <div class="mt-6 flex gap-3">
+              <button id="validate-btn" class="px-5 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600">Validar</button>
+              <button id="submit-btn" class="px-5 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 disabled:opacity-50" disabled>Enviar</button>
             </div>
           </div>
         </div>
@@ -51,221 +104,257 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
   </div>
 
   <script>
-    // State management
     let authToken = null;
     let challenges = [];
+    let selectedChallenge = null;
+    let userCards = [];
+    let selectedIds = new Set();
+    let currentReq = { min_players: 1, max_players: 7, min_avg_rating: 0, min_special_cards: 0 };
+    let lastValidation = null;
+
     const storage = window.sessionStorage;
-    const expandedSBCs = new Set();
+    function checkAuthState() { const t = storage.getItem('nike_fc_token'); if (t) { authToken=t; return true; } return false; }
 
-    // Auth functions
-    function checkAuthState() {
-      const token = storage.getItem('nike_fc_token');
-      if (token) {
-        authToken = token;
-        return true;
-      }
-      return false;
-    }
-
-    // UI functions
-    function showSection(sectionId) {
-      const sections = ['not-logged-in', 'sbc-container', 'loading', 'no-sbc'];
-      sections.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.classList.toggle('hidden', id !== sectionId);
-        }
-      });
-    }
-
-    // Fetch SBC challenges from API
     async function fetchChallenges() {
-      try {
-        const res = await fetch('/api/nike-fc-cards/sbc', {
-          headers: { Authorization: `Bearer ${authToken}` },
-          cache: 'no-store'
-        });
-        return await res.json();
-      } catch (e) {
-        return { success: false, error: 'Error de conexión' };
-      }
+      const res = await fetch('/api/nike-fc-cards/sbc', { headers: { Authorization: 'Bearer ' + authToken } });
+      return await res.json();
+    }
+    async function fetchCollection() {
+      const res = await fetch('/api/nike-fc-cards/collection', { headers: { Authorization: 'Bearer ' + authToken } });
+      return await res.json();
     }
 
-    // Toggle SBC expansion
-    function toggleSBC(sbcId) {
-      const content = document.getElementById(`sbc-content-${sbcId}`);
-      const arrow = document.getElementById(`sbc-arrow-${sbcId}`);
-      
-      if (expandedSBCs.has(sbcId)) {
-        // Collapse
-        expandedSBCs.delete(sbcId);
-        content.classList.add('hidden');
-        arrow.style.transform = 'rotate(0deg)';
-      } else {
-        // Expand
-        expandedSBCs.add(sbcId);
-        content.classList.remove('hidden');
-        arrow.style.transform = 'rotate(180deg)';
-      }
+    function showSection(id) {
+      ['not-logged-in','sbc-container'].forEach(x=>document.getElementById(x).classList.toggle('hidden', x!==id));
     }
 
-    // Create SBC element
-    function createSBCElement(challenge) {
-      const sbcDiv = document.createElement('div');
-      sbcDiv.className = 'bg-white/10 backdrop-blur-md rounded-xl overflow-hidden';
-      
-      const statusBadge = challenge.completed 
-        ? '<span class="px-2 py-1 bg-emerald-600 text-white text-xs rounded-full">Completado</span>'
-        : '<span class="px-2 py-1 bg-yellow-500 text-black text-xs rounded-full">Disponible</span>';
-      
-      // Format dates
-      const startDate = new Date(challenge.start_at).toLocaleDateString('es-ES');
-      const endDate = new Date(challenge.end_at).toLocaleDateString('es-ES');
-      
-      // Format requirements
-      const req = challenge.requirements || {};
-      const requirements = `Jugadores: ${req.min_players||1}-${req.max_players||11} | Rating mín: ${req.min_avg_rating||0} | Especiales: ${req.min_special_cards||0}`;
-      
-      // Generate reward HTML
-      let rewardsHTML = '';
-      if (Array.isArray(challenge.rewards) && challenge.rewards.length) {
-        rewardsHTML = challenge.rewards.map(reward => {
-          if (reward.reward_type === 'CARD' && reward.card_image_path) {
-            return `
-              <div class="text-center">
-                <img src="${reward.card_image_path}" alt="${reward.player_name || 'Carta'}" class="w-16 h-20 object-cover rounded-lg mx-auto mb-2" />
-                <div class="text-xs text-white font-semibold">${reward.player_name || 'Carta Especial'}</div>
-              </div>
-            `;
-          } else if (reward.reward_type === 'PACK') {
-            return `
-              <div class="text-center">
-                <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <span class="text-2xl">📦</span>
-                </div>
-                <div class="text-xs text-white font-semibold">${reward.pack_type || 'Pack'}</div>
-                <div class="text-xs text-emerald-200">x${reward.amount || 1}</div>
-              </div>
-            `;
-          } else if (reward.reward_type === 'COINS') {
-            return `
-              <div class="text-center">
-                <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <span class="text-2xl">💰</span>
-                </div>
-                <div class="text-xs text-white font-semibold">${reward.amount || 0} Monedas</div>
-              </div>
-            `;
-          }
-          return '';
-        }).join('');
-      }
-      
-      sbcDiv.innerHTML = `
-        <!-- SBC Header (Clickable) -->
-        <button class="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors" onclick="toggleSBC('${challenge.id}')">
-          <div class="flex-1 text-left">
-            <div class="flex items-center gap-3 mb-2">
-              <h3 class="text-lg font-bold text-white">${challenge.title || 'SBC Sin Título'}</h3>
-              ${statusBadge}
-            </div>
-            <p class="text-sm text-emerald-200">${challenge.description || 'Descripción no disponible'}</p>
-            <p class="text-xs text-emerald-300 mt-1">Disponible: ${startDate} - ${endDate}</p>
-          </div>
-          <div class="flex-shrink-0 ml-4">
-            <svg id="sbc-arrow-${challenge.id}" class="w-5 h-5 text-white transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </div>
-        </button>
-        
-        <!-- SBC Content (Expandable) -->
-        <div id="sbc-content-${challenge.id}" class="hidden border-t border-white/10">
-          <div class="p-4">
-            <!-- Requirements -->
-            <div class="mb-4">
-              <h4 class="text-sm font-semibold text-emerald-200 mb-2">Requisitos:</h4>
-              <div class="bg-black/20 rounded-lg p-3">
-                <p class="text-xs text-emerald-100">${requirements}</p>
-              </div>
-            </div>
-            
-            <!-- Rewards -->
-            ${rewardsHTML ? `
-              <div class="mb-6">
-                <h4 class="text-sm font-semibold text-emerald-200 mb-3">Recompensas:</h4>
-                <div class="flex gap-4 justify-center">
-                  ${rewardsHTML}
-                </div>
-              </div>
-            ` : ''}
-            
-            <!-- Action Button -->
-            <div class="text-center">
-              ${challenge.completed 
-                ? '<button class="px-6 py-2 bg-emerald-600 text-white rounded-lg opacity-50 cursor-not-allowed" disabled>Completado</button>'
-                : '<button class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors" onclick="startSBC(\''+challenge.id+'\')">🚀 Comenzar Desafío</button>'
-              }
-            </div>
-          </div>
-        </div>
-      `;
-      
-      return sbcDiv;
-    }
-
-    // Display SBC list
-    function displaySBCs(sbcList) {
-      const list = document.getElementById('sbc-list');
-      
-      if (sbcList.length === 0) {
-        document.getElementById('no-sbc').classList.remove('hidden');
-        return;
-      }
-      
-      document.getElementById('no-sbc').classList.add('hidden');
+    function renderChallenges() {
+      const list = document.getElementById('challenges-list');
       list.innerHTML = '';
-      
-      sbcList.forEach(challenge => {
-        const sbcElement = createSBCElement(challenge);
-        list.appendChild(sbcElement);
+      challenges.forEach(ch => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left p-3 bg-emerald-900/40 hover:bg-emerald-800/50 rounded-lg text-white flex items-center justify-between';
+        const badge = ch.completed ? '<span class="ml-3 px-2 py-0.5 text-xs rounded bg-emerald-600/70">Completado</span>' : '';
+        btn.innerHTML = `<div><div class=\"font-semibold\">${ch.title}</div><div class=\"text-emerald-200 text-sm\">${ch.description||''}</div></div>${badge}`;
+        btn.addEventListener('click', () => selectChallenge(ch));
+        list.appendChild(btn);
       });
     }
 
-    // Start SBC (placeholder - could redirect to builder)
-    function startSBC(challengeId) {
-      alert(`Funcionalidad de SBC Builder para el desafío ${challengeId} estará disponible próximamente`);
-      // TODO: Implement SBC builder or redirect to builder page
+    function selectChallenge(ch) {
+      selectedChallenge = ch;
+      document.getElementById('no-challenge').classList.add('hidden');
+      // Show requirements gate first
+      document.getElementById('requirements-panel').classList.remove('hidden');
+      document.getElementById('builder').classList.add('hidden');
+      const acceptBtn = document.getElementById('accept-req-btn');
+      if (ch.completed) {
+        acceptBtn.setAttribute('disabled','true');
+        acceptBtn.classList.add('opacity-50','cursor-not-allowed');
+        acceptBtn.textContent = 'Completado';
+      } else {
+        acceptBtn.removeAttribute('disabled');
+        acceptBtn.classList.remove('opacity-50','cursor-not-allowed');
+        acceptBtn.textContent = 'Aceptar';
+      }
+
+      document.getElementById('challenge-title').textContent = ch.title;
+      document.getElementById('challenge-desc').textContent = ch.description || '';
+      document.getElementById('challenge-dates').textContent = new Date(ch.start_at).toLocaleDateString() + ' - ' + new Date(ch.end_at).toLocaleDateString();
+      const req = ch.requirements || {};
+      currentReq = {
+        min_players: Number(req.min_players || 1),
+        max_players: Number(req.max_players || 7),
+        min_avg_rating: Number(req.min_avg_rating || 0),
+        min_special_cards: Number(req.min_special_cards || 0),
+      };
+      document.getElementById('challenge-req').textContent = `Jugadores: ${req.min_players||2}-${req.max_players||7} | Media ≥ ${req.min_avg_rating||0} | Especiales ≥ ${req.min_special_cards||0}`;
+
+      // Prepare builder texts
+      document.getElementById('challenge-title-builder').textContent = ch.title;
+      document.getElementById('challenge-desc-builder').textContent = ch.description || '';
+      document.getElementById('challenge-req-builder').textContent = `Jugadores: ${req.min_players||2}-${req.max_players||7} | Media ≥ ${req.min_avg_rating||0} | Especiales ≥ ${req.min_special_cards||0}`;
+      document.getElementById('req-count').textContent = `${currentReq.min_players}-${currentReq.max_players}`;
+      document.getElementById('req-avg').textContent = `Mín ${req.min_avg_rating||0}`;
+      document.getElementById('req-specials').textContent = `Mín ${req.min_special_cards||0}`;
+      // Reward preview (big)
+      const rp = document.getElementById('reward-preview');
+      rp.innerHTML = '';
+      if (Array.isArray(ch.rewards) && ch.rewards.length) {
+        const r = ch.rewards[0];
+        if (r.reward_type === 'CARD' && r.card_image_path) {
+          rp.innerHTML = `
+            <div class="inline-block">
+              <div class="text-emerald-100 mb-2">Recompensa</div>
+              <img src="${r.card_image_path}" alt="${r.player_name||'Carta'}" class="w-36 h-56 object-cover rounded-xl mx-auto shadow-lg"/>
+              <div class="text-white mt-2">${r.player_name||''}</div>
+            </div>`;
+        } else if (r.reward_type === 'PACK') {
+          rp.innerHTML = `
+            <div class="inline-block">
+              <div class="text-emerald-100 mb-2">Recompensa</div>
+              <div class="w-40 h-40 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl">
+                <span class="text-6xl">📦</span>
+              </div>
+              <div class="text-white mt-2">${r.pack_type || 'PACK'} × ${r.amount||1}</div>
+            </div>`;
+        }
+      }
+
+      selectedIds.clear();
+      renderSelected();
+      renderCollection(userCards);
+      document.getElementById('submit-btn').disabled = true;
     }
 
-    // Make functions global for HTML onclick
-    window.toggleSBC = toggleSBC;
-    window.startSBC = startSBC;
-
-    async function startSBCPage() {
-      if (!checkAuthState()) {
-        showSection('not-logged-in');
-        return;
+    function renderSelected() {
+      const grid = document.getElementById('selected-grid');
+      grid.innerHTML = '';
+      const ids = Array.from(selectedIds);
+      // Selected cards first
+      ids.forEach(id => {
+        const uc = userCards.find(u=>u.id===id);
+        if (!uc) return;
+        const el = document.createElement('div');
+        el.className = 'bg-emerald-800/60 rounded-lg p-2 text-center text-white relative';
+        el.innerHTML = `
+          <button class="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 rounded-full">×</button>
+          <div class="text-xs text-emerald-200 mb-1">${uc.card.player.name}</div>
+          <div class="text-[11px]">${uc.card.player.position1} • ${uc.card.rarity}</div>
+          <div class="text-[11px]">FIFA ${uc.card.player.fifa_rating}</div>
+        `;
+        el.querySelector('button').addEventListener('click', ()=>{ selectedIds.delete(id); renderSelected(); updateChecklist(); });
+        grid.appendChild(el);
+      });
+      // Placeholder slots up to max_players
+      const maxSlots = Math.min(Math.max(currentReq.max_players || 1, 1), 7);
+      const missing = Math.max(0, maxSlots - ids.length);
+      for (let i=0;i<missing;i++) {
+        const ph = document.createElement('div');
+        ph.className = 'rounded-lg p-2 text-center text-emerald-200 border-2 border-dashed border-emerald-600/50 min-h-[64px] flex items-center justify-center';
+        ph.textContent = 'Hueco';
+        grid.appendChild(ph);
       }
+      document.getElementById('slots-hint').textContent = `Huecos requeridos: ${currentReq.min_players||1}-${currentReq.max_players||7}`;
+      updateChecklist();
+    }
 
-      showSection('loading');
+    function renderCollection(all) {
+      const grid = document.getElementById('collection-grid');
+      const term = document.getElementById('collection-search').value?.toLowerCase()||'';
+      grid.innerHTML = '';
+      all
+        .filter(uc => !term || uc.card.player.name.toLowerCase().includes(term))
+        .forEach(uc => {
+          const card = document.createElement('button');
+          card.className = 'bg-emerald-800/40 hover:bg-emerald-700/50 rounded-lg p-2 text-left text-white';
+          const special = uc.card.special_type !== 'Regular' && uc.card.special_type !== 'OLD_GENERATION';
+          card.innerHTML = `
+            <div class="text-xs font-semibold">${uc.card.player.name}</div>
+            <div class="text-[11px] text-emerald-200">${uc.card.player.position1} • ${uc.card.rarity} ${special?'• ESP':''}</div>
+            <div class="text-[11px]">FIFA ${uc.card.player.fifa_rating}</div>
+          `;
+          card.addEventListener('click', ()=>{
+            const req = selectedChallenge?.requirements || {};
+            const max = req.max_players || 7;
+            if (selectedIds.size >= max) { alert('Límite de cartas alcanzado'); return; }
+            if (selectedIds.has(uc.id)) return;
+            selectedIds.add(uc.id);
+            renderSelected();
+          });
+          grid.appendChild(card);
+        });
+    }
 
-      const result = await fetchChallenges();
-      
-      if (!result.success) {
-        console.error('SBC load failed:', result);
-        alert('Error al cargar los desafíos SBC' + (result.error ? (': ' + result.error) : ''));
-        return;
-      }
+    async function validateNow() {
+      if (!selectedChallenge) return;
+      const ids = Array.from(selectedIds);
+      if (!ids.length) { alert('Selecciona cartas'); return; }
+      const res = await fetch('/api/nike-fc-cards/sbc/validate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer '+authToken },
+        body: JSON.stringify({ challenge_id: selectedChallenge.id, user_card_ids: ids })
+      });
+      const data = await res.json();
+      if (!data.success) { alert(data.error||'Error'); return; }
+      lastValidation = data;
+      document.getElementById('sel-count').textContent = (data.stats?.count || ids.length).toString();
+      document.getElementById('sel-avg').textContent = (data.stats?.avg || 0).toString();
+      document.getElementById('sel-specials').textContent = (data.stats?.specials || 0).toString();
+      document.getElementById('submit-btn').disabled = !data.ok;
+      updateChecklist();
+      if (!data.ok) alert('No cumple: '+ (data.reasons||[]).join(', '));
+    }
 
-      challenges = result.challenges || [];
-      
+    function setTileOK(tileId, ok) {
+      const el = document.getElementById(tileId);
+      if (!el) return;
+      el.className = `rounded-lg p-4 ${ok ? 'bg-emerald-500/20' : 'bg-red-500/20'}`;
+    }
+
+    function updateChecklist() {
+      const ids = Array.from(selectedIds);
+      const min = currentReq.min_players||1, max = currentReq.max_players||7;
+      const count = ids.length;
+      document.getElementById('sel-count').textContent = count.toString();
+      setTileOK('req-tile-count', count >= min && count <= max);
+
+      // avg/specials: use lastValidation if available
+      const avg = lastValidation?.stats?.avg || 0;
+      const specials = lastValidation?.stats?.specials || 0;
+      document.getElementById('sel-avg').textContent = avg.toString();
+      document.getElementById('sel-specials').textContent = specials.toString();
+      setTileOK('req-tile-avg', avg >= (currentReq.min_avg_rating||0));
+      setTileOK('req-tile-specials', specials >= (currentReq.min_special_cards||0));
+    }
+
+    async function submitNow() {
+      if (!selectedChallenge) return;
+      const ids = Array.from(selectedIds);
+      const res = await fetch('/api/nike-fc-cards/sbc/submit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer '+authToken },
+        body: JSON.stringify({ challenge_id: selectedChallenge.id, user_card_ids: ids })
+      });
+      const data = await res.json();
+      if (!data.success) { alert(data.error||'Error'); return; }
+      alert('Desafío completado. Recompensa entregada.');
+      // Mark challenge as completed in the list
+      challenges = challenges.map(ch => ch.id === selectedChallenge.id ? { ...ch, completed: true } : ch);
+      renderChallenges();
+      // Remove consumed cards from local list
+      userCards = userCards.filter(uc => !selectedIds.has(uc.id));
+      selectedIds.clear();
+      renderSelected();
+      renderCollection(userCards);
+      // Lock builder
+      document.getElementById('requirements-panel').classList.remove('hidden');
+      document.getElementById('builder').classList.add('hidden');
+      const acceptBtn = document.getElementById('accept-req-btn');
+      acceptBtn.setAttribute('disabled','true');
+      acceptBtn.classList.add('opacity-50','cursor-not-allowed');
+      acceptBtn.textContent = 'Completado';
+    }
+
+    async function init() {
+      if (!checkAuthState()) { showSection('not-logged-in'); return; }
       showSection('sbc-container');
-      displaySBCs(challenges);
+      const [c1, c2] = await Promise.all([fetchChallenges(), fetchCollection()]);
+      if (!c1.success) { alert('Error cargando SBC'); return; }
+      challenges = c1.challenges || [];
+      renderChallenges();
+      if (!c2.success) { alert('Error cargando colección'); return; }
+      userCards = c2.cards || [];
+
+      document.getElementById('collection-search').addEventListener('input', ()=>renderCollection(userCards));
+      document.getElementById('validate-btn').addEventListener('click', validateNow);
+      document.getElementById('submit-btn').addEventListener('click', submitNow);
+      document.getElementById('accept-req-btn').addEventListener('click', ()=>{
+        document.getElementById('requirements-panel').classList.add('hidden');
+        document.getElementById('builder').classList.remove('hidden');
+      });
     }
 
-    document.addEventListener('DOMContentLoaded', startSBCPage);
-    document.addEventListener('astro:page-load', startSBCPage);
-    document.addEventListener('astro:after-swap', startSBCPage);
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('astro:page-load', init);
+    document.addEventListener('astro:after-swap', init);
   </script>
-</NikeFCLayout>
+</Layout>
