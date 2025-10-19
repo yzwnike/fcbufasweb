@@ -10,7 +10,7 @@ function envGet(key: string, def?: string) {
 
 // Preferir conexión a PostgreSQL (Supabase)
 const PGHOST = envGet('PGHOST') || envGet('SUPABASE_HOST');
-const PGPORT = Number(envGet('PGPORT', '5432'));
+const PGPORT = Number(envGet('PGPORT', '6543')); // Puerto para Supabase pooled
 const PGUSER = envGet('PGUSER') || envGet('SUPABASE_USER') || 'postgres';
 const PGPASSWORD = envGet('PGPASSWORD') || envGet('SUPABASE_PASSWORD') || '';
 const PGDATABASE = envGet('PGDATABASE') || envGet('SUPABASE_DB') || 'postgres';
@@ -23,6 +23,10 @@ const pool = new Pool({
   database: PGDATABASE,
   max: 10,
   ssl: { rejectUnauthorized: false }, // Supabase requiere SSL
+  // Configuración para Supabase pooled
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000,
+  query_timeout: 60000,
 });
 
 export function currentPgConfig() {
@@ -61,8 +65,15 @@ function toPgParams(sql: string): { text: string; values: any[] } {
 async function pgExecute<T = any>(query: string, params?: any[]): Promise<T[]> {
   const text = transformSql(query);
   const { text: pgText } = toPgParams(text);
-  const res = await pool.query(pgText, params || []);
-  return res.rows as T[];
+  
+  // Para serverless, usar timeout más corto
+  const client = await pool.connect();
+  try {
+    const res = await client.query(pgText, params || []);
+    return res.rows as T[];
+  } finally {
+    client.release();
+  }
 }
 
 // Exponer API compatible
