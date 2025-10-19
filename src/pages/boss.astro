@@ -54,11 +54,11 @@ import Layout from '@/layouts/Layout.astro';
       return res.json();
     }
     async function fetchLock() {
-      const res = await fetch('/api/nike-fc-cards/fantasy/admin/lock', { cache: 'no-store' });
+      const res = await fetch('/api/bufas-cards/fantasy/admin/lock', { cache: 'no-store' });
       return res.json();
     }
     async function setLock(locked) {
-      const res = await fetch('/api/nike-fc-cards/fantasy/admin/lock', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ locked }) });
+      const res = await fetch('/api/bufas-cards/fantasy/admin/lock', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ locked }) });
       return res.json();
     }
     function renderUsers(data){

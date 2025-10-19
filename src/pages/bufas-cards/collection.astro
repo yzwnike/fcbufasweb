@@ -1,0 +1,1063 @@
+---
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
+import Subheader from '@/components/bufas-cards/Subheader.astro';
+---
+
+<NikeFCLayout title="Mi Colección - Bufas Cards" helpKey="collection">
+  <div class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
+    <div class="container mx-auto px-4 py-6">
+      <!-- Subheader Nav -->
+      <Subheader variant="minimal" />
+      <!-- Header -->
+      <div class="text-center mb-6">
+        <h1 class="text-xl md:text-3xl font-bold text-white mb-4">
+          📚 Mi Colección
+        </h1>
+        <p class="text-sm md:text-base text-blue-100 max-w-2xl mx-auto">
+          Gestiona todas tus cartas, filtra por rareza y posición, y pon cartas en venta
+        </p>
+      </div>
+
+      <!-- Auth Check -->
+      <div id="not-logged-in" class="hidden text-center">
+        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
+          <p class="text-red-200 mb-6">Debes iniciar sesión para ver tu colección</p>
+          <a href="/bufas-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
+            Iniciar Sesión
+          </a>
+        </div>
+      </div>
+
+      <!-- Collection Container -->
+      <div id="collection-container" class="hidden">
+
+        <!-- Rarity Distribution -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 mb-4 max-w-4xl mx-auto">
+          <h3 class="text-base font-bold text-white text-center mb-3">Distribución por Rareza</h3>
+          <div class="grid grid-cols-4 gap-2">
+            <div class="text-center">
+              <div class="w-8 h-8 bg-gray-500 rounded-lg mx-auto mb-1"></div>
+              <div class="text-sm text-white font-bold" id="normal-count">0</div>
+              <div class="text-xs text-blue-200">Normal</div>
+            </div>
+            <div class="text-center">
+              <div class="w-8 h-8 bg-blue-500 rounded-lg mx-auto mb-1"></div>
+              <div class="text-sm text-white font-bold" id="especial-count">0</div>
+              <div class="text-xs text-blue-200">Especial</div>
+            </div>
+            <div class="text-center">
+              <div class="w-8 h-8 bg-purple-500 rounded-lg mx-auto mb-1"></div>
+              <div class="text-sm text-white font-bold" id="elite-count">0</div>
+              <div class="text-xs text-blue-200">Elite</div>
+            </div>
+            <div class="text-center">
+              <div class="w-8 h-8 bg-yellow-400 rounded-lg mx-auto mb-1"></div>
+              <div class="text-sm text-white font-bold" id="legendario-count">0</div>
+              <div class="text-xs text-blue-200">Legendario</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Button -->
+        <div class="flex justify-between items-center mb-3 max-w-6xl mx-auto">
+          <div class="text-sm font-bold text-white">Mi Colección</div>
+          <button id="open-filters-btn" class="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+            </svg>
+            Filtros
+          </button>
+        </div>
+
+        <!-- Cards Grid (Unsold) -->
+        <div id="unsold-section">
+          <!-- Pagination Info -->
+          <div class="text-sm text-blue-200 mb-3 max-w-6xl mx-auto">
+            Mostrando <span id="cards-showing">0-0</span> de <span id="cards-total">0</span> cartas
+          </div>
+          
+          <!-- Cards Grid - Responsive Layout -->
+          <div id="cards-grid-unsold" class="space-y-3 md:grid md:grid-cols-4 md:gap-6 md:space-y-0 max-w-7xl mx-auto">
+            <!-- Unsold cards will be loaded here -->
+          </div>
+          
+          <!-- Pagination Controls -->
+          <div id="pagination-controls" class="flex justify-center items-center gap-2 mt-4">
+            <button id="prev-page" class="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-gray-500">
+              « Anterior
+            </button>
+            <div id="page-numbers" class="flex gap-1">
+              <!-- Page numbers will be generated here -->
+            </div>
+            <button id="next-page" class="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-gray-500">
+              Siguiente »
+            </button>
+          </div>
+        </div>
+
+        <!-- Market Listings Section -->
+        <div id="market-section" class="hidden mt-6 max-w-6xl mx-auto">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex-1 h-px bg-white/20"></div>
+            <div class="text-white/80 text-sm uppercase tracking-wider">En mercado:</div>
+            <div class="flex-1 h-px bg-white/20"></div>
+          </div>
+          <div id="cards-grid-market" class="space-y-3 md:grid md:grid-cols-4 md:gap-6 md:space-y-0">
+            <!-- Listings will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="text-center py-8">
+          <div class="text-white">Cargando colección...</div>
+        </div>
+
+        <!-- No Cards -->
+        <div id="no-cards" class="hidden text-center py-8">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+            <div class="text-6xl mb-4">📦</div>
+            <h3 class="text-2xl font-bold text-white mb-4">Sin cartas</h3>
+            <p class="text-blue-200 mb-6">No tienes cartas que coincidan con los filtros seleccionados</p>
+            <a href="/bufas-cards/packs" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+              Abrir Sobres
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Detail Modal -->
+  <div id="card-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-xl w-full max-w-lg mx-auto my-8 shadow-2xl transform transition-all">
+      <div class="p-4 sm:p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg sm:text-xl font-bold text-gray-900" id="modal-card-name">Jugador</h3>
+          <button id="close-modal" class="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Card Preview -->
+        <div class="flex justify-center mb-6">
+          <div id="modal-card-preview" class="w-64 sm:w-72 transform hover:scale-105 transition-transform">
+            <!-- Card preview will be generated here -->
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="space-y-4">
+          <div id="sale-section" class="hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+              <label class="text-gray-700 font-medium text-sm sm:text-base">Precio de venta fijo:</label>
+              <div id="sale-price-display" class="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm sm:text-base font-bold text-green-600">
+                <!-- Price will be displayed here -->
+              </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button id="put-on-sale-btn" class="flex-1 bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                Poner en Venta
+              </button>
+              <button id="cancel-sale-btn" class="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-semibold">
+                Cancelar
+              </button>
+            </div>
+          </div>
+
+          <div id="action-buttons" class="flex flex-col sm:flex-row gap-3">
+            <button id="sell-card-btn" class="flex-1 bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors font-semibold">
+              Vender al Mercado
+            </button>
+            <button id="remove-from-sale-btn" class="hidden flex-1 bg-red-500 text-white py-3 px-4 rounded-lg hover:bg-red-600 transition-colors font-semibold">
+              Quitar de Venta
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div id="filters-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl max-w-md w-full mx-4">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-gray-900">Filtros y Ordenación</h3>
+          <button id="close-filters-modal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="mb-6">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">Ordenar por:</h4>
+          <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+            <option value="name-asc">Nombre (A-Z)</option>
+            <option value="name-desc">Nombre (Z-A)</option>
+            <option value="rating-desc">Rating (Mayor a Menor)</option>
+            <option value="rating-asc">Rating (Menor a Mayor)</option>
+            <option value="price-desc">Precio (Mayor a Menor)</option>
+            <option value="price-asc">Precio (Menor a Mayor)</option>
+            <option value="position-asc">Posición</option>
+            <option value="rarity-desc">Rareza (Legendario primero)</option>
+          </select>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Rareza:</label>
+            <select id="rarity-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+              <option value="">Todas</option>
+              <option value="NORMAL">Normal</option>
+              <option value="ESPECIAL">Especial</option>
+              <option value="ELITE">Elite</option>
+              <option value="LEGENDARIO">Legendario</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Posición:</label>
+            <select id="position-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+              <option value="">Todas</option>
+              <option value="GK">Portero</option>
+              <option value="CB">Defensa Central</option>
+              <option value="LB">Lateral Izquierdo</option>
+              <option value="RB">Lateral Derecho</option>
+              <option value="CM">Centrocampista</option>
+              <option value="CAM">Mediocentro Ofensivo</option>
+              <option value="CDM">Mediocentro Defensivo</option>
+              <option value="LM">Centrocampista Izquierdo</option>
+              <option value="RM">Centrocampista Derecho</option>
+              <option value="LW">Extremo Izquierdo</option>
+              <option value="RW">Extremo Derecho</option>
+              <option value="ST">Delantero</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Rating Mínimo:</label>
+            <select id="rating-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+              <option value="">Cualquiera</option>
+              <option value="60">60+</option>
+              <option value="70">70+</option>
+              <option value="80">80+</option>
+              <option value="85">85+</option>
+              <option value="90">90+</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Estado:</label>
+            <select id="sale-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+              <option value="">Todas</option>
+              <option value="false">En Colección</option>
+              <option value="true">En Venta</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 mt-6">
+          <button id="apply-filters-btn" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
+            Aplicar Filtros
+          </button>
+          <button id="clear-filters-btn" class="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors">
+            Limpiar Todo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Ensure card badges and elements stay below modals */
+    #cards-grid-unsold .absolute,
+    #cards-grid-market .absolute {
+      z-index: 100 !important;
+    }
+    
+    /* Modals should always be on top */
+    #card-modal {
+      z-index: 9999 !important;
+    }
+    
+    #filters-modal {
+      z-index: 9998 !important;
+    }
+  </style>
+
+  <script>
+    // State management
+    let currentUser = null;
+    let authToken = null;
+    let userCards = [];
+    let groupedCards = [];
+    let filteredCards = [];
+    let selectedGroup = null;
+    let cardCounts = {};
+
+    // Auth functions
+    function checkAuthState() {
+      const token = sessionStorage.getItem('nike_fc_token');
+      if (token) {
+        authToken = token;
+        return true;
+      }
+      return false;
+    }
+
+    // UI functions
+    function showSection(sectionId) {
+      const sections = ['not-logged-in', 'collection-container', 'loading', 'no-cards'];
+      sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.classList.toggle('hidden', id !== sectionId);
+        }
+      });
+    }
+
+    // Fetch user collection from API
+    async function fetchUserCollection() {
+      try {
+        const token = sessionStorage.getItem('nike_fc_token');
+        const res = await fetch(`/api/bufas-cards/collection?t=${Date.now()}` , {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store'
+        });
+        return await res.json();
+      } catch (e) {
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    function generateMockCards() { /* deprecated */ return []; }
+
+    let activeForSaleCount = 0;
+
+    function recomputeCounts() {
+      cardCounts = {};
+      let saleCount = 0;
+      (userCards || []).forEach(uc => {
+        const id = uc.card?.id;
+        if (!id) return;
+        cardCounts[id] = (cardCounts[id] || 0) + 1;
+        const isOnSale = (uc.is_for_sale === true) || (uc.is_for_sale === 1) || (uc.is_for_sale === '1');
+        if (isOnSale) saleCount += 1;
+      });
+      activeForSaleCount = saleCount;
+    }
+
+    function computeGroups() {
+      const unsoldMap = new Map();
+      const listingGroups = [];
+      const seenListingIds = new Set();
+      const processedUserCardIds = new Set();
+
+      (userCards || []).forEach(uc => {
+        const id = uc.card?.id;
+        if (!id || processedUserCardIds.has(uc.id)) return;
+        processedUserCardIds.add(uc.id);
+        
+        const isOnSale = (uc.is_for_sale === true) || (uc.is_for_sale === 1) || (uc.is_for_sale === '1');
+        if (isOnSale) {
+          // Each listing becomes its own group to allow per-listing actions and price display
+          if (!seenListingIds.has(uc.id)) {
+            seenListingIds.add(uc.id);
+            listingGroups.push({
+              card: uc.card,
+              totalCount: 1,
+              unsoldCount: 0,
+              onSaleCount: 1,
+              unsoldIds: [],
+              onSaleIds: [uc.id],
+              isListing: true,
+              sale_price: uc.sale_price
+            });
+          }
+        } else {
+          let g = unsoldMap.get(id);
+          if (!g) {
+            g = {
+              card: uc.card,
+              totalCount: 0,
+              unsoldCount: 0,
+              onSaleCount: 0,
+              unsoldIds: [],
+              onSaleIds: [],
+              isListing: false
+            };
+            unsoldMap.set(id, g);
+          }
+          g.totalCount += 1;
+          g.unsoldCount += 1;
+          g.unsoldIds.push(uc.id);
+        }
+      });
+
+      const unsoldGroups = Array.from(unsoldMap.values());
+      return [...unsoldGroups, ...listingGroups];
+    }
+
+    function displayStats(stats) {
+      // Calculate active for sale count (needed for sell button logic)
+      const cardsForSale = (userCards || []).reduce((acc, uc) => {
+        const saleFlag = (uc.is_for_sale === true) || (uc.is_for_sale === 1) || (uc.is_for_sale === '1');
+        return acc + (saleFlag ? 1 : 0);
+      }, 0);
+      activeForSaleCount = cardsForSale;
+
+      // Calcular conteos por nuevas rarezas basadas en special_type
+      function getDisplayRarity(specialType) {
+        switch (specialType) {
+          case 'Regular':
+          case 'OLD_GENERATION':
+            return 'NORMAL';
+          case 'TEAM_OF_THE_WEEK':
+            return 'ESPECIAL';
+          case 'MARKET_MASTER':
+          case 'RATING_RELOAD':
+          case 'COMEBACK_HERO':
+          case 'ASSIST_ENGINE':
+            return 'ELITE';
+          case 'PLAYER_OF_THE_MONTH':
+            return 'LEGENDARIO';
+          default:
+            return 'NORMAL';
+        }
+      }
+      
+      const rarityCounts = { NORMAL: 0, ESPECIAL: 0, ELITE: 0, LEGENDARIO: 0 };
+      (userCards || []).forEach(uc => {
+        const displayRarity = getDisplayRarity(uc.card.special_type);
+        rarityCounts[displayRarity] = (rarityCounts[displayRarity] || 0) + 1;
+      });
+      
+      document.getElementById('normal-count').textContent = rarityCounts.NORMAL;
+      document.getElementById('especial-count').textContent = rarityCounts.ESPECIAL;
+      document.getElementById('elite-count').textContent = rarityCounts.ELITE;
+      document.getElementById('legendario-count').textContent = rarityCounts.LEGENDARIO;
+    }
+
+    function displayCards(groups) {
+      const unsold = groups.filter(g => !g.isListing);
+      const listings = groups.filter(g => g.isListing);
+
+      const unsoldGrid = document.getElementById('cards-grid-unsold');
+      const marketSection = document.getElementById('market-section');
+      const marketGrid = document.getElementById('cards-grid-market');
+
+      const noCards = document.getElementById('no-cards');
+
+      // Handle empty state
+      if (unsold.length === 0 && listings.length === 0) {
+        if (unsoldGrid) unsoldGrid.classList.add('hidden');
+        if (marketSection) marketSection.classList.add('hidden');
+        noCards.classList.remove('hidden');
+        return;
+      }
+
+      noCards.classList.add('hidden');
+
+      // Render unsold grid
+      if (unsoldGrid) {
+        if (unsold.length === 0) {
+          unsoldGrid.classList.add('hidden');
+        } else {
+          unsoldGrid.classList.remove('hidden');
+          unsoldGrid.innerHTML = '';
+          unsold.forEach(group => {
+            const el = createCardElement(group);
+            unsoldGrid.appendChild(el);
+          });
+        }
+      }
+
+      // Render market listings grid
+      if (marketSection && marketGrid) {
+        if (listings.length === 0) {
+          marketSection.classList.add('hidden');
+        } else {
+          marketSection.classList.remove('hidden');
+          marketGrid.innerHTML = '';
+          listings.forEach(group => {
+            const el = createCardElement(group);
+            marketGrid.appendChild(el);
+          });
+        }
+      }
+    }
+
+    function createCardElement(group) {
+      const card = group.card;
+      
+      function getRarityColor(displayRarity) {
+        switch (displayRarity) {
+          case 'NORMAL':
+            return 'from-gray-400 to-gray-600';
+          case 'ESPECIAL':
+            return 'from-blue-500 to-blue-700';
+          case 'ELITE':
+            return 'from-purple-500 to-purple-700';
+          case 'LEGENDARIO':
+            return 'from-yellow-400 to-orange-500';
+          default:
+            return 'from-gray-400 to-gray-600';
+        }
+      }
+      
+      const displayRarity = getDisplayRarity(card.special_type);
+      const rarityColor = getRarityColor(displayRarity);
+
+      const cardDiv = document.createElement('div');
+      cardDiv.className = `bg-gradient-to-br ${rarityColor} rounded-xl p-3 flex items-center gap-3 md:flex-col md:items-stretch md:p-6 hover:scale-[1.02] transition-all duration-200 cursor-pointer relative shadow-lg hover:shadow-xl`;
+      cardDiv.addEventListener('click', () => openCardModal(group));
+
+      let saleIndicator = '';
+      if (group.isListing) {
+        saleIndicator = `
+          <div class=\"absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full\">
+            En Venta
+          </div>
+        `;
+      }
+      
+      // Quantity badge (duplicates) - show only for unsold grouped tile and use unsoldCount
+      const qty = group.unsoldCount || 0;
+      const qtyBadge = (!group.isListing && qty > 1)
+        ? `<div class=\"absolute -top-2 -left-2 bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/30 pointer-events-none\">${qty}</div>`
+        : '';
+
+      const img = card.image_path ? 
+        `<img src="${card.image_path}" alt="${card.player.name}" class="w-16 h-20 md:w-full md:h-64 lg:h-80 rounded-lg flex-shrink-0 md:flex-shrink object-contain md:object-cover" />` : 
+        `<div class="w-16 h-20 md:w-full md:h-64 lg:h-80 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 md:flex-shrink">
+          <span class="text-2xl md:text-4xl lg:text-6xl">⚽</span>
+        </div>`;
+
+      const dupCount = group.totalCount;
+      const canSell = (!group.isListing) && (group.unsoldCount >= 1) && (dupCount >= 2) && (activeForSaleCount < 10);
+      let cantReason = '';
+      if (group.isListing) cantReason = 'Ya está en venta';
+      else if (!(group.unsoldCount >= 1)) cantReason = 'No hay copias disponibles';
+      else if (dupCount < 2) cantReason = 'Necesitas duplicado';
+      else if (activeForSaleCount >= 10) cantReason = 'Límite 10 en mercado';
+      
+      const sellBtnHtml = !group.isListing 
+        ? `<button class=\"px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${canSell ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-600 text-gray-300 cursor-not-allowed'}\" ${canSell ? '' : ('data-disabled=\"1\" title=\"' + cantReason + '\"')} data-sell=\"1\">Vender</button>`
+        : '';
+
+      cardDiv.innerHTML = `
+        ${saleIndicator}
+        ${qtyBadge}
+        ${img}
+        <div class=\"flex-1 md:mt-4\">
+          <div class=\"text-white font-bold text-sm md:text-xl lg:text-2xl mb-2 md:text-center\">${card.player.name}</div>
+          <div class=\"text-xs md:text-base lg:text-lg text-white/80 mb-2 md:text-center\">${card.player.position1} - ${displayRarity}</div>
+          <div class=\"text-xs md:text-base lg:text-lg text-white/90 mb-3 md:text-center\">FIFA: ${card.player.fifa_rating}</div>
+          <div class=\"flex items-center justify-between md:flex-col md:gap-3\">
+            <div class=\"text-xs md:text-base lg:text-lg text-yellow-300 font-bold\">${card.base_price} 💰</div>
+            ${group.isListing ? `<div class=\"text-xs md:text-base lg:text-lg text-green-300\">Precio: ${group.sale_price}</div>` : sellBtnHtml}
+          </div>
+        </div>
+      `;
+
+      // Wire sell button to open modal directly in sale mode
+      const sellBtn = cardDiv.querySelector('button[data-sell="1"]');
+      if (sellBtn) {
+        sellBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          
+          // Prevenir clicks múltiples
+          if (sellBtn.disabled) return;
+          
+          const isDisabled = sellBtn.getAttribute('data-disabled') === '1';
+          if (isDisabled) {
+            const reason = sellBtn.getAttribute('title') || 'No se puede vender';
+            alert(reason);
+            return;
+          }
+          
+          // Deshabilitar temporalmente el botón
+          sellBtn.disabled = true;
+          setTimeout(() => {
+            sellBtn.disabled = false;
+          }, 1000); // Rehabilitar después de 1 segundo
+          
+          selectedGroup = group;
+          openCardModal(group);
+          // Show sale section directly
+          document.getElementById('sale-section').classList.remove('hidden');
+          document.getElementById('action-buttons').classList.add('hidden');
+          const fixedPrice = selectedGroup.card.base_price;
+          document.getElementById('sale-price-display').textContent = `${fixedPrice} monedas`;
+        });
+      }
+
+      return cardDiv;
+    }
+
+    function createModalCardPreview(group) {
+      const card = group.card;
+      
+      function getRarityColor(displayRarity) {
+        switch (displayRarity) {
+          case 'NORMAL':
+            return 'from-gray-400 to-gray-600';
+          case 'ESPECIAL':
+            return 'from-blue-500 to-blue-700';
+          case 'ELITE':
+            return 'from-purple-500 to-purple-700';
+          case 'LEGENDARIO':
+            return 'from-yellow-400 to-orange-500';
+          default:
+            return 'from-gray-400 to-gray-600';
+        }
+      }
+      
+      const displayRarity = getDisplayRarity(card.special_type);
+      const rarityColor = getRarityColor(displayRarity);
+
+      // Create a clean card preview without badges or sale indicators
+      const img = card.image_path ? 
+        `<img src="${card.image_path}" alt="${card.player.name}" class="w-full h-64 sm:h-72 rounded-lg object-cover mb-4" />` : 
+        `<div class="w-full h-64 sm:h-72 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+          <span class="text-6xl">⚽</span>
+        </div>`;
+
+      return `
+        <div class="bg-gradient-to-br ${rarityColor} rounded-xl p-4 text-center transform transition-transform w-full">
+          ${img}
+          <div class="text-white font-bold text-lg mb-2">${card.player.name}</div>
+          <div class="text-sm text-white/80 mb-2">${card.player.position1} - ${displayRarity}</div>
+          <div class="text-sm text-white/90 mb-2">FIFA: ${card.player.fifa_rating}</div>
+          <div class="text-sm text-yellow-300 font-bold">${card.base_price} 💰</div>
+          ${group.isListing ? `<div class="text-sm text-green-300 mt-2">Precio de venta: ${group.sale_price}</div>` : ''}
+          ${!group.isListing && group.unsoldCount > 1 ? `<div class="text-sm text-green-300 mt-2">Tienes ${group.unsoldCount} copias</div>` : ''}
+        </div>
+      `;
+    }
+
+    function openCardModal(group) {
+      selectedGroup = group;
+      const card = group.card;
+
+      document.getElementById('modal-card-name').textContent = card.player.name;
+      
+      // Generate clean card preview for modal
+      const preview = document.getElementById('modal-card-preview');
+      preview.innerHTML = createModalCardPreview(group);
+
+      // Show/hide appropriate buttons
+      const sellBtn = document.getElementById('sell-card-btn');
+      const removeFromSaleBtn = document.getElementById('remove-from-sale-btn');
+      const saleSection = document.getElementById('sale-section');
+
+      // Actions depending on group type
+      if (group.isListing) {
+        sellBtn.classList.add('hidden');
+        removeFromSaleBtn.classList.remove('hidden');
+      } else {
+        removeFromSaleBtn.classList.add('hidden');
+        if (group.totalCount >= 2 && group.unsoldCount >= 1) {
+          sellBtn.classList.remove('hidden');
+        } else {
+          sellBtn.classList.add('hidden');
+        }
+      }
+      saleSection.classList.add('hidden');
+
+      document.getElementById('card-modal').classList.remove('hidden');
+    }
+
+    function closeCardModal() {
+      document.getElementById('card-modal').classList.add('hidden');
+      selectedGroup = null;
+    }
+
+    // Global helper function for display rarity
+    function getDisplayRarity(specialType) {
+      switch (specialType) {
+        case 'Regular':
+        case 'OLD_GENERATION':
+          return 'NORMAL';
+        case 'TEAM_OF_THE_WEEK':
+          return 'ESPECIAL';
+        case 'MARKET_MASTER':
+        case 'RATING_RELOAD':
+        case 'COMEBACK_HERO':
+        case 'ASSIST_ENGINE':
+          return 'ELITE';
+        case 'PLAYER_OF_THE_MONTH':
+          return 'LEGENDARIO';
+        default:
+          return 'NORMAL';
+      }
+    }
+
+    function applyFilters() {
+      const rarityFilter = document.getElementById('rarity-filter').value;
+      const positionFilter = document.getElementById('position-filter').value;
+      const ratingFilter = parseInt(document.getElementById('rating-filter').value) || 0;
+      const saleFilter = document.getElementById('sale-filter').value;
+ 
+      groupedCards = computeGroups();
+      filteredCards = groupedCards.filter(group => {
+        const card = group.card;
+        
+        // Filtrar por nueva rareza basada en special_type
+        if (rarityFilter) {
+          const cardDisplayRarity = getDisplayRarity(card.special_type);
+          if (cardDisplayRarity !== rarityFilter) return false;
+        }
+        
+        if (positionFilter && card.player.position1 !== positionFilter) return false;
+        if (ratingFilter && card.player.fifa_rating < ratingFilter) return false;
+        if (saleFilter === 'true' && group.onSaleCount === 0) return false;
+        if (saleFilter === 'false' && group.unsoldCount === 0) return false;
+        return true;
+      });
+
+      displayCardsPaginated(filteredCards);
+    }
+
+    function clearFilters() {
+      document.getElementById('rarity-filter').value = '';
+      document.getElementById('position-filter').value = '';
+      document.getElementById('rating-filter').value = '';
+      document.getElementById('sale-filter').value = '';
+      document.getElementById('sort-filter').value = 'name-asc';
+      
+      groupedCards = computeGroups();
+      filteredCards = [...groupedCards];
+      displayCardsPaginated(filteredCards);
+    }
+
+    // Pagination variables
+    let currentPage = 1;
+    const itemsPerPage = 20;
+    let totalPages = 1;
+
+    function sortCards(cards, sortBy) {
+      const sorted = [...cards];
+      switch (sortBy) {
+        case 'name-asc':
+          return sorted.sort((a, b) => a.card.player.name.localeCompare(b.card.player.name));
+        case 'name-desc':
+          return sorted.sort((a, b) => b.card.player.name.localeCompare(a.card.player.name));
+        case 'rating-desc':
+          return sorted.sort((a, b) => b.card.player.fifa_rating - a.card.player.fifa_rating);
+        case 'rating-asc':
+          return sorted.sort((a, b) => a.card.player.fifa_rating - b.card.player.fifa_rating);
+        case 'price-desc':
+          return sorted.sort((a, b) => b.card.base_price - a.card.base_price);
+        case 'price-asc':
+          return sorted.sort((a, b) => a.card.base_price - b.card.base_price);
+        case 'position-asc':
+          return sorted.sort((a, b) => a.card.player.position1.localeCompare(b.card.player.position1));
+        case 'rarity-desc':
+          const rarityOrder = { 'LEGENDARIO': 4, 'ELITE': 3, 'ESPECIAL': 2, 'NORMAL': 1 };
+          return sorted.sort((a, b) => {
+            const aRarity = getDisplayRarity(a.card.special_type);
+            const bRarity = getDisplayRarity(b.card.special_type);
+            return rarityOrder[bRarity] - rarityOrder[aRarity];
+          });
+        default:
+          return sorted;
+      }
+    }
+
+    function displayCardsPaginated(cards) {
+      // Apply sorting
+      const sortBy = document.getElementById('sort-filter')?.value || 'name-asc';
+      const sortedCards = sortCards(cards, sortBy);
+      
+      totalPages = Math.ceil(sortedCards.length / itemsPerPage);
+      if (currentPage > totalPages) currentPage = 1;
+      
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const currentPageCards = sortedCards.slice(startIndex, endIndex);
+      
+      // Update pagination info
+      const showing = `${startIndex + 1}-${Math.min(endIndex, sortedCards.length)}`;
+      document.getElementById('cards-showing').textContent = showing;
+      document.getElementById('cards-total').textContent = sortedCards.length;
+      
+      // Display cards
+      displayCards(currentPageCards);
+      
+      // Update pagination controls
+      updatePaginationControls();
+    }
+
+    function updatePaginationControls() {
+      const prevBtn = document.getElementById('prev-page');
+      const nextBtn = document.getElementById('next-page');
+      const pageNumbers = document.getElementById('page-numbers');
+      
+      // Show/hide buttons based on need
+      prevBtn.style.display = currentPage > 1 ? 'inline-block' : 'none';
+      nextBtn.style.display = currentPage < totalPages ? 'inline-block' : 'none';
+      
+      // Disable buttons appropriately
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      
+      // Generate page numbers (show current page and neighbors)
+      pageNumbers.innerHTML = '';
+      if (totalPages <= 1) return;
+      
+      const start = Math.max(1, currentPage - 2);
+      const end = Math.min(totalPages, currentPage + 2);
+      
+      for (let i = start; i <= end; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = `px-2 py-1 text-xs rounded ${i === currentPage ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white hover:bg-blue-600'} transition-colors`;
+        pageBtn.addEventListener('click', () => {
+          currentPage = i;
+          displayCardsPaginated(filteredCards);
+        });
+        pageNumbers.appendChild(pageBtn);
+      }
+    }
+
+    function openFiltersModal() {
+      document.getElementById('filters-modal').classList.remove('hidden');
+    }
+
+    function closeFiltersModal() {
+      document.getElementById('filters-modal').classList.add('hidden');
+    }
+
+    async function startCollectionPage() {
+      if (!checkAuthState()) {
+        showSection('not-logged-in');
+        return;
+      }
+
+      showSection('loading');
+
+      const result = await fetchUserCollection();
+      
+      if (!result.success) {
+        console.error('Collection load failed:', result);
+        alert('Error al cargar la colección' + (result.error ? (': ' + result.error) : '') + (result.details ? ('\n' + result.details) : ''));
+        return;
+      }
+
+      userCards = result.cards || [];
+      groupedCards = computeGroups();
+      filteredCards = [...groupedCards];
+
+      showSection('collection-container');
+      recomputeCounts();
+      displayStats({
+        totalCards: result.stats?.totalCards || 0,
+        totalValue: result.stats?.totalValue || 0,
+        uniquePlayers: result.stats?.uniquePlayers || 0,
+        cardsByRarity: result.stats?.cardsByRarity || { Bronze:0, Silver:0, Gold:0, Elite:0, Legend:0 }
+      });
+      displayCardsPaginated(filteredCards);
+
+      // Event listeners
+      document.getElementById('open-filters-btn').addEventListener('click', openFiltersModal);
+      document.getElementById('close-filters-modal').addEventListener('click', closeFiltersModal);
+      document.getElementById('apply-filters-btn').addEventListener('click', () => {
+        applyFilters();
+        closeFiltersModal();
+      });
+      document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+      document.getElementById('close-modal').addEventListener('click', closeCardModal);
+      
+      // Pagination event listeners
+      document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          displayCardsPaginated(filteredCards);
+        }
+      });
+      document.getElementById('next-page').addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          displayCardsPaginated(filteredCards);
+        }
+      });
+      
+      document.getElementById('sell-card-btn').addEventListener('click', () => {
+        const button = document.getElementById('sell-card-btn');
+        
+        // Prevenir clicks múltiples
+        if (button.disabled) return;
+        
+        // Deshabilitar temporalmente el botón
+        button.disabled = true;
+        setTimeout(() => {
+          button.disabled = false;
+        }, 1000);
+        
+        document.getElementById('sale-section').classList.remove('hidden');
+        document.getElementById('action-buttons').classList.add('hidden');
+        
+        // Show fixed price
+        const fixedPrice = selectedGroup.card.base_price;
+        document.getElementById('sale-price-display').textContent = `${fixedPrice} monedas`;
+      });
+
+      document.getElementById('cancel-sale-btn').addEventListener('click', () => {
+        document.getElementById('sale-section').classList.add('hidden');
+        document.getElementById('action-buttons').classList.remove('hidden');
+      });
+
+      document.getElementById('put-on-sale-btn').addEventListener('click', async () => {
+        const button = document.getElementById('put-on-sale-btn');
+        
+        // Prevenir clicks múltiples
+        if (button.disabled) return;
+        
+        if (!selectedGroup) return;
+        const price = selectedGroup.card.base_price;
+        if (price < 50) {
+          alert('Error: el precio base de la carta es muy bajo');
+          return;
+        }
+        
+        // Deshabilitar botón y mostrar estado de carga
+        button.disabled = true;
+        const originalText = button.textContent;
+        button.textContent = 'Poniendo en venta...';
+        
+        try {
+          const res = await fetch('/api/bufas-cards/market/put', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ user_card_id: (selectedGroup.unsoldIds[0] || null), price })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            alert('No se pudo poner en venta: ' + (data.error || 'error desconocido'));
+            return;
+          }
+          
+          // Recargar colección desde API para reflejar estado real
+          const result = await fetchUserCollection();
+          if (result.success) {
+            userCards = result.cards || [];
+            groupedCards = computeGroups();
+            filteredCards = [...groupedCards];
+            recomputeCounts();
+            displayStats({
+              totalCards: result.stats?.totalCards || 0,
+              totalValue: result.stats?.totalValue || 0,
+              uniquePlayers: result.stats?.uniquePlayers || 0,
+              cardsByRarity: result.stats?.cardsByRarity || { Bronze:0, Silver:0, Gold:0, Elite:0, Legend:0 }
+            });
+            displayCardsPaginated(filteredCards);
+          } else {
+            // fallback recompute to keep UI consistent
+            groupedCards = computeGroups();
+            filteredCards = [...groupedCards];
+            recomputeCounts();
+            displayCardsPaginated(filteredCards);
+          }
+          closeCardModal();
+          alert(`Carta puesta en venta por ${price} monedas`);
+        } catch (e) {
+          alert('Error de red al poner en venta');
+        } finally {
+          // Restaurar botón
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      });
+
+      document.getElementById('remove-from-sale-btn').addEventListener('click', async () => {
+        const button = document.getElementById('remove-from-sale-btn');
+        
+        // Prevenir clicks múltiples
+        if (button.disabled) return;
+        if (!selectedGroup) return;
+        
+        // Deshabilitar botón y mostrar estado de carga
+        button.disabled = true;
+        const originalText = button.textContent;
+        button.textContent = 'Quitando de venta...';
+        
+        try {
+          const removeId = selectedGroup.isListing ? selectedGroup.onSaleIds[0] : (selectedGroup.onSaleIds[0] || null);
+          if (!removeId) {
+            alert('No hay cartas en venta para quitar');
+            return;
+          }
+          const res = await fetch('/api/bufas-cards/market/remove', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ user_card_id: removeId })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            alert('No se pudo quitar de venta: ' + (data.error || 'error desconocido'));
+            return;
+          }
+          const result = await fetchUserCollection();
+          if (result.success) {
+            userCards = result.cards || [];
+            groupedCards = computeGroups();
+            filteredCards = [...groupedCards];
+            recomputeCounts();
+            displayStats({
+              totalCards: result.stats?.totalCards || 0,
+              totalValue: result.stats?.totalValue || 0,
+              uniquePlayers: result.stats?.uniquePlayers || 0,
+              cardsByRarity: result.stats?.cardsByRarity || { Bronze:0, Silver:0, Gold:0, Elite:0, Legend:0 }
+            });
+            displayCardsPaginated(filteredCards);
+          } else {
+            groupedCards = computeGroups();
+            filteredCards = [...groupedCards];
+            recomputeCounts();
+            displayCardsPaginated(filteredCards);
+          }
+          closeCardModal();
+          alert('Carta retirada del mercado');
+        } catch (e) {
+          alert('Error de red al quitar de venta');
+        } finally {
+          // Restaurar botón
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      });
+
+      // Close modal on backdrop click
+      document.getElementById('card-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'card-modal') {
+          closeCardModal();
+        }
+      });
+      
+      // Close filters modal on backdrop click
+      document.getElementById('filters-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'filters-modal') {
+          closeFiltersModal();
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', startCollectionPage);
+    document.addEventListener('astro:page-load', startCollectionPage);
+    document.addEventListener('astro:after-swap', startCollectionPage);
+  </script>
+</NikeFCLayout>

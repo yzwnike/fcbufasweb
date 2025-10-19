@@ -35,36 +35,7 @@ export async function putCardForSale(
   error?: string;
 }> {
   try {
-    // Verificar que la carta pertenece al usuario y no está ya en venta
-    const userCard = await executeQuerySingle<any>(
-      `SELECT uc.*, c.*, p.* FROM user_cards uc
-       JOIN cards c ON uc.card_id = c.id
-       JOIN players p ON c.player_id = p.id
-       WHERE uc.id = ? AND uc.user_id = ? AND uc.is_for_sale = false`,
-      [userCardId, userId]
-    );
-    
-    // Verificar también que no hay un trade activo para esta carta
-    const existingTrade = await executeQuerySingle<any>(
-      `SELECT id FROM card_trades WHERE user_card_id = ? AND status = 'ACTIVE'`,
-      [userCardId]
-    );
-    
-    if (existingTrade) {
-      return {
-        success: false,
-        error: 'Esta carta ya está en el mercado'
-      };
-    }
-
-    if (!userCard) {
-      return {
-        success: false,
-        error: 'Carta no encontrada o ya está en venta'
-      };
-    }
-
-    // Validar precio mínimo
+    // Validar precio mínimo (fuera de transacción)
     const minPrice = 50; // Precio mínimo de venta
     if (price < minPrice) {
       return {
@@ -72,8 +43,8 @@ export async function putCardForSale(
         error: `El precio mínimo es ${minPrice} monedas`
       };
     }
-
-    // Limite: máximo 10 cartas en venta
+    
+    // Limite máximo de cartas en venta (fuera de transacción)
     const activeCountRow = await executeQuerySingle<any>(
       "SELECT COUNT(*) AS cnt FROM card_trades WHERE seller_id = ? AND status = 'ACTIVE'",
       [userId]
@@ -83,20 +54,46 @@ export async function putCardForSale(
       return { success: false, error: 'Límite de 10 cartas en el mercado alcanzado' };
     }
 
-    // Debe ser duplicada: comprobar que el usuario tiene otra copia de la MISMA carta
-    const sameCardCountRow = await executeQuerySingle<any>(
-      `SELECT COUNT(*) AS cnt FROM user_cards WHERE user_id = ? AND card_id = (
-         SELECT card_id FROM user_cards WHERE id = ?
-       ) AND id <> ? AND is_for_sale = false`,
-      [userId, userCardId, userCardId]
-    );
-    const sameCardCount = Number(sameCardCountRow?.cnt || 0);
-    if (sameCardCount <= 0) {
-      return { success: false, error: 'Solo puedes vender cartas duplicadas' };
-    }
-
-    // Crear la entrada de intercambio en una transacción
+    // Crear la entrada de intercambio en una transacción con validaciones
     const tradeId = await executeTransaction(async (connection) => {
+      // Verificar que la carta pertenece al usuario y no está ya en venta (dentro de transacción)
+      const [userCardRows] = await connection.execute(
+        `SELECT uc.*, c.* FROM user_cards uc
+         JOIN cards c ON uc.card_id = c.id
+         WHERE uc.id = ? AND uc.user_id = ? AND uc.is_for_sale = false`,
+        [userCardId, userId]
+      );
+      
+      const userCardResults = Array.isArray(userCardRows) ? userCardRows : [];
+      if (userCardResults.length === 0) {
+        throw new Error('Carta no encontrada o ya está en venta');
+      }
+      
+      const userCard = userCardResults[0] as any;
+      
+      // Verificar también que no hay un trade activo para esta carta (dentro de transacción)
+      const [existingTradeRows] = await connection.execute(
+        `SELECT id FROM card_trades WHERE user_card_id = ? AND status = 'ACTIVE'`,
+        [userCardId]
+      );
+      
+      const existingTradeResults = Array.isArray(existingTradeRows) ? existingTradeRows : [];
+      if (existingTradeResults.length > 0) {
+        throw new Error('Esta carta ya está en el mercado');
+      }
+      
+      // Debe ser duplicada: comprobar que el usuario tiene otra copia de la MISMA carta (dentro de transacción)
+      const [sameCardRows] = await connection.execute(
+        `SELECT COUNT(*) AS cnt FROM user_cards WHERE user_id = ? AND card_id = ? AND id <> ? AND is_for_sale = false`,
+        [userId, userCard.card_id, userCardId]
+      );
+      
+      const sameCardResults = Array.isArray(sameCardRows) ? sameCardRows : [];
+      const sameCardCount = Number((sameCardResults[0] as any)?.cnt || 0);
+      if (sameCardCount <= 0) {
+        throw new Error('Solo puedes vender cartas duplicadas');
+      }
+
       // Marcar la carta como en venta
       await connection.execute(
         'UPDATE user_cards SET is_for_sale = true, sale_price = ? WHERE id = ?',
@@ -118,6 +115,18 @@ export async function putCardForSale(
     };
   } catch (error) {
     console.error('Error putting card for sale:', error);
+    
+    // Si el error viene de nuestras validaciones, devolver el mensaje específico
+    if (error instanceof Error && 
+        (error.message.includes('Carta no encontrada') || 
+         error.message.includes('ya está en el mercado') ||
+         error.message.includes('Solo puedes vender cartas duplicadas'))) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+    
     return {
       success: false,
       error: 'Error interno del servidor'
@@ -217,60 +226,73 @@ export async function buyCard(
       };
     }
 
-    // Procesar la compra en una transacción
+    // Procesar la compra en una transacción (solo operaciones esenciales)
     await executeTransaction(async (connection) => {
+      console.log('Starting simplified transaction for buyCard:', { buyerId, tradeId, price: trade.price });
+      
       // Transferir monedas del comprador al vendedor
+      console.log('Updating buyer coins:', { buyerId, amount: -trade.price });
       await connection.execute(
         'UPDATE users SET coins = coins - ? WHERE id = ?',
         [trade.price, buyerId]
       );
 
+      console.log('Updating seller coins:', { sellerId: trade.seller_id, amount: trade.price });
       await connection.execute(
         'UPDATE users SET coins = coins + ? WHERE id = ?',
         [trade.price, trade.seller_id]
       );
 
       // Transferir la carta al comprador
+      console.log('Transferring card:', { userCardId: trade.user_card_id, newOwnerId: buyerId });
       await connection.execute(
         'UPDATE user_cards SET user_id = ?, is_for_sale = false, sale_price = NULL WHERE id = ?',
         [buyerId, trade.user_card_id]
       );
 
       // Marcar el intercambio como completado
+      console.log('Marking trade as sold:', { tradeId, buyerId });
       await connection.execute(
         "UPDATE card_trades SET status = 'SOLD', buyer_id = ?, completed_at = NOW() WHERE id = ?",
         [buyerId, tradeId]
       );
-
-      // Registrar transacciones de monedas
-      await connection.execute(
-        'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
-        [buyerId, -trade.price, 'CARD_PURCHASE', `Compra de carta en el mercado`]
-      );
-
-      await connection.execute(
-        'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
-        [trade.seller_id, trade.price, 'CARD_SALE', `Venta de carta en el mercado`]
-      );
       
-      // Registrar venta para sistema de oferta/demanda
-      const cardInfo = await connection.execute(
+      console.log('Core transaction completed successfully for buyCard:', { buyerId, tradeId });
+    });
+
+    // Operaciones opcionales fuera de la transacción principal
+    try {
+      console.log('Recording coin transactions (optional)');
+      await executeQuery(
+        'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
+        [buyerId, -trade.price, 'CARD_PURCHASE', 'Compra de carta en el mercado']
+      );
+      await executeQuery(
+        'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
+        [trade.seller_id, trade.price, 'CARD_SALE', 'Venta de carta en el mercado']
+      );
+    } catch (coinError) {
+      console.warn('Warning: Could not record coin transactions:', coinError);
+    }
+
+    try {
+      console.log('Recording market history (optional)');
+      const cardInfo = await executeQuerySingle<any>(
         'SELECT c.special_type FROM user_cards uc JOIN cards c ON uc.card_id = c.id WHERE uc.id = ?',
         [trade.user_card_id]
       );
       
-      if (cardInfo[0] && Array.isArray(cardInfo[0]) && cardInfo[0].length > 0) {
-        const specialType = (cardInfo[0] as any)[0]?.special_type;
-        if (specialType && specialType !== 'Regular' && specialType !== 'OLD_GENERATION') {
-          // Insertar registro de venta para análisis de demanda
-          await connection.execute(
-            'INSERT INTO market_sales_history (special_type, price, sale_date) VALUES (?, ?, NOW())',
-            [specialType, trade.price]
-          );
-        }
+      if (cardInfo?.special_type && cardInfo.special_type !== 'Regular' && cardInfo.special_type !== 'OLD_GENERATION') {
+        await executeQuery(
+          'INSERT INTO market_sales_history (special_type, price, sale_date) VALUES (?, ?, NOW())',
+          [cardInfo.special_type, trade.price]
+        );
       }
-    });
+    } catch (historyError) {
+      console.warn('Warning: Could not record sale history:', historyError);
+    }
 
+    console.log('buyCard function completed successfully');
     return {
       success: true
     };

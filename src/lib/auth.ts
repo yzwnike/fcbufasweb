@@ -97,21 +97,22 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
       return { success: false, error: 'Password debe tener al menos 6 caracteres' };
     }
 
-    // Verificar si el usuario ya existe
-    const existingUser = await executeQuerySingle<User>(
-      'SELECT id FROM users WHERE email = ? OR username = ?',
-      [data.email, data.username]
-    );
-
-    if (existingUser) {
-      return { success: false, error: 'Usuario o email ya existe' };
-    }
-
     // Hash de la contraseña
     const passwordHash = await hashPassword(data.password);
 
-    // Crear usuario en una transacción
+    // Crear usuario en una transacción atómica con validación de duplicados
     const result = await executeTransaction(async (connection) => {
+      // Verificar si el usuario ya existe (dentro de la transacción para evitar race conditions)
+      const [existingUserRows] = await connection.execute(
+        'SELECT id FROM users WHERE email = ? OR username = ? FOR UPDATE',
+        [data.email, data.username]
+      );
+      
+      const existingUsers = Array.isArray(existingUserRows) ? existingUserRows : [];
+      if (existingUsers.length > 0) {
+        throw new Error('Usuario o email ya existe');
+      }
+
       // Insertar usuario
       const [userResult] = await connection.execute(
         'INSERT INTO users (username, email, password_hash, coins, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())',
@@ -152,6 +153,18 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
 
   } catch (error) {
     console.error('Register error:', error);
+    
+    // Si el error viene de nuestras validaciones o de constraints de DB
+    if (error instanceof Error) {
+      if (error.message.includes('Usuario o email ya existe')) {
+        return { success: false, error: error.message };
+      }
+      // Manejar errores de constraint de base de datos (unique key violations)
+      if (error.message.includes('Duplicate entry') || error.message.includes('UNIQUE constraint')) {
+        return { success: false, error: 'Usuario o email ya existe' };
+      }
+    }
+    
     return { success: false, error: 'Error interno del servidor' };
   }
 }

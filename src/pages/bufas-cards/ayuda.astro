@@ -1,0 +1,448 @@
+---
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
+import Subheader from '@/components/bufas-cards/Subheader.astro';
+---
+
+<NikeFCLayout title="Ayuda - Bufas Cards" helpKey="ayuda">
+  <div class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900">
+    <div class="container mx-auto px-4 py-6">
+      <!-- Subheader Nav -->
+      <Subheader variant="minimal" />
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Centro de Ayuda
+        </h1>
+        <p class="text-sm md:text-base text-blue-100 max-w-2xl mx-auto">
+          Guías completas y tutoriales para dominar todas las funciones de Bufas Cards
+        </p>
+      </div>
+
+      <!-- Help Sections -->
+      <div class="max-w-4xl mx-auto space-y-4">
+        
+        <!-- Dashboard -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="dashboard">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">🏠 Dashboard Principal</h3>
+                <p class="text-sm text-blue-200">Tu panel de control central</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="dashboard" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>¡Bienvenido a Bufas Cards!</strong> Este es tu panel principal donde puedes:</p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Ver tu perfil:</strong> Consulta tus monedas y nombre de usuario</li>
+                <li><strong>Acceder a todas las secciones:</strong> Quiz diario, sobres, colección, mercado, etc.</li>
+                <li><strong>Obtener un resumen:</strong> De todas las funcionalidades disponibles</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Tip:</strong> Completa el quiz diario para ganar monedas fácilmente.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="quiz">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">❓ Quiz Diario</h3>
+                <p class="text-sm text-blue-200">Demuestra tu conocimiento y gana monedas</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="quiz" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>¡Demuestra tu conocimiento sobre FC Bufas!</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>5 preguntas diarias</strong> sobre estadísticas de jugadores</li>
+                <li><strong>Gana monedas:</strong> 50 por respuesta correcta (máximo 250/día)</li>
+                <li><strong>Bonificaciones:</strong> Respuestas consecutivas dan bonos extra</li>
+                <li><strong>Se reinicia cada 24h</strong> para nuevas preguntas</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Estrategia:</strong> Estudia las stats de los jugadores en la sección colección.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sobres -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="packs">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 1v6m6-6v6"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">📦 Sobres de Cartas</h3>
+                <p class="text-sm text-blue-200">Expande tu colección con nuevas cartas</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="packs" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>¡Expande tu colección con sobres!</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Sobre gratis:</strong> Disponible cada 24 horas</li>
+                <li><strong>Sobres premium:</strong> Compra con monedas para mejores cartas</li>
+                <li><strong>Rareza:</strong> Normal, Especial, Elite y Legendario</li>
+                <li><strong>Duplicados:</strong> Las cartas duplicadas se pueden vender en el mercado</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Tip:</strong> Espera a tener suficientes monedas para sobres premium.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colección -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="collection">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">🗃️ Mi Colección</h3>
+                <p class="text-sm text-blue-200">Gestiona y organiza todas tus cartas</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="collection" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>Gestiona todas tus cartas aquí:</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Ver cartas:</strong> Ordena por jugador, posición o rareza</li>
+                <li><strong>Estadísticas:</strong> Consulta stats detalladas de cada carta</li>
+                <li><strong>Filtros:</strong> Encuentra rápidamente cartas específicas</li>
+                <li><strong>Vender:</strong> Pon cartas duplicadas en venta en el mercado</li>
+                <li><strong>Progreso:</strong> Ve tu distribución por rareza</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Meta:</strong> Intenta completar la colección al 100%.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mercado -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="market">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">💰 Mercado de Intercambio</h3>
+                <p class="text-sm text-blue-200">Compra y vende cartas con otros usuarios</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="market" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>Compra y vende cartas con otros usuarios:</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Vender:</strong> Pon tus cartas duplicadas a la venta por su precio base</li>
+                <li><strong>Comprar:</strong> Adquiere cartas que necesitas de otros jugadores</li>
+                <li><strong>Filtros:</strong> Busca por jugador, posición, rareza y precio</li>
+                <li><strong>Límite:</strong> Máximo 10 cartas en venta por usuario</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Estrategia:</strong> Solo puedes vender cartas que tienes duplicadas.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SBC -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="sbc">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2H7l5 5 5-5h-2v-2c0-1.657-1.343-3-3-3z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">🎯 SBC (Squad Building Challenges)</h3>
+                <p class="text-sm text-blue-200">Retos mensuales con grandes recompensas</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="sbc" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>Completa retos mensuales intercambiando cartas:</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Requisitos específicos:</strong> Media mínima, rareza, posiciones</li>
+                <li><strong>Entrega cartas:</strong> Cumple los requisitos y envía tu equipo</li>
+                <li><strong>Recompensas únicas:</strong> Sobres especiales o cartas exclusivas</li>
+                <li><strong>Retos mensuales:</strong> Nuevos desafíos cada mes</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Tip:</strong> Guarda cartas especiales para SBCs de alto valor.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fantasy -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="fantasy">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">⚡ Fantasy Rush</h3>
+                <p class="text-sm text-blue-200">Competición semanal basada en rendimiento real</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="fantasy" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>Competición semanal basada en rendimiento real:</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Elige 3 jugadores</strong> de tu colección cada semana</li>
+                <li><strong>Puntos reales:</strong> Basados en rendimiento en partidos reales</li>
+                <li><strong>Conversión:</strong> Cada punto = 20 monedas</li>
+                <li><strong>Ranking semanal:</strong> Compite con otros usuarios</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Estrategia:</strong> Elige jugadores que jugarán esta semana.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="ranking">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-slate-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 012-2h2a2 2 012 2v10m-6 0a2 2 002 2h2a2 2 002-2m0 0V5a2 2 012-2h2a2 2 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">🏆 Clasificaciones</h3>
+                <p class="text-sm text-blue-200">Ve tu posición en diferentes categorías</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="ranking" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>Ve tu posición en diferentes categorías:</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Ranking de monedas:</strong> Usuarios con más monedas</li>
+                <li><strong>Colección:</strong> % de cartas completadas</li>
+                <li><strong>Fantasy Rush:</strong> Mejores puntuaciones semanales</li>
+                <li><strong>Actividad:</strong> Usuarios más activos del mes</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Meta:</strong> Aparece en el top 10 de alguna categoría.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logros -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="logros">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 713.138-3.138z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">🏅 Sistema de Logros</h3>
+                <p class="text-sm text-blue-200">Desbloquea achievements y recompensas</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="logros" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>Desbloquea achievements y recompensas:</strong></p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Logros de colección:</strong> Por completar sets de cartas</li>
+                <li><strong>Logros de actividad:</strong> Por días consecutivos jugando</li>
+                <li><strong>Logros especiales:</strong> Eventos y retos únicos</li>
+                <li><strong>Recompensas:</strong> Monedas extra y títulos exclusivos</li>
+              </ul>
+              <p class="text-sm text-blue-200">💡 <strong>Meta:</strong> Intenta desbloquear todos los logros disponibles.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Helper -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden">
+          <button class="help-toggle w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors" data-target="helper">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">💙 Botón Helper</h3>
+                <p class="text-sm text-blue-200">Ayuda contextual en cada página</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-white transform transition-transform help-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div id="helper" class="help-content hidden px-6 pb-6">
+            <div class="bg-white/5 rounded-lg p-4 text-white">
+              <p class="mb-4"><strong>¿Ves el botón azul flotante en la esquina?</strong> ¡Es tu asistente personal!</p>
+              <ul class="list-disc pl-5 space-y-2 mb-4">
+                <li><strong>Siempre visible:</strong> Aparece en la esquina inferior derecha de cada página</li>
+                <li><strong>Ayuda contextual:</strong> Cambia automáticamente según la página en la que estés</li>
+                <li><strong>Información específica:</strong> Tips, estrategias y explicaciones para cada sección</li>
+                <li><strong>Fácil acceso:</strong> Un solo clic y obtienes ayuda inmediata</li>
+                <li><strong>Animación sutil:</strong> Pulsa suavemente para llamar tu atención</li>
+              </ul>
+              <div class="bg-blue-500/20 rounded-lg p-3 mb-4">
+                <p class="text-sm text-blue-100"><strong>🎯 Cómo usarlo:</strong></p>
+                <ol class="list-decimal pl-5 space-y-1 text-sm text-blue-100 mt-2">
+                  <li>Busca el botón azul con "?" en la esquina inferior derecha</li>
+                  <li>Haz clic para abrir la ayuda contextual</li>
+                  <li>Lee los consejos específicos de esa página</li>
+                  <li>Cierra con "¡Entendido!" o la "X"</li>
+                </ol>
+              </div>
+              <p class="text-sm text-blue-200">💡 <strong>Tip:</strong> El botón cambia su contenido automáticamente según donde estés. ¡Pruébalo en diferentes páginas!</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Additional Tips -->
+      <div class="max-w-4xl mx-auto mt-8">
+        <div class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-md rounded-xl p-6 border border-white/10">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white mb-3">💡 Consejos Generales</h3>
+              <div class="text-white space-y-2">
+                <p>• <strong>Rutina diaria:</strong> Completa el quiz y reclama el sobre gratis cada 24h</p>
+                <p>• <strong>Gestión de monedas:</strong> Ahorra para sobres premium antes de comprar cartas individuales</p>
+                <p>• <strong>Mercado inteligente:</strong> Vende cartas caras duplicadas y compra las que necesitas más baratas</p>
+                <p>• <strong>Planificación SBC:</strong> Guarda cartas especiales para retos de alto valor</p>
+                <p>• <strong>Fantasy estratégico:</strong> Elige jugadores que tendrán partidos esa semana</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</NikeFCLayout>
+
+<script>
+  function initializeHelpToggles() {
+    const toggles = document.querySelectorAll('.help-toggle');
+    
+    // Limpiar event listeners existentes para evitar duplicados
+    toggles.forEach(toggle => {
+      const newToggle = toggle.cloneNode(true);
+      toggle.parentNode.replaceChild(newToggle, toggle);
+    });
+    
+    // Obtener los nuevos toggles después del reemplazo
+    const newToggles = document.querySelectorAll('.help-toggle');
+    
+    newToggles.forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const target = this.getAttribute('data-target');
+        const content = document.getElementById(target);
+        const arrow = this.querySelector('.help-arrow');
+        
+        if (content && arrow) {
+          const isHidden = content.classList.contains('hidden');
+          
+          if (isHidden) {
+            content.classList.remove('hidden');
+            arrow.classList.add('rotate-180');
+            content.style.maxHeight = content.scrollHeight + 'px';
+          } else {
+            content.classList.add('hidden');
+            arrow.classList.remove('rotate-180');
+            content.style.maxHeight = '0px';
+          }
+        }
+      });
+    });
+  }
+  
+  // Inicializar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeHelpToggles);
+  } else {
+    initializeHelpToggles();
+  }
+
+  // Reinicializar en navegaciones de Astro
+  document.addEventListener('astro:page-load', initializeHelpToggles);
+  document.addEventListener('astro:after-swap', initializeHelpToggles);
+</script>
+
+<style>
+  .help-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+  }
+  
+  .help-arrow {
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .help-toggle:hover .help-arrow {
+    transform: translateY(2px);
+  }
+</style>

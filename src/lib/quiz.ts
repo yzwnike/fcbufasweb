@@ -45,23 +45,67 @@ export interface QuizAnswer {
 
 // Generar opciones incorrectas para una pregunta
 function generateIncorrectOptions(correctAnswer: number, statName: StatName): [number, number] {
-  const baseRange = statName === 'fifa_rating' ? 20 : 15;
-  const minStat = statName === 'fifa_rating' ? 30 : 10;
+  const minStat = statName === 'fifa_rating' ? 30 : 1;
   const maxStat = statName === 'fifa_rating' ? 95 : 99;
   
-  const options = new Set<number>();
+  // Crear todas las opciones posibles dentro del rango ±3
+  const possibleOffsets = [-3, -2, -1, 1, 2, 3];
+  const possibleOptions: number[] = [];
   
-  // Generar opciones cercanas al valor correcto
-  while (options.size < 2) {
-    const variation = Math.floor(Math.random() * baseRange * 2) - baseRange;
-    const option = Math.max(minStat, Math.min(maxStat, correctAnswer + variation));
-    
-    if (option !== correctAnswer && !options.has(option)) {
-      options.add(option);
+  // Generar todas las opciones válidas
+  for (const offset of possibleOffsets) {
+    const candidate = Math.max(minStat, Math.min(maxStat, correctAnswer + offset));
+    if (candidate !== correctAnswer && !possibleOptions.includes(candidate)) {
+      possibleOptions.push(candidate);
     }
   }
   
-  return Array.from(options) as [number, number];
+  // Si no tenemos suficientes opciones, expandir el rango
+  if (possibleOptions.length < 2) {
+    const expandedOffsets = [-5, -4, 4, 5];
+    for (const offset of expandedOffsets) {
+      if (possibleOptions.length >= 2) break;
+      const candidate = Math.max(minStat, Math.min(maxStat, correctAnswer + offset));
+      if (candidate !== correctAnswer && !possibleOptions.includes(candidate)) {
+        possibleOptions.push(candidate);
+      }
+    }
+  }
+  
+  // Fisher-Yates shuffle para verdadera aleatoriedad
+  function fisherYatesShuffle<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+  
+  // Mezclar opciones y seleccionar las primeras 2
+  const shuffledOptions = fisherYatesShuffle(possibleOptions);
+  const selectedOptions = shuffledOptions.slice(0, 2);
+  
+  // Debug logging
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] Generated options for correct=${correctAnswer}: possibleOptions=[${possibleOptions.join(',')}], selected=[${selectedOptions.join(',')}]`);
+  
+  // Fallback si aún no hay suficientes (muy raro)
+  while (selectedOptions.length < 2) {
+    let attempts = 0;
+    while (attempts < 50 && selectedOptions.length < 2) {
+      const variation = Math.floor(Math.random() * 10) - 5; // ±5 como fallback
+      const option = Math.max(minStat, Math.min(maxStat, correctAnswer + variation));
+      
+      if (option !== correctAnswer && !selectedOptions.includes(option)) {
+        selectedOptions.push(option);
+      }
+      attempts++;
+    }
+    break;
+  }
+  
+  return selectedOptions as [number, number];
 }
 
 // Generar preguntas diarias
@@ -104,9 +148,16 @@ export async function generateDailyQuestions(date: string = currentQuizDate()): 
         // Generar opciones incorrectas
         const [incorrectOption1, incorrectOption2] = generateIncorrectOptions(correctAnswer, statName);
         
-        // Mezclar las opciones aleatoriamente
+        // Mezclar las opciones usando Fisher-Yates para garantizar distribución uniforme
         const allOptions = [correctAnswer, incorrectOption1, incorrectOption2];
-        const shuffledOptions = allOptions.sort(() => Math.random() - 0.5);
+        
+        // Algoritmo Fisher-Yates para shuffle verdaderamente aleatorio
+        for (let i = allOptions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+        }
+        
+        const shuffledOptions = allOptions;
         
         // Insertar la pregunta
         await connection.execute(
@@ -306,24 +357,36 @@ export async function answerQuizQuestion(
 
     // Guardar respuesta y actualizar monedas en una transacción
     await executeTransaction(async (connection) => {
+      console.log(`Processing quiz answer: userId=${userId}, questionId=${questionId}, isCorrect=${isCorrect}, coinsEarned=${coinsEarned}`);
+      
       // Insertar respuesta
-      await connection.execute(
+      const [answerResult] = await connection.execute(
         'INSERT INTO daily_quiz_answers (user_id, question_id, selected_answer, is_correct, coins_earned) VALUES (?, ?, ?, ?, ?)',
         [userId, questionId, selectedAnswer, isCorrect, coinsEarned]
       );
+      
+      console.log(`Answer inserted with ID: ${(answerResult as any).insertId}`);
 
       if (coinsEarned > 0) {
+        console.log(`Awarding ${coinsEarned} coins to user ${userId}`);
+        
         // Actualizar monedas del usuario
-        await connection.execute(
+        const [updateResult] = await connection.execute(
           'UPDATE users SET coins = coins + ? WHERE id = ?',
           [coinsEarned, userId]
         );
+        
+        console.log(`User coins updated, affected rows: ${(updateResult as any).affectedRows}`);
 
         // Registrar transacción de monedas
-        await connection.execute(
+        const [transactionResult] = await connection.execute(
           'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
           [userId, coinsEarned, 'DAILY_QUIZ', `Respuesta correcta en quiz diario - Pregunta ${question.question_number}`]
         );
+        
+        console.log(`Coin transaction recorded with ID: ${(transactionResult as any).insertId}`);
+      } else {
+        console.log(`No coins earned for incorrect answer`);
       }
 
       // Actualizar última fecha de quiz
@@ -333,6 +396,7 @@ export async function answerQuizQuestion(
           'UPDATE users SET last_daily_quiz = ? WHERE id = ?',
           [today, userId]
         );
+        console.log(`Updated last_daily_quiz for user ${userId} to ${today}`);
       }
     });
 
@@ -523,4 +587,43 @@ export function getStatDisplayName(statName: StatName): string {
   };
 
   return translations[statName] || statName;
+}
+
+// Helper de debug para verificar distribución de opciones (solo para desarrollo)
+export function debugOptionDistribution(correctAnswer: number, statName: StatName, iterations: number = 1000): {
+  positionDistribution: { a: number, b: number, c: number };
+  optionRanges: { min: number, max: number, average: number };
+} {
+  const positions = { a: 0, b: 0, c: 0 };
+  const allIncorrectOptions: number[] = [];
+  
+  for (let i = 0; i < iterations; i++) {
+    const [incorrect1, incorrect2] = generateIncorrectOptions(correctAnswer, statName);
+    allIncorrectOptions.push(incorrect1, incorrect2);
+    
+    // Simular el shuffle
+    const allOptions = [correctAnswer, incorrect1, incorrect2];
+    for (let j = allOptions.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [allOptions[j], allOptions[k]] = [allOptions[k], allOptions[j]];
+    }
+    
+    // Contar en qué posición quedó la respuesta correcta
+    const correctPosition = allOptions.indexOf(correctAnswer);
+    if (correctPosition === 0) positions.a++;
+    else if (correctPosition === 1) positions.b++;
+    else if (correctPosition === 2) positions.c++;
+  }
+  
+  // Calcular estadísticas de los rangos de opciones incorrectas
+  const distances = allIncorrectOptions.map(opt => Math.abs(opt - correctAnswer));
+  
+  return {
+    positionDistribution: positions,
+    optionRanges: {
+      min: Math.min(...distances),
+      max: Math.max(...distances), 
+      average: Math.round(distances.reduce((a, b) => a + b, 0) / distances.length * 100) / 100
+    }
+  };
 }

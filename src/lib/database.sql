@@ -1,4 +1,4 @@
--- Nike FC Cards Database Schema (clean + real images support)
+-- Bufas Cards Database Schema (clean + real images support)
 CREATE DATABASE IF NOT EXISTS bufas_cards CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE bufas_cards;
 

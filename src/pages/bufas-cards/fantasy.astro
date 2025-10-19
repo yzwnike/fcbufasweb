@@ -1,0 +1,1038 @@
+---
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
+import Subheader from '@/components/bufas-cards/Subheader.astro';
+---
+
+<NikeFCLayout title="Fantasy - Bufas Cards" helpKey="fantasy">
+  <div class="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900">
+    <div class="container mx-auto px-4 py-2">
+      <!-- Subheader Nav -->
+      <Subheader variant="minimal" />
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h1 class="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
+          Fantasy Rush
+        </h1>
+        <p class="text-xs md:text-sm text-purple-100 mb-1 md:mb-2 px-2">
+          Elige tu equipo semanal de 3 Jugadores
+          Los puntos fantasy se convierten en monedas
+        </p>
+      </div>
+
+      <!-- Auth Check -->
+      <div id="not-logged-in" class="hidden text-center">
+        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
+          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
+          <p class="text-red-200 mb-6">Debes iniciar sesión para participar en Fantasy Rush</p>
+          <a href="/bufas-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
+            Iniciar Sesión
+          </a>
+        </div>
+      </div>
+
+      <!-- Fantasy Rush Container -->
+      <div id="fantasy-container" class="hidden">
+        
+
+        <!-- Player Selection -->
+        <div id="player-selection" class="space-y-2 md:space-y-8">
+          <h2 class="text-xs md:text-base font-bold text-white text-center mb-1">Selecciona Tu Equipo</h2>
+          <div class="text-center text-purple-200 mb-1 md:mb-2 text-xs md:text-sm" id="week-label-top"></div>
+
+          <!-- Position Tabs -->
+          <div class="flex justify-center mb-6 hidden">
+            <div class="bg-white/10 rounded-lg p-1">
+              <button id="tab-forward" class="tab-button px-4 py-2 rounded-lg font-semibold transition-colors bg-purple-500 text-white">
+                Delanteros
+              </button>
+              <button id="tab-midfielder" class="tab-button px-4 py-2 rounded-lg font-semibold transition-colors text-purple-200 hover:text-white">
+                Centrocampistas
+              </button>
+              <button id="tab-defender" class="tab-button px-4 py-2 rounded-lg font-semibold transition-colors text-purple-200 hover:text-white">
+                Defensas/Porteros
+              </button>
+            </div>
+          </div>
+
+          <!-- Responsive Player Layout -->
+          <div class="w-full max-w-none mx-auto">
+            <!-- Desktop Layout (7-column grid) -->
+            <div class="hidden md:block space-y-2">
+              <div id="labels" class="relative z-10 grid grid-cols-7 gap-2 w-full"></div>
+              <div class="relative w-full">
+                <!-- Vertical separators only across player rows -->
+                <div class="pointer-events-none absolute inset-0 z-0">
+                  <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 2 / 7);"></div>
+                  <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 5 / 7);"></div>
+                </div>
+                <div id="row1" class="relative z-10 grid grid-cols-7 gap-0 w-full"></div>
+                <div id="row2" class="relative z-10 grid grid-cols-7 gap-0 w-full"></div>
+              </div>
+            </div>
+            
+            <!-- Mobile Layout (Carousel slider) -->
+            <div class="md:hidden">
+              <!-- Section indicator and navigation -->
+              <div class="flex items-center mb-3">
+                <div class="w-12 flex justify-center">
+                  <button id="mobile-prev" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded text-white">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div class="text-center flex-1 px-2">
+                  <h3 id="current-section-title" class="text-white font-semibold text-xs mb-1">DELANTEROS</h3>
+                  <div class="flex gap-1 justify-center">
+                    <div id="dot-0" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                    <div id="dot-1" class="w-1.5 h-1.5 rounded-full bg-white/30"></div>
+                    <div id="dot-2" class="w-1.5 h-1.5 rounded-full bg-white/30"></div>
+                  </div>
+                </div>
+                
+                <div class="w-12 flex justify-center">
+                  <button id="mobile-next" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded text-white">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Carousel container with sliding sections -->
+              <div class="bg-white/5 rounded-lg p-4 overflow-hidden">
+                <div id="mobile-carousel-track" class="flex transition-transform duration-500 ease-in-out">
+                  <div id="forwards-mobile" class="w-full flex-shrink-0 grid grid-cols-2 gap-3"></div>
+                  <div id="midfielders-mobile" class="w-full flex-shrink-0 grid grid-cols-2 gap-3"></div>
+                  <div id="defenders-mobile" class="w-full flex-shrink-0 grid grid-cols-2 gap-3"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selection Summary - Compact horizontal line -->
+          <div id="selection-summary" class="max-w-4xl mx-auto">
+            <!-- Mobile compact line -->
+            <div class="md:hidden bg-white/10 backdrop-blur-md rounded-lg p-3 mb-3">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex-1 text-center">
+                  <div class="w-20 h-10 mx-auto mb-1 bg-white/20 rounded border-2 flex items-center justify-center" id="slot-forward-mobile">
+                    <span class="text-xs text-white font-bold">D</span>
+                  </div>
+                </div>
+                <div class="flex-1 text-center">
+                  <div class="w-20 h-10 mx-auto mb-1 bg-white/20 rounded border-2 flex items-center justify-center" id="slot-midfielder-mobile">
+                    <span class="text-xs text-white font-bold">C</span>
+                  </div>
+                </div>
+                <div class="flex-1 text-center">
+                  <div class="w-20 h-10 mx-auto mb-1 bg-white/20 rounded border-2 flex items-center justify-center" id="slot-defender-mobile">
+                    <span class="text-xs text-white font-bold">DF</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Desktop layout -->
+            <div class="hidden md:block bg-white/10 backdrop-blur-md rounded-xl p-4 md:p-6">
+              <h3 class="text-lg md:text-xl font-bold text-white text-center mb-4">Selección Actual</h3>
+              <div class="grid grid-cols-3 gap-6 text-center mb-6">
+                <div id="forward-container" class="bg-white/5 rounded-lg p-4 min-w-0">
+                  <div class="text-purple-200 mb-2 text-sm">Delantero</div>
+                  <div class="text-white font-bold text-sm" id="summary-forward">No seleccionado</div>
+                </div>
+                <div id="midfielder-container" class="bg-white/5 rounded-lg p-4 min-w-0">
+                  <div class="text-purple-200 mb-2 text-sm">Centrocampista</div>
+                  <div class="text-white font-bold text-sm" id="summary-midfielder">No seleccionado</div>
+                </div>
+                <div id="defender-container" class="bg-white/5 rounded-lg p-4 min-w-0">
+                  <div class="text-purple-200 mb-2 text-sm">Defensa/Portero</div>
+                  <div class="text-white font-bold text-sm" id="summary-defender">No seleccionado</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center mt-3">
+              <button id="confirm-selection-btn" class="w-full md:w-auto px-6 md:px-8 py-2 md:py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-500 text-sm md:text-base" disabled>
+                Confirmar Selección
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="text-center py-8">
+          <div class="text-white">Cargando jugadores...</div>
+        </div>
+
+        <!-- Locked notice -->
+        <div id="fantasy-locked" class="hidden text-center py-12">
+          <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
+            <div class="text-5xl mb-4">🔒</div>
+            <h2 class="text-3xl font-bold text-white mb-2">Fantasy no disponible</h2>
+            <p class="text-red-200">Las plantillas están cerradas por esta jornada. Vuelve cuando empiece la próxima.</p>
+            <div class="mt-6">
+              <a href="/bufas-cards" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors">Volver</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selection Summary (final view) -->
+      <div id="selection-summary-view" class="hidden">
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 md:p-8 max-w-5xl mx-auto">
+          <div class="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-6 gap-2">
+            <h2 class="text-xl md:text-3xl font-bold text-white">Tu Equipo</h2>
+            <div class="text-purple-200 text-sm md:text-base" id="week-label">Jornada</div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="bg-white/5 rounded-xl p-3 md:p-4 text-center">
+              <div class="text-purple-300 mb-2 text-sm">Delantero</div>
+              <div id="view-forward" class="text-white text-sm">-</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-3 md:p-4 text-center">
+              <div class="text-purple-300 mb-2 text-sm">Centrocampista</div>
+              <div id="view-midfielder" class="text-white text-sm">-</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-3 md:p-4 text-center">
+              <div class="text-purple-300 mb-2 text-sm">Defensa/Portero</div>
+              <div id="view-defender" class="text-white text-sm">-</div>
+            </div>
+          </div>
+          <div class="mt-6 md:mt-8 text-center">
+            <div id="points-info" class="text-base md:text-xl text-yellow-300">Puntos al finalizar el partido</div>
+          </div>
+          <div class="mt-4 md:mt-6 text-center">
+            <a href="/bufas-cards" class="inline-block w-full md:w-auto px-6 py-2 md:py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors text-sm md:text-base">Volver al Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settle Modal (simple) -->
+  <div id="settle-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-bold mb-2">Resultados jornada anterior</h3>
+      <p class="text-gray-700 mb-4">Tus jugadores sumaron <span id="settle-points" class="font-bold">0</span> puntos. Recibirás <span id="settle-coins" class="font-bold">0</span> monedas (×20).</p>
+      <div class="flex gap-3 justify-end">
+        <button id="settle-confirm" class="px-4 py-2 rounded bg-green-600 text-white">Recibir monedas</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentUser = null;
+    let authToken = null;
+    const storage = window.sessionStorage;
+    let eligiblePlayers = { forwards: [], midfielders: [], defenders: [] };
+    
+function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-48 md:h-64 object-contain\"/>` : `<div class=\\\"w-full h-48 md:h-64 bg-purple-500\\\"></div>`; }
+    let currentSelection = null;
+    let currentJornadaNum = null;
+    let selectedPlayers = {
+      forward: null,
+      midfielder: null,
+      defender: null
+    };
+    let restPlayerIds = [];
+
+    // Auth functions
+    function checkAuthState() {
+      const token = storage.getItem('nike_fc_token');
+      if (token) {
+        authToken = token;
+        return true;
+      }
+      return false;
+    }
+
+    // UI functions
+    function showSection(sectionId) {
+      const sections = ['not-logged-in', 'fantasy-container', 'selection-success', 'loading'];
+      sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.classList.toggle('hidden', id !== sectionId);
+        }
+      });
+    }
+
+    function showTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('bg-purple-500', 'text-white');
+        btn.classList.add('text-purple-200');
+      });
+      
+      const activeTab = document.getElementById(`tab-${tabName}`);
+      if (activeTab) {
+        activeTab.classList.add('bg-purple-500', 'text-white');
+        activeTab.classList.remove('text-purple-200');
+      }
+
+      // Show corresponding player list
+      document.querySelectorAll('.player-list').forEach(list => {
+        list.classList.add('hidden');
+      });
+      
+      const activeList = document.getElementById(`${tabName}s-list`);
+      if (activeList) {
+        activeList.classList.remove('hidden');
+      }
+    }
+
+    // API calls
+    async function fetchEligiblePlayers() {
+      try {
+        const response = await fetch('/api/bufas-cards/fantasy/eligible', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching eligible players:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    async function fetchCurrentSelection() {
+      try {
+        const response = await fetch('/api/bufas-cards/fantasy/selection', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching current selection:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    async function fetchFantasyLock() {
+      try {
+        const res = await fetch('/api/bufas-cards/fantasy/admin/lock', { cache: 'no-store' });
+        return await res.json();
+      } catch (e) { return { success: false }; }
+    }
+
+    async function createSelection() {
+      try {
+        const response = await fetch('/api/bufas-cards/fantasy/selection', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}` 
+          },
+          body: JSON.stringify({
+            forwardPlayerId: selectedPlayers.forward.id,
+            midfielderPlayerId: selectedPlayers.midfielder.id,
+            defenderPlayerId: selectedPlayers.defender.id,
+            jornada: (function(){
+              const v = localStorage.getItem('fantasy_jornada_override');
+              const n = Number(v);
+              return Number.isFinite(n) ? n : undefined;
+            })()
+          })
+        });
+        if (!response.ok) {
+          const txt = await response.text();
+          console.log('selection HTTP error', response.status, txt);
+          alert('HTTP ' + response.status + ': ' + txt);
+          try { return JSON.parse(txt); } catch { return { success:false, error: txt }; }
+        }
+        const json = await response.json();
+        console.log('selection result', json);
+        return json;
+      } catch (error) {
+        console.error('Error creating selection:', error);
+        return { success: false, error: 'Error de conexión' };
+      }
+    }
+
+    // Display functions
+    function formatWeekLabel(weekStartStr) {
+      try {
+        const d = new Date(weekStartStr + 'T00:00:00');
+        return 'Jornada ' + d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+      } catch { return 'Jornada'; }
+    }
+
+    function renderPlayerMini(p, imagePathOverride) {
+      const imgPath = imagePathOverride || p?.best_image_path || p?.image_path || p?.image_url || null;
+      if (!p) return '<div class="text-purple-200">-</div>';
+      const img = imgPath ? `<img src=\"${imgPath}\" class=\"w-full h-32 md:h-56 object-contain rounded-lg\"/>` : '';
+      return `
+        <div class="space-y-1 md:space-y-2">
+          ${img}
+          <div class="font-bold text-sm md:text-base">${p.name}</div>
+          <div class="text-purple-200 text-xs md:text-sm">${p.position1}</div>
+        </div>`;
+    }
+
+    function showSummaryView(sel) {
+      // Hide selector container, show summary
+      document.getElementById('player-selection').classList.add('hidden');
+      document.getElementById('selection-summary-view').classList.remove('hidden');
+      // Week/Jornada label
+      const jLabel = (sel && sel.jornada) ? sel.jornada : (currentJornadaNum || null);
+      document.getElementById('week-label').textContent = (jLabel ? (`Jornada ${jLabel}`) : formatWeekLabel(sel?.week_start || (getWeekStart().toISOString().slice(0,10))));
+      // Players
+      document.getElementById('view-forward').innerHTML = renderPlayerMini(sel.forward_player || selectedPlayers.forward, sel.forward_card_image_path);
+      document.getElementById('view-midfielder').innerHTML = renderPlayerMini(sel.midfielder_player || selectedPlayers.midfielder, sel.midfielder_card_image_path);
+      document.getElementById('view-defender').innerHTML = renderPlayerMini(sel.defender_player || selectedPlayers.defender, sel.defender_card_image_path);
+      // Points info
+      const pts = sel.total_points || 0;
+      document.getElementById('points-info').textContent = pts > 0 ? (`Puntos: ${pts} (monedas x20)`) : 'Puntos al finalizar el partido';
+    }
+
+    function displayCurrentSelection(selection) {
+      if (selection && selection.forward_player_id) {
+        // Already has a selection: show summary view
+        showSummaryView(selection);
+        return;
+      }
+      // Else: show selector to pick
+      document.getElementById('player-selection').classList.remove('hidden');
+      document.getElementById('week-label-top').textContent = formatWeekLabel(getWeekStart().toISOString().slice(0,10));
+    }
+
+    function displayPlayers() {
+      const fw = (eligiblePlayers.forwards || []).slice(0, 4);
+      const mids = (eligiblePlayers.midfielders || []).slice(0, 6);
+      const defs = (eligiblePlayers.defenders || []).slice(0, 4);
+
+      // Desktop Layout
+      displayDesktopPlayers(fw, mids, defs);
+      
+      // Mobile Layout
+      displayMobilePlayers(fw, mids, defs);
+    }
+
+    function displayDesktopPlayers(fw, mids, defs) {
+      const labels = document.getElementById('labels');
+      const row1 = document.getElementById('row1');
+      const row2 = document.getElementById('row2');
+      if (!labels || !row1 || !row2) return;
+
+      [labels, row1, row2].forEach(el => el.innerHTML = '');
+
+      // Build label row with exact spans and without flex (prevents drift)
+      const makeLabelGroup = (text, span, borderRight) => {
+        const g = document.createElement('div');
+        g.className = `col-span-${span} ${borderRight ? 'pr-3 md:pr-4' : 'pl-3 md:pl-4'}`;
+        const s = document.createElement('span');
+        s.className = 'block w-full text-center px-6 py-2 rounded-md bg-black/60 border border-white/10 text-white text-xl font-extrabold tracking-wide';
+        s.textContent = text;
+        g.appendChild(s);
+        return g;
+      };
+      labels.appendChild(makeLabelGroup('DELANTERO', 2, true));
+      labels.appendChild(makeLabelGroup('CENTROCAMPISTA', 3, true));
+      labels.appendChild(makeLabelGroup('DEFENSA & PORTERO', 2, false));
+
+      // Row builders: create group wrappers with borders and inner grids
+      const buildRow = (container, fwArr, midArr, defArr) => {
+        const g1 = document.createElement('div');
+        g1.className = 'col-span-2 pr-3 md:pr-4';
+        const g1grid = document.createElement('div');
+        g1grid.className = 'grid grid-cols-2 gap-0';
+        fwArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'forward')); g1grid.appendChild(w); });
+        g1.appendChild(g1grid);
+
+        const g2 = document.createElement('div');
+        g2.className = 'col-span-3 px-2 md:px-3';
+        const g2grid = document.createElement('div');
+        g2grid.className = 'grid grid-cols-3 gap-0';
+        midArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'midfielder')); g2grid.appendChild(w); });
+        g2.appendChild(g2grid);
+
+        const g3 = document.createElement('div');
+        g3.className = 'col-span-2 pl-2 md:pl-3';
+        const g3grid = document.createElement('div');
+        g3grid.className = 'grid grid-cols-2 gap-0';
+        defArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'defender')); g3grid.appendChild(w); });
+        g3.appendChild(g3grid);
+
+        container.appendChild(g1);
+        container.appendChild(g2);
+        container.appendChild(g3);
+      };
+
+      // Row 1: 2/3/2
+      buildRow(row1, fw.slice(0,2), mids.slice(0,3), defs.slice(0,2));
+      // Row 2: 2/3/2
+      buildRow(row2, fw.slice(2,4), mids.slice(3,6), defs.slice(2,4));
+    }
+
+    function displayMobilePlayers(fw, mids, defs) {
+      const forwardsMobile = document.getElementById('forwards-mobile');
+      const midfieldersMobile = document.getElementById('midfielders-mobile');
+      const defendersMobile = document.getElementById('defenders-mobile');
+      
+      if (!forwardsMobile || !midfieldersMobile || !defendersMobile) return;
+
+      // Clear existing content
+      [forwardsMobile, midfieldersMobile, defendersMobile].forEach(el => el.innerHTML = '');
+
+      // Populate forwards (2x2 grid)
+      fw.forEach(p => {
+        forwardsMobile.appendChild(createPlayerCard(p, 'forward'));
+      });
+
+      // Populate midfielders (2x3 grid - changed from 3x2 to fit better)
+      mids.forEach(p => {
+        midfieldersMobile.appendChild(createPlayerCard(p, 'midfielder'));
+      });
+
+      // Populate defenders (2x2 grid)
+      defs.forEach(p => {
+        defendersMobile.appendChild(createPlayerCard(p, 'defender'));
+      });
+      
+      // Setup carousel after populating
+      setupMobileCarousel();
+    }
+
+    // Mobile carousel state
+    let currentMobileSection = 0;
+    const mobileSections = [
+      { title: 'DELANTEROS', prev: null, next: 'CENTROCAMPISTAS' },
+      { title: 'CENTROCAMPISTAS', prev: 'DELANTEROS', next: 'DEFENSAS' },
+      { title: 'DEFENSAS', prev: 'CENTROCAMPISTAS', next: null }
+    ];
+
+    // Global references to avoid multiple listeners
+    let mobileCarouselInitialized = false;
+    
+    function setupMobileCarousel() {
+      // Only initialize once
+      if (mobileCarouselInitialized) return;
+      
+      const prevBtn = document.getElementById('mobile-prev');
+      const nextBtn = document.getElementById('mobile-next');
+      const track = document.getElementById('mobile-carousel-track');
+      
+      if (!prevBtn || !nextBtn || !track) return;
+      
+      const newPrevBtn = prevBtn;
+      const newNextBtn = nextBtn;
+      const newTrack = track;
+      
+      newPrevBtn.addEventListener('click', () => moveMobileCarousel(-1));
+      newNextBtn.addEventListener('click', () => moveMobileCarousel(1));
+      
+      // Initialize carousel state
+      currentMobileSection = 0;
+      newTrack.style.transform = 'translateX(0%)';
+      newTrack.style.transition = 'transform 0.5s ease-in-out';
+      
+      // Add touch/swipe gesture support
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
+      
+      newTrack.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        newTrack.style.transition = 'none'; // Disable transition during drag
+      }, { passive: true });
+      
+      newTrack.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentX = e.touches[0].clientX;
+        const deltaX = currentX - startX;
+        const currentTranslate = -currentMobileSection * 100;
+        const dragPercentage = (deltaX / newTrack.clientWidth) * 100;
+        newTrack.style.transform = `translateX(${currentTranslate + dragPercentage}%)`;
+      }, { passive: true });
+      
+      newTrack.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        newTrack.style.transition = 'transform 0.5s ease-in-out'; // Re-enable transition
+        
+        const deltaX = currentX - startX;
+        const threshold = 30; // Minimum swipe distance
+        
+        if (Math.abs(deltaX) > threshold) {
+          if (deltaX > 0 && currentMobileSection > 0) {
+            moveMobileCarousel(-1); // Swipe right -> go to previous
+          } else if (deltaX < 0 && currentMobileSection < mobileSections.length - 1) {
+            moveMobileCarousel(1); // Swipe left -> go to next
+          } else {
+            // Snap back to current position
+            newTrack.style.transform = `translateX(${-currentMobileSection * 100}%)`;
+          }
+        } else {
+          // Snap back to current position
+          newTrack.style.transform = `translateX(${-currentMobileSection * 100}%)`;
+        }
+      }, { passive: true });
+      
+      // Mark as initialized
+      mobileCarouselInitialized = true;
+      
+      updateMobileCarouselUI();
+    }
+
+    // Add debounce protection for carousel movement
+    let isCarouselMoving = false;
+    
+    function moveMobileCarousel(direction) {
+      // Prevent multiple rapid calls
+      if (isCarouselMoving) return;
+      
+      const newSection = currentMobileSection + direction;
+      
+      if (newSection < 0 || newSection >= mobileSections.length) return;
+      
+      isCarouselMoving = true;
+      currentMobileSection = newSection;
+      
+      // Apply sliding transform to carousel track
+      const track = document.getElementById('mobile-carousel-track');
+      if (track) {
+        const translateX = -currentMobileSection * 100; // Each section is 100% width
+        track.style.transform = `translateX(${translateX}%)`;
+        track.style.transition = 'transform 0.5s ease-in-out';
+      }
+      
+      // Update UI
+      updateMobileCarouselUI();
+      
+      // Re-enable after animation completes
+      setTimeout(() => {
+        isCarouselMoving = false;
+      }, 500); // Match the CSS transition duration
+    }
+
+    function updateMobileCarouselUI() {
+      const currentSection = mobileSections[currentMobileSection];
+      
+      // Update title
+      const titleEl = document.getElementById('current-section-title');
+      if (titleEl) titleEl.textContent = currentSection.title;
+      
+      // Update navigation labels
+      const prevLabel = document.getElementById('prev-label');
+      const nextLabel = document.getElementById('next-label');
+      const prevBtn = document.getElementById('mobile-prev');
+      const nextBtn = document.getElementById('mobile-next');
+      
+      if (prevLabel) prevLabel.textContent = currentSection.prev || '-';
+      if (nextLabel) nextLabel.textContent = currentSection.next || '-';
+      
+      if (prevBtn) {
+        prevBtn.disabled = !currentSection.prev;
+        if (currentSection.prev) {
+          prevBtn.classList.remove('invisible');
+        } else {
+          prevBtn.classList.add('invisible');
+        }
+      }
+      if (nextBtn) {
+        nextBtn.disabled = !currentSection.next;
+        if (currentSection.next) {
+          nextBtn.classList.remove('invisible');
+        } else {
+          nextBtn.classList.add('invisible');
+        }
+      }
+      
+      // Update dots
+      for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (dot) {
+          dot.className = i === currentMobileSection 
+            ? 'w-2 h-2 rounded-full bg-white'
+            : 'w-2 h-2 rounded-full bg-white/30';
+        }
+      }
+    }
+
+    function createPlayerCard(player, position) {
+      const card = document.createElement('div');
+      const disabled = !player.owned; const owned = !!player.owned;
+      const resting = restPlayerIds.includes(player.id);
+      card.className = `player-card group relative inline-block w-full transition-all ${disabled || resting ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:scale-105 cursor-pointer'}`;
+      card.dataset.playerId = player.id;
+      card.dataset.position = position; card.dataset.owned = owned ? 'true' : 'false';
+
+      const img = playerImg(player.best_image_path || player.image_path);
+      card.innerHTML = `
+        <div class=\"relative overflow-hidden rounded-lg\" ${resting ? 'title=\\\"Descanso: jugó la jornada anterior\\\"' : ''}>
+          ${resting ? '<div class=\"absolute inset-0 bg-red-700/40 z-10\"></div><div class=\"absolute top-2 left-2 z-20 text-red-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18\" /></svg></div><div class=\"absolute bottom-2 right-2 z-20 bg-red-600/90 text-white text-[10px] px-2 py-1 rounded\">DESCANSO</div>' : ''}
+          ${img}
+          <div class=\"absolute inset-0 -translate-x-full bg-gradient-to-tr from-transparent via-white/20 to-transparent transition-transform duration-700 ease-in-out group-hover:translate-x-full\"></div>
+          <div class=\"absolute inset-0 rounded-lg border-0 opacity-0 transition-all duration-300 group-hover:border-2 group-hover:opacity-100 border-pink-400/70\"></div>
+          <div class=\"absolute inset-0 flex translate-y-2 flex-col items-center justify-end rounded-lg bg-gradient-to-t from-pink-950/90 via-pink-950/40 to-transparent p-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100\">
+            <h3 class=\"text-pink-300 text-[10px] font-semibold tracking-wide drop-shadow\">${player.name}</h3>
+          </div>
+          <div class=\"bg-pink-400 absolute -bottom-1 left-1/2 h-1 w-0 -translate-x-1/2 transform rounded-t-md transition-all duration-300 group-hover:w-2/3\"></div>
+        </div>
+        ${disabled ? '<div class=\"text-[10px] text-purple-300 mt-1 text-center\">No tienes carta</div>' : ''}
+      `;
+
+      if (!disabled && !resting) { // click only if not disabled by ownership or rest
+        card.addEventListener('click', () => {
+          selectPlayer(player, position);
+        });
+      }
+      return card;
+    }
+
+    function selectPlayer(player, position) {
+      // Ignore if this card is locked
+      const clicked = document.querySelector(`.player-card[data-player-id=\"${player.id}\"][data-position=\"${position}\"]`);
+      if (clicked && clicked.classList.contains('locked')) {
+        return;
+      }
+      if (restPlayerIds.includes(player.id)) {
+        return; // rest lock
+      }
+      if (!player.owned) {
+        return;
+      }
+      selectedPlayers[position] = player;
+      
+      // Update visual selection
+      document.querySelectorAll(`.player-card[data-position="${position}"]`).forEach(card => {
+        card.classList.remove('border-green-500', 'bg-green-500/20');
+        card.classList.add('border-transparent');
+      });
+      
+      const selectedCard = document.querySelector(`.player-card[data-player-id="${player.id}"]`);
+      if (selectedCard) {
+        selectedCard.classList.add('border-green-500', 'bg-green-500/20');
+        selectedCard.classList.remove('border-transparent');
+      }
+
+      // Update summary
+      updateCrossPositionLocks();
+      updateSelectionSummary();
+    }
+
+    // Function to get display name for mobile slots
+    function getMobileDisplayName(player) {
+      if (!player) return null;
+      const fullName = player.name.toLowerCase();
+      
+      // Special cases for specific players
+      if (fullName.includes('marc permanyer')) {
+        return 'Perma';
+      }
+      if (fullName.includes('marc sanchez') || fullName.includes('marc sánchez')) {
+        return 'Mister';
+      }
+      
+      // Default: first name only
+      return player.name.split(' ')[0];
+    }
+
+    function updateSelectionSummary() {
+      // Update desktop summary
+      const forwardSummary = document.getElementById('summary-forward');
+      const midfielderSummary = document.getElementById('summary-midfielder');
+      const defenderSummary = document.getElementById('summary-defender');
+      
+      // Update forward
+      if (forwardSummary) {
+        const forwardContainer = document.getElementById('forward-container');
+        if (selectedPlayers.forward) {
+          forwardSummary.textContent = selectedPlayers.forward.name;
+          if (forwardContainer) {
+            forwardContainer.classList.remove('bg-white/5');
+            forwardContainer.classList.add('bg-green-500/20', 'border', 'border-green-400');
+          }
+        } else {
+          forwardSummary.textContent = 'No seleccionado';
+          if (forwardContainer) {
+            forwardContainer.classList.add('bg-white/5');
+            forwardContainer.classList.remove('bg-green-500/20', 'border', 'border-green-400');
+          }
+        }
+      }
+      
+      // Update midfielder
+      if (midfielderSummary) {
+        const midfielderContainer = document.getElementById('midfielder-container');
+        if (selectedPlayers.midfielder) {
+          midfielderSummary.textContent = selectedPlayers.midfielder.name;
+          if (midfielderContainer) {
+            midfielderContainer.classList.remove('bg-white/5');
+            midfielderContainer.classList.add('bg-green-500/20', 'border', 'border-green-400');
+          }
+        } else {
+          midfielderSummary.textContent = 'No seleccionado';
+          if (midfielderContainer) {
+            midfielderContainer.classList.add('bg-white/5');
+            midfielderContainer.classList.remove('bg-green-500/20', 'border', 'border-green-400');
+          }
+        }
+      }
+      
+      // Update defender
+      if (defenderSummary) {
+        const defenderContainer = document.getElementById('defender-container');
+        if (selectedPlayers.defender) {
+          defenderSummary.textContent = selectedPlayers.defender.name;
+          if (defenderContainer) {
+            defenderContainer.classList.remove('bg-white/5');
+            defenderContainer.classList.add('bg-green-500/20', 'border', 'border-green-400');
+          }
+        } else {
+          defenderSummary.textContent = 'No seleccionado';
+          if (defenderContainer) {
+            defenderContainer.classList.add('bg-white/5');
+            defenderContainer.classList.remove('bg-green-500/20', 'border', 'border-green-400');
+          }
+        }
+      }
+      
+      // Update mobile slots
+      const forwardSlot = document.getElementById('slot-forward-mobile');
+      const midfielderSlot = document.getElementById('slot-midfielder-mobile');
+      const defenderSlot = document.getElementById('slot-defender-mobile');
+      
+      if (forwardSlot) {
+        if (selectedPlayers.forward) {
+          forwardSlot.classList.remove('bg-white/20', 'border-white/30');
+          forwardSlot.classList.add('bg-green-500', 'border-green-400');
+          const playerName = getMobileDisplayName(selectedPlayers.forward);
+          forwardSlot.innerHTML = `<span class="text-xs text-white font-bold truncate px-1">${playerName}</span>`;
+        } else {
+          forwardSlot.classList.add('bg-white/20', 'border-white/30');
+          forwardSlot.classList.remove('bg-green-500', 'border-green-400');
+          forwardSlot.innerHTML = `<span class="text-xs text-white font-bold">D</span>`;
+        }
+      }
+      
+      if (midfielderSlot) {
+        if (selectedPlayers.midfielder) {
+          midfielderSlot.classList.remove('bg-white/20', 'border-white/30');
+          midfielderSlot.classList.add('bg-green-500', 'border-green-400');
+          const playerName = getMobileDisplayName(selectedPlayers.midfielder);
+          midfielderSlot.innerHTML = `<span class="text-xs text-white font-bold truncate px-1">${playerName}</span>`;
+        } else {
+          midfielderSlot.classList.add('bg-white/20', 'border-white/30');
+          midfielderSlot.classList.remove('bg-green-500', 'border-green-400');
+          midfielderSlot.innerHTML = `<span class="text-xs text-white font-bold">C</span>`;
+        }
+      }
+      
+      if (defenderSlot) {
+        if (selectedPlayers.defender) {
+          defenderSlot.classList.remove('bg-white/20', 'border-white/30');
+          defenderSlot.classList.add('bg-green-500', 'border-green-400');
+          const playerName = getMobileDisplayName(selectedPlayers.defender);
+          defenderSlot.innerHTML = `<span class="text-xs text-white font-bold truncate px-1">${playerName}</span>`;
+        } else {
+          defenderSlot.classList.add('bg-white/20', 'border-white/30');
+          defenderSlot.classList.remove('bg-green-500', 'border-green-400');
+          defenderSlot.innerHTML = `<span class="text-xs text-white font-bold">DF</span>`;
+        }
+      }
+
+      // Enable/disable confirm button
+      const confirmBtn = document.getElementById('confirm-selection-btn');
+      const allSelected = selectedPlayers.forward && selectedPlayers.midfielder && selectedPlayers.defender;
+      if (confirmBtn) confirmBtn.disabled = !allSelected || false; // lock handled at page-level
+    }
+
+    function updateCrossPositionLocks() {
+      // Lock duplicate appearances of selected players in other groups
+      const selectedIds = {
+        forward: selectedPlayers.forward?.id || null,
+        midfielder: selectedPlayers.midfielder?.id || null,
+        defender: selectedPlayers.defender?.id || null,
+      };
+      const cards = document.querySelectorAll('.player-card');
+      cards.forEach((el) => {
+        const id = el.getAttribute('data-player-id');
+        const pos = el.getAttribute('data-position');
+        const owned = el.getAttribute('data-owned') === 'true';
+        el.classList.remove('locked');
+        if (!owned) return; // already disabled by ownership
+        if (!id || !pos) return;
+        // If this id is selected in any other position, lock here
+        if ((selectedIds.forward && id === String(selectedIds.forward) && pos !== 'forward') ||
+            (selectedIds.midfielder && id === String(selectedIds.midfielder) && pos !== 'midfielder') ||
+            (selectedIds.defender && id === String(selectedIds.defender) && pos !== 'defender')) {
+          el.classList.add('locked');
+        }
+      });
+    }
+
+    async function startFantasyPage() {
+      if (!checkAuthState()) {
+        showSection('not-logged-in');
+        return;
+      }
+
+      showSection('loading');
+
+      // Load data
+      const [playersResult, selectionResult, lockResult] = await Promise.all([
+        fetchEligiblePlayers(),
+        fetchCurrentSelection(),
+        fetchFantasyLock()
+      ]);
+
+      // Admin lock logic: if locked and no selection, show locked notice and stop
+      const isLocked = !!lockResult?.locked;
+      const selectionData = selectionResult?.selection || null;
+      if (isLocked && !(selectionData && selectionData.forward_player_id)) {
+        showSection('fantasy-locked');
+        return;
+      }
+
+      // Show settle modal if previous jornada exists and not settled (guard DOM)
+      const prev = selectionResult && selectionResult.prev ? selectionResult.prev : null;
+      if (prev && prev.prevFantasyRushId && !prev.prevSettled && (prev.prevPoints != null)) {
+        const modal = document.getElementById('settle-modal');
+        const ptsEl = document.getElementById('settle-points');
+        const coinsEl = document.getElementById('settle-coins');
+        const btnConfirm = document.getElementById('settle-confirm');
+        if (modal && ptsEl && coinsEl && btnConfirm) {
+          ptsEl.textContent = String(prev.prevPoints || 0);
+          coinsEl.textContent = String(prev.prevCoins || 0);
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          btnConfirm.onclick = async () => {
+            try {
+              const res = await fetch('/api/bufas-cards/fantasy/settle', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({}) });
+              const data = await res.json();
+              if (!data.success) alert('No se pudo liquidar: ' + (data.error || ''));
+            } catch (e) {}
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+          };
+        }
+      }
+      currentJornadaNum = selectionResult?.currentJornada || null;
+      // If locked and selection exists, directly show summary view and skip selector
+      if (isLocked && selectionData && selectionData.forward_player_id) {
+        showSection('fantasy-container');
+        showSummaryView(selectionData);
+        return;
+      }
+      restPlayerIds = Array.isArray(selectionResult?.restPlayerIds) ? selectionResult.restPlayerIds : [];
+
+      if (!playersResult.success) {
+        alert('Error al cargar jugadores: ' + playersResult.error);
+        return;
+      }
+
+      eligiblePlayers = playersResult.players;
+      currentSelection = selectionResult.selection;
+
+      showSection('fantasy-container');
+
+      // Si ya hay selección, mostrar resumen; si no, mostrar selector
+      const hasSelection = !!(currentSelection && (currentSelection.jornada === currentJornadaNum) && currentSelection.forward_player_id);
+      if (hasSelection) {
+        showSummaryView(currentSelection);
+        try { localStorage.setItem('fantasy_last_selection', JSON.stringify(currentSelection)); } catch {}
+      } else {
+        // No fallback: limpiar cualquier selección almacenada y mostrar selector
+        try { localStorage.removeItem('fantasy_last_selection'); } catch {}
+        document.getElementById('selection-summary-view').classList.add('hidden');
+        document.getElementById('player-selection').classList.remove('hidden');
+        document.getElementById('week-label-top').textContent = (currentJornadaNum ? (`Jornada ${currentJornadaNum}`) : formatWeekLabel(getWeekStart().toISOString().slice(0,10)));
+        displayPlayers();
+        updateCrossPositionLocks();
+        updateSelectionSummary();
+      }
+
+      // Set up event listeners
+      // Tabs deshabilitados (mostramos todas las listas a la vez)
+      // document.getElementById('tab-forward').addEventListener('click', () => showTab('forward'));
+      // document.getElementById('tab-midfielder').addEventListener('click', () => showTab('midfielder'));
+      // document.getElementById('tab-defender').addEventListener('click', () => showTab('defender'));
+      // Botón de cambio ya no es necesario (panel eliminado)
+
+      const confirmBtnEl = document.getElementById('confirm-selection-btn');
+      if (confirmBtnEl && !confirmBtnEl.dataset.bound) {
+        confirmBtnEl.dataset.bound = 'true';
+        confirmBtnEl.addEventListener('click', async () => {
+          const confirmBtn = document.getElementById('confirm-selection-btn');
+          console.log('payload ids', {
+            forwardId: selectedPlayers.forward?.id,
+            midfielderId: selectedPlayers.midfielder?.id,
+            defenderId: selectedPlayers.defender?.id
+          });
+          if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Confirmando...';
+          }
+
+          const result = await createSelection();
+          
+          if (result.success) {
+            // Refresca selección desde API y muestra resumen solo si es de la jornada actual
+            const latest = await fetchCurrentSelection();
+            const sel = latest?.selection || null;
+            if (sel && (sel.jornada === currentJornadaNum)) {
+              showSummaryView(sel);
+            } else if (sel && !sel.jornada && currentJornadaNum == null) {
+              // Caso sin jornada activa: muestra resumen
+              showSummaryView(sel);
+            } else {
+              // Mostrar resumen optimista con jugadores elegidos
+              const optimistic = {
+                week_start: getWeekStart().toISOString().slice(0,10),
+                jornada: currentJornadaNum,
+                forward_player: selectedPlayers.forward,
+                midfielder_player: selectedPlayers.midfielder,
+                defender_player: selectedPlayers.defender,
+                total_points: 0
+              };
+              showSummaryView(optimistic);
+            }
+          } else {
+            alert('Error al confirmar selección: ' + (result.error || ''));
+            if (confirmBtn) {
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = 'Confirmar Selección';
+            }
+          }
+        });
+      }
+    }
+
+    // Initialize on load and Astro transitions
+    document.addEventListener('DOMContentLoaded', startFantasyPage);
+    document.addEventListener('astro:page-load', startFantasyPage);
+    document.addEventListener('astro:after-swap', startFantasyPage);
+
+    // Utility functions
+    function getWeekStart(date = new Date()) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(d.setDate(diff));
+      monday.setHours(0, 0, 0, 0);
+      return monday;
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString('es-ES', { 
+        day: 'numeric', 
+        month: 'long'
+      });
+    }
+  </script>
+<style>
+  /* Minimal styles inspired by BoxerCard */
+  @media (prefers-reduced-motion) {
+    .player-card, .player-card:hover, .player-card img, .player-card div {
+      transition: opacity 0.3s ease !important;
+      transform: none !important;
+    }
+  }
+  
+</style>
+<style>
+  .player-card.locked { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
+</style>
+</NikeFCLayout>

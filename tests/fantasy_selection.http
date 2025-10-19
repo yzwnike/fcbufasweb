@@ -1,6 +1,6 @@
 @name login
 # 1) Login para obtener token (sustituye {{PASSWORD}})
-POST http://localhost:4321/api/nike-fc-cards/auth/login
+POST http://localhost:4321/api/bufas-cards/auth/login
 Content-Type: application/json
 
 {
@@ -13,7 +13,7 @@ Content-Type: application/json
 @auth = Bearer {{login.response.body.token}}
 
 # 2) POST selección (sustituye IDs por los que el usuario posee)
-POST {{baseUrl}}/api/nike-fc-cards/fantasy/selection
+POST {{baseUrl}}/api/bufas-cards/fantasy/selection
 Authorization: {{auth}}
 Content-Type: application/json
 
@@ -26,5 +26,5 @@ Content-Type: application/json
 
 ###
 # 3) GET selección actual
-GET {{baseUrl}}/api/nike-fc-cards/fantasy/selection
+GET {{baseUrl}}/api/bufas-cards/fantasy/selection
 Authorization: {{auth}}
