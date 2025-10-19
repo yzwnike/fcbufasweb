@@ -43,6 +43,19 @@ export async function putCardForSale(
        WHERE uc.id = ? AND uc.user_id = ? AND uc.is_for_sale = false`,
       [userCardId, userId]
     );
+    
+    // Verificar también que no hay un trade activo para esta carta
+    const existingTrade = await executeQuerySingle<any>(
+      `SELECT id FROM card_trades WHERE user_card_id = ? AND status = 'ACTIVE'`,
+      [userCardId]
+    );
+    
+    if (existingTrade) {
+      return {
+        success: false,
+        error: 'Esta carta ya está en el mercado'
+      };
+    }
 
     if (!userCard) {
       return {

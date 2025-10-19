@@ -1,11 +1,11 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<Layout title="Ajustes de Perfil - Nike FC Cards">
+<NikeFCLayout title="Ajustes de Perfil - Nike FC Cards" helpKey="ajustes">
   <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
-    <div class="container mx-auto px-4 pt-28 pb-10">
+    <div class="container mx-auto px-4 pt-4 pb-10">
       <Subheader variant="minimal" />
       <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Ajustes de Perfil</h1>
       <p class="text-slate-200 mb-4">Puedes cambiar tu nombre de usuario y tu correo editando los campos y pulsando <span class="font-semibold">Guardar</span>. Para cambiar la contraseña, introduce la <span class="font-semibold">actual</span> y la <span class="font-semibold">nueva</span> y pulsa <span class="font-semibold">Cambiar contraseña</span>.</p>
@@ -126,4 +126,4 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     window.addEventListener('pageshow', kickoff);
     setTimeout(kickoff, 0);
   </script>
-</Layout>
+</NikeFCLayout>

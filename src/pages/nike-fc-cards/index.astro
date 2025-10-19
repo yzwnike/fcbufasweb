@@ -1,158 +1,233 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<Layout title="Nike FC Cards - Dashboard">
+<NikeFCLayout title="Nike FC Cards - Dashboard" helpKey="dashboard">
   <div class="min-h-screen bg-gradient-to-br from-orange-900 via-orange-800 to-red-900">
     <!-- Subheader Nav -->
-    <div class="pt-28 px-4">
-      <div class="max-w-7xl mx-auto mb-6">
+    <div class="pt-3 lg:pt-4 px-4">
+      <div class="max-w-7xl mx-auto mb-2">
         <Subheader variant="full" />
       </div>
     </div>
     <!-- Hero Section -->
-    <section class="relative pt-32 pb-20 px-4">
+    <section class="relative pt-2 lg:pt-4 pb-6 lg:pb-8 px-4">
       <div class="max-w-7xl mx-auto text-center">
-        <div class="flex items-center justify-center mb-8">
-          <svg class="w-16 h-16 text-white mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex flex-col sm:flex-row items-center justify-center mb-3 lg:mb-4 px-2">
+          <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white mb-2 sm:mb-0 sm:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
           </svg>
-          <h1 class="text-5xl md:text-7xl font-bold text-white">
+          <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
             Bufas Cards Trading Game
           </h1>
         </div>
         
-        <p class="text-xl md:text-2xl text-orange-100 mb-12 max-w-3xl mx-auto">
+        <p class="text-sm sm:text-base md:text-lg lg:text-xl text-orange-100 mb-4 lg:mb-6 max-w-3xl mx-auto px-2 leading-relaxed">
           Colecciona cartas de los jugadores de FC Bufas, completa desafíos diarios, 
           intercambia con otros usuarios y domina el Fantasy Rush semanal
         </p>
 
         <!-- User Status -->
-        <div id="user-status" class="mb-12">
-          <div id="logged-out" class="space-y-6">
-            <p class="text-lg text-orange-200">Inicia sesión para comenzar tu colección</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-              <button id="login-btn" class="px-8 py-3 bg-white text-orange-900 font-semibold rounded-lg hover:bg-orange-100 transition-colors">
+        <div id="user-status" class="mb-4 lg:mb-6 px-2">
+          <div id="logged-out" class="space-y-4">
+            <p class="text-sm sm:text-base text-orange-200">Inicia sesión para comenzar tu colección</p>
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center max-w-sm sm:max-w-none mx-auto">
+              <button id="login-btn" class="px-4 sm:px-6 py-2 bg-white text-orange-900 font-semibold rounded-lg hover:bg-orange-100 transition-colors text-sm">
                 Iniciar Sesión
               </button>
-              <button id="register-btn" class="px-8 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors">
+              <button id="register-btn" class="px-4 sm:px-6 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm">
                 Registrarse
               </button>
             </div>
           </div>
 
           <div id="logged-in" class="hidden">
-            <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-md mx-auto">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-orange-100">Bienvenido,</p>
-                  <div class="flex items-center gap-2">
-                    <p id="username" class="text-2xl font-bold text-white"></p>
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 mb-3 lg:mb-4 max-w-sm sm:max-w-md mx-auto">
+              <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-3 sm:gap-0">
+                <div class="text-center sm:text-left">
+                  <p class="text-orange-100 text-xs">Bienvenido,</p>
+                  <div class="flex items-center justify-center sm:justify-start gap-2">
+                    <p id="username" class="text-lg sm:text-xl font-bold text-white"></p>
                     <button id="open-username-modal" class="p-1 rounded bg-white/10 hover:bg-white/20" title="Editar nombre">
-                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2m2 0h2m-8 0H7m6 16l3-3m0 0l3 3m-3-3v8m-6-8H5a2 2 0 01-2-2V7a2 2 0 012-2h6" />
                       </svg>
                     </button>
                   </div>
                 </div>
-                <div class="text-right">
-                  <p class="text-orange-100">Monedas</p>
-                  <p id="coins" class="text-2xl font-bold text-yellow-400">0</p>
+                <div class="text-center sm:text-right">
+                  <p class="text-orange-100 text-xs">Monedas</p>
+                  <p id="coins" class="text-lg sm:text-xl font-bold text-yellow-400">0</p>
                 </div>
               </div>
+            </div>
+            <div class="text-center">
+              <button id="logout-btn" class="px-3 py-1.5 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors text-sm">
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
-        <div class="text-center mt-4">
-          <button id="logout-btn" class="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors">
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
 
       <!-- Game Features -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-[1800px] mx-auto">
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 max-w-[1800px] mx-auto px-2">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 lg:p-5 text-center hover:bg-white/20 transition-colors group">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
-<h3 class="text-2xl font-semibold text-white mb-2 break-words">Quiz Diario</h3>
-<p class="text-orange-200 break-words">5 preguntas diarias sobre stats de jugadores. ¡Gana hasta 250 monedas con bonos!</p>
+            <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-white mb-1.5 break-words">Quiz Diario</h3>
+            <p class="text-xs sm:text-sm text-orange-200 break-words leading-relaxed">5 preguntas diarias sobre stats de jugadores. ¡Gana hasta 250 monedas con bonos!</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 lg:p-5 text-center hover:bg-white/20 transition-colors group">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 1v6m6-6v6"></path>
               </svg>
             </div>
-<h3 class="text-2xl font-semibold text-white mb-2 break-words">Sobres de Cartas</h3>
-<p class="text-orange-200 break-words">1 sobre gratis cada 24h. Compra sobres premium y especiales con monedas</p>
+            <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-white mb-1.5 break-words">Sobres de Cartas</h3>
+            <p class="text-xs sm:text-sm text-orange-200 break-words leading-relaxed">1 sobre gratis cada 24h. Compra sobres premium y especiales con monedas</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center hover:bg-white/20 transition-colors group">
-<div class="w-20 h-20 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 lg:p-5 text-center hover:bg-white/20 transition-colors group">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
               </svg>
             </div>
-<h3 class="text-2xl font-semibold text-white mb-2 whitespace-nowrap">Mercado</h3>
-<p class="text-yellow-300 break-words">Vende y compra cartas con otros usuarios. Filtra por posición, rareza y precio</p>
+            <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-white mb-1.5 break-words">Mercado</h3>
+            <p class="text-xs sm:text-sm text-yellow-300 break-words leading-relaxed">Vende y compra cartas con otros usuarios. Filtra por posición, rareza y precio</p>
           </div>
 
-          <!-- SBC Feature (placed between Intercambio y Fantasy Rush) -->
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <!-- SBC Feature -->
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 lg:p-5 text-center hover:bg-white/20 transition-colors group">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2H7l5 5 5-5h-2v-2c0-1.657-1.343-3-3-3z" />
               </svg>
             </div>
-<h3 class="text-2xl font-semibold text-white mb-2 break-words">SBC</h3>
-<p class="text-orange-200 break-words">Completa retos mensuales con requisitos (media, especiales, etc.) y gana sobres o cartas.</p>
+            <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-white mb-1.5 break-words">SBC</h3>
+            <p class="text-xs sm:text-sm text-orange-200 break-words leading-relaxed">Completa retos mensuales con requisitos (media, especiales, etc.) y gana sobres o cartas.</p>
           </div>
 
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 lg:p-5 text-center hover:bg-white/20 transition-colors group">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
             </div>
-<h3 class="text-2xl font-semibold text-white mb-2 break-words">Fantasy Rush</h3>
-<p class="text-orange-200 break-words">Elige 3 jugadores cada semana. Los puntos se convierten en monedas x20</p>
+            <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-white mb-1.5 break-words">Fantasy Rush</h3>
+            <p class="text-xs sm:text-sm text-orange-200 break-words leading-relaxed">Elige 3 jugadores cada semana. Los puntos se convierten en monedas x20</p>
           </div>
         </div>
 
         <!-- Quick Actions -->
-        <div id="quick-actions" class="hidden mt-16">
-          <div class="flex flex-wrap justify-center gap-4">
-            <a href="/nike-fc-cards/quiz" class="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-              Quiz Diario
+        <div id="quick-actions" class="hidden mt-6 lg:mt-8">
+          <h2 class="text-xl lg:text-2xl font-bold text-white text-center mb-4">Acciones Rápidas</h2>
+          
+          <!-- Primary Actions -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-4 max-w-4xl mx-auto">
+            <a href="/nike-fc-cards/quiz" class="group bg-orange-500/90 backdrop-blur-sm hover:bg-orange-500 text-white rounded-xl p-3 lg:p-4 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-base">Quiz Diario</h3>
+                  <p class="text-orange-100 text-xs">Gana hasta 250 monedas</p>
+                </div>
+              </div>
             </a>
-            <a href="/nike-fc-cards/packs" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
-              Abrir Sobres
+            
+            <a href="/nike-fc-cards/packs" class="group bg-green-500/90 backdrop-blur-sm hover:bg-green-500 text-white rounded-xl p-3 lg:p-4 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 1v6m6-6v6"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-base">Abrir Sobres</h3>
+                  <p class="text-green-100 text-xs">1 sobre gratis cada 24h</p>
+                </div>
+              </div>
             </a>
-            <a href="/nike-fc-cards/collection" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors">
-              Mi Colección
+            
+            <a href="/nike-fc-cards/collection" class="group bg-blue-500/90 backdrop-blur-sm hover:bg-blue-500 text-white rounded-xl p-3 lg:p-4 transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-base">Mi Colección</h3>
+                  <p class="text-blue-100 text-xs">Ver todas tus cartas</p>
+                </div>
+              </div>
             </a>
-            <a href="/nike-fc-cards/market" class="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors">
-              Mercado
+          </div>
+          
+          <!-- Secondary Actions -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 max-w-6xl mx-auto">
+            <a href="/nike-fc-cards/market" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+              <div class="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-xs lg:text-sm">Mercado</h3>
             </a>
-            <a href="/nike-fc-cards/sbc" class="px-6 py-3 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors">
-              SBC
+            
+            <a href="/nike-fc-cards/sbc" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+              <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2H7l5 5 5-5h-2v-2c0-1.657-1.343-3-3-3z"></path>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-xs lg:text-sm">SBC</h3>
             </a>
-            <a href="/nike-fc-cards/fantasy" class="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">
-              Fantasy Rush
+            
+            <a href="/nike-fc-cards/fantasy" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+              <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-xs lg:text-sm">Fantasy</h3>
             </a>
-            <a href="/nike-fc-cards/ranking" class="px-6 py-3 bg-slate-600 text-white font-semibold rounded-lg hover:bg-slate-700 transition-colors">
-              Ranking
+            
+            <a href="/nike-fc-cards/ranking" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+              <div class="w-8 h-8 bg-slate-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-xs lg:text-sm">Ranking</h3>
             </a>
-            <a href="/nike-fc-cards/ajustes" class="px-6 py-3 bg-slate-500 text-white font-semibold rounded-lg hover:bg-slate-600 transition-colors">
-              Ajustes de Perfil
+            
+            <a href="/nike-fc-cards/ajustes" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+              <div class="w-8 h-8 bg-slate-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-xs lg:text-sm">Ajustes</h3>
             </a>
-            <a href="/nike-fc-cards/logros" class="px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors">
-              Logros
+            
+            <a href="/nike-fc-cards/logros" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+              <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-xs lg:text-sm">Logros</h3>
             </a>
           </div>
         </div>
@@ -234,7 +309,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       </form>
     </div>
   </div>
-</Layout>
+</NikeFCLayout>
 
 <script>
   // Auth State Management

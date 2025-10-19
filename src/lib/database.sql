@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS coin_transactions (
 
 -- Seed players (no cards; cards will be synced from /public/cards)
 INSERT INTO players (name, team, position1, position2, pace, shooting, passing, defending, physical, fifa_rating, market_value, fantasy_points, image_url, card_asset_basename, eligible_for_quiz) VALUES
-('Nico Vehi','FC Bufas','GK',NULL,84,81,81,83,85,84,25000.00,120,'/images/players/nico-vehi.jpg','yazawa',1),
+('Nico Vehi','FC Bufas','CB','GK',84,81,81,83,85,84,25000.00,120,'/images/players/nico-vehi.jpg','yazawa',1),
 ('Pablo Vehi','FC Bufas','RB','CM',78,65,85,88,82,81,18000.00,95,'/images/players/pablo-vehi.jpg','elvei',1),
 ('Albert Rodriguez','FC Bufas','LM','CAM',90,75,88,55,70,83,22000.00,110,'/images/players/albert-rodriguez.jpg','albert',1),
 ('Marc Sanchez','FC Bufas','CB','CDM',65,45,75,92,88,82,20000.00,85,'/images/players/marc-sanchez.jpg','mister',1),

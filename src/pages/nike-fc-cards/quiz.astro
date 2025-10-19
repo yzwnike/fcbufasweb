@@ -1,180 +1,212 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<Layout title="Quiz Diario - Nike FC Cards">
-  <div class="min-h-screen bg-gradient-to-br from-orange-900 via-orange-800 to-red-900">
-    <div class="container mx-auto px-4 py-20">
-      <!-- Subheader Nav -->
+<NikeFCLayout title="Quiz Diario - Nike FC Cards" helpKey="quiz">
+  <div class="h-screen bg-gradient-to-br from-orange-900 via-orange-800 to-red-900 flex flex-col">
+    <!-- Subheader Nav -->
+    <div class="px-4 pt-2 pb-1 flex-shrink-0">
       <Subheader variant="minimal" />
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
-          🧠 Quiz Diario de Stats
-        </h1>
-        <p class="text-xl text-orange-100 max-w-2xl mx-auto">
-          Responde 5 preguntas sobre las estadísticas de los jugadores. 
-          ¡Gana 40 monedas por respuesta correcta + bonos!
-        </p>
-      </div>
+    </div>
+    
+    <!-- Main Content Container -->
+    <div class="flex-1 px-4 pb-4 flex flex-col min-h-0">
 
       <!-- Auth Check -->
-      <div id="not-logged-in" class="hidden text-center">
-        <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-md mx-auto">
-          <h3 class="text-2xl font-bold text-white mb-4">Acceso Requerido</h3>
-          <p class="text-red-200 mb-6">Debes iniciar sesión para jugar el quiz diario</p>
-          <a href="/nike-fc-cards" class="px-6 py-3 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors">
-            Iniciar Sesión
-          </a>
+      <div id="not-logged-in" class="hidden flex-1 flex flex-col">
+        <!-- Header dentro de Auth Check -->
+        <div class="text-center px-4 pb-2 flex-shrink-0">
+          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1">
+            🧠 Quiz Diario
+          </h1>
+          <p class="text-sm md:text-base text-orange-100 max-w-xl mx-auto">
+            5 preguntas sobre stats. ¡40 monedas por acierto!
+          </p>
+        </div>
+        
+        <div class="flex-1 flex items-center justify-center">
+          <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-6 max-w-sm mx-auto text-center">
+            <h3 class="text-xl font-bold text-white mb-3">Acceso Requerido</h3>
+            <p class="text-red-200 mb-4 text-sm">Debes iniciar sesión para jugar el quiz diario</p>
+            <a href="/nike-fc-cards" class="px-5 py-2 bg-white text-red-900 font-semibold rounded-lg hover:bg-red-100 transition-colors text-sm">
+              Iniciar Sesión
+            </a>
+          </div>
         </div>
       </div>
 
       <!-- Quiz Container -->
-      <div id="quiz-container" class="hidden">
-        <!-- Progress Bar -->
-        <div class="mb-8">
+      <div id="quiz-container" class="hidden flex-1 flex flex-col min-h-0">
+        <!-- Header dentro de Quiz Container -->
+        <div class="text-center px-4 pb-2 flex-shrink-0">
+          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1">
+            🧠 Quiz Diario
+          </h1>
+          <p class="text-sm md:text-base text-orange-100 max-w-xl mx-auto">
+            5 preguntas sobre stats. ¡40 monedas por acierto!
+          </p>
+        </div>
+        
+        <!-- Progress y Stats Compactos -->
+        <div class="flex-shrink-0 mb-3">
+          <!-- Progress Bar -->
           <div class="flex justify-between items-center mb-2">
-            <span class="text-white font-semibold"><span id="question-progress">1/5</span></span>
-            <span class="text-yellow-400 font-semibold">💰 <span id="coins-earned">0</span> monedas ganadas</span>
+            <span class="text-white font-semibold text-sm"><span id="question-progress">1/5</span></span>
+            <span class="text-yellow-400 font-semibold text-sm">💰 <span id="coins-earned">0</span></span>
           </div>
-          <div class="w-full bg-gray-700 rounded-full h-3">
-            <div id="progress-bar" class="bg-orange-500 h-3 rounded-full transition-all duration-300" style="width: 20%"></div>
+          <div class="w-full bg-gray-700 rounded-full h-2 mb-3">
+            <div id="progress-bar" class="bg-orange-500 h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
           </div>
-        </div>
-
-        <!-- Quiz Stats -->
-        <div id="quiz-stats" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-            <div class="text-2xl font-bold text-white" id="questions-answered">0</div>
-            <div class="text-orange-200">Respondidas</div>
-          </div>
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-            <div class="text-2xl font-bold text-green-400" id="correct-answers">0</div>
-            <div class="text-orange-200">Correctas</div>
-          </div>
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-            <div class="text-2xl font-bold text-yellow-400" id="total-coins">0</div>
-            <div class="text-orange-200">Monedas Totales</div>
-          </div>
-        </div>
-
-        <!-- Question Card -->
-        <div id="question-card" class="bg-white/10 backdrop-blur-md rounded-xl p-8 mb-8 max-w-4xl mx-auto">
-          <div class="flex flex-col md:flex-row items-center gap-8">
-            <!-- Card Image with masked substats -->
-            <div class="flex-shrink-0">
-              <div class="relative w-48 h-72 md:w-56 md:h-80 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl overflow-hidden flex items-center justify-center">
-                <img id="card-image" alt="Carta" class="w-full h-full object-cover select-none" draggable="false" src="" />
-                <!-- Overlays to precisely hide info areas -->
-                <!-- Top small square (lowered, solid black) -->
-                <div class="pointer-events-none absolute top-[17%] left-[4%] w-[28%] h-[16%] bg-black"></div>
-                <!-- Bottom thin band for substats only (solid black) -->
-                <div class="pointer-events-none absolute bottom-[1.5%] left-0 right-0 h-[24%] bg-black"></div>
-              </div>
-              <div class="text-center mt-4">
-                <div class="text-xl font-bold text-white" id="player-name">Cargando...</div>
-                <div class="text-orange-200" id="player-position">FC Bufas</div>
-              </div>
+          
+          <!-- Stats Compactos -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-white/10 backdrop-blur-md rounded-lg p-2">
+              <div class="text-lg font-bold text-white" id="questions-answered">0</div>
+              <div class="text-orange-200 text-xs">Respondidas</div>
             </div>
-
-            <!-- Question -->
-            <div class="flex-1">
-              <div class="text-2xl font-bold text-white mb-6" id="question-text">
-                ¿Cuál es el valor de <span class="text-orange-400" id="stat-name">Ritmo</span> de esta carta?
-              </div>
-
-              <!-- Answer Options -->
-              <div class="grid grid-cols-1 gap-4" id="answer-options">
-                <button class="answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all" data-answer="a">
-                  A) <span class="option-value">75</span>
-                </button>
-                <button class="answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all" data-answer="b">
-                  B) <span class="option-value">80</span>
-                </button>
-                <button class="answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all" data-answer="c">
-                  C) <span class="option-value">85</span>
-                </button>
-              </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-lg p-2">
+              <div class="text-lg font-bold text-green-400" id="correct-answers">0</div>
+              <div class="text-orange-200 text-xs">Correctas</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-lg p-2">
+              <div class="text-lg font-bold text-yellow-400" id="total-coins">0</div>
+              <div class="text-orange-200 text-xs">Monedas</div>
             </div>
           </div>
         </div>
 
-        <!-- Result Message -->
-        <div id="result-message" class="hidden text-center mb-8">
-          <div id="correct-message" class="hidden bg-green-500/20 backdrop-blur-md rounded-xl p-6 max-w-md mx-auto">
-            <div class="text-4xl mb-4">🎉</div>
-            <div class="text-2xl font-bold text-green-400 mb-2">¡Correcto!</div>
-            <div class="text-green-200">+40 monedas</div>
-          </div>
-          <div id="wrong-message" class="hidden bg-red-500/20 backdrop-blur-md rounded-xl p-6 max-w-md mx-auto">
-            <div class="text-4xl mb-4">❌</div>
-            <div class="text-2xl font-bold text-red-400 mb-2">Incorrecto</div>
-            <div class="text-red-200">La respuesta correcta era: <span id="correct-answer-text">85</span></div>
+        <!-- Question Card - Flexible -->
+        <div class="flex-1 flex flex-col min-h-0">
+          <div id="question-card" class="bg-white/10 backdrop-blur-md rounded-xl p-4 flex-1 flex flex-col min-h-0">
+            <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+              <!-- Card Image Compacta -->
+              <div class="flex-shrink-0 flex flex-col items-center lg:items-start">
+                <div class="relative w-32 h-48 sm:w-40 sm:h-60 lg:w-44 lg:h-64 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg overflow-hidden flex items-center justify-center">
+                  <img id="card-image" alt="Carta" class="w-full h-full object-cover select-none" draggable="false" src="" />
+                  <!-- Overlays to hide info -->
+                  <div class="pointer-events-none absolute top-[17%] left-[4%] w-[28%] h-[16%] bg-black"></div>
+                  <div class="pointer-events-none absolute bottom-[1.5%] left-0 right-0 h-[24%] bg-black"></div>
+                </div>
+                <div class="text-center mt-2">
+                  <div class="text-base lg:text-lg font-bold text-white" id="player-name">Cargando...</div>
+                  <div class="text-orange-200 text-sm" id="player-position">FC Bufas</div>
+                </div>
+              </div>
+
+              <!-- Question y Opciones -->
+              <div class="flex-1 flex flex-col justify-center min-h-0">
+                <div class="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-4 text-center lg:text-left" id="question-text">
+                  ¿Cuál es el valor de <span class="text-orange-400" id="stat-name">Ritmo</span> de esta carta?
+                </div>
+
+                <!-- Answer Options -->
+                <div class="grid grid-cols-1 gap-3 max-w-md mx-auto lg:mx-0" id="answer-options">
+                  <button class="answer-option p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-sm sm:text-base" data-answer="a">
+                    A) <span class="option-value">75</span>
+                  </button>
+                  <button class="answer-option p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-sm sm:text-base" data-answer="b">
+                    B) <span class="option-value">80</span>
+                  </button>
+                  <button class="answer-option p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-sm sm:text-base" data-answer="c">
+                    C) <span class="option-value">85</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Next/Finish Button -->
-        <div class="text-center">
-          <button id="next-question" type="button" class="hidden relative z-10 px-8 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-            Siguiente Pregunta
-          </button>
-          <button id="finish-quiz" type="button" class="hidden relative z-10 px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
-            Ver Resultados Finales
-          </button>
+        <!-- Result Message y Botones -->
+        <div class="flex-shrink-0 mt-3">
+          <div id="result-message" class="hidden text-center mb-3">
+            <div id="correct-message" class="hidden bg-green-500/20 backdrop-blur-md rounded-lg p-3 max-w-sm mx-auto">
+              <div class="text-2xl mb-1">🎉</div>
+              <div class="text-lg font-bold text-green-400 mb-1">¡Correcto!</div>
+              <div class="text-green-200 text-sm">+40 monedas</div>
+            </div>
+            <div id="wrong-message" class="hidden bg-red-500/20 backdrop-blur-md rounded-lg p-3 max-w-sm mx-auto">
+              <div class="text-2xl mb-1">❌</div>
+              <div class="text-lg font-bold text-red-400 mb-1">Incorrecto</div>
+              <div class="text-red-200 text-sm">Correcta: <span id="correct-answer-text">85</span></div>
+            </div>
+          </div>
+
+          <!-- Next/Finish Button -->
+          <div class="text-center">
+            <button id="next-question" type="button" class="hidden relative z-10 px-6 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors text-sm">
+              Siguiente Pregunta
+            </button>
+            <button id="finish-quiz" type="button" class="hidden relative z-10 px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors text-sm">
+              Ver Resultados
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Quiz Completed -->
-      <div id="quiz-completed" class="hidden text-center">
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
-          <div class="text-6xl mb-6">🏆</div>
-          <h2 class="text-3xl font-bold text-white mb-4">¡Quiz Completado!</h2>
-          <div class="grid grid-cols-2 gap-6 mb-8">
+      <div id="quiz-completed" class="hidden flex-1 flex flex-col">
+        <!-- Header dentro de Quiz Completed -->
+        <div class="text-center px-4 pb-2 flex-shrink-0">
+          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1">
+            🧠 Quiz Diario
+          </h1>
+          <p class="text-sm md:text-base text-orange-100 max-w-xl mx-auto">
+            5 preguntas sobre stats. ¡40 monedas por acierto!
+          </p>
+        </div>
+        
+        <div class="flex-1 flex items-center justify-center">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 max-w-md mx-auto text-center">
+            <div class="text-4xl mb-4">🏆</div>
+            <h2 class="text-2xl font-bold text-white mb-4">¡Quiz Completado!</h2>
+          <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <div class="text-3xl font-bold text-green-400" id="final-correct">0</div>
-              <div class="text-orange-200">Respuestas Correctas</div>
+              <div class="text-2xl font-bold text-green-400" id="final-correct">0</div>
+              <div class="text-orange-200 text-sm">Correctas</div>
             </div>
             <div>
-              <div class="text-3xl font-bold text-yellow-400" id="final-coins">0</div>
-              <div class="text-orange-200">Monedas Ganadas</div>
+              <div class="text-2xl font-bold text-yellow-400" id="final-coins">0</div>
+              <div class="text-orange-200 text-sm">Monedas</div>
             </div>
           </div>
-          <p class="text-orange-200 mb-6">¡Vuelve mañana para otro quiz diario!</p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/nike-fc-cards" class="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-              Volver al Dashboard
+          <p class="text-orange-200 mb-4 text-sm">¡Vuelve mañana para otro quiz!</p>
+          <div class="flex flex-col gap-2">
+            <a href="/nike-fc-cards" class="px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors text-sm">
+              Dashboard
             </a>
-            <a href="/nike-fc-cards/packs" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors">
+            <a href="/nike-fc-cards/packs" class="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors text-sm">
               Abrir Sobres
             </a>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Already Completed Today -->
-      <div id="already-completed" class="hidden text-center">
-        <div class="bg-blue-500/20 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
-          <div class="text-6xl mb-6">⏰</div>
-          <h2 class="text-3xl font-bold text-white mb-4">Quiz Ya Completado</h2>
-          <p class="text-blue-200 mb-6">Ya has completado el quiz de hoy. ¡Vuelve mañana para más preguntas!</p>
-          <div class="grid grid-cols-2 gap-6 mb-8">
+      <div id="already-completed" class="hidden flex-1 flex items-center justify-center">
+          <div class="bg-blue-500/20 backdrop-blur-md rounded-xl p-6 max-w-md mx-auto text-center">
+            <div class="text-4xl mb-4">⏰</div>
+            <h2 class="text-2xl font-bold text-white mb-3">Quiz Ya Completado</h2>
+          <p class="text-blue-200 mb-4 text-sm">Ya completaste el quiz de hoy. ¡Vuelve mañana!</p>
+          <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <div class="text-3xl font-bold text-green-400" id="today-correct">0</div>
-              <div class="text-blue-200">Correctas Hoy</div>
+              <div class="text-2xl font-bold text-green-400" id="today-correct">0</div>
+              <div class="text-blue-200 text-sm">Correctas</div>
             </div>
             <div>
-              <div class="text-3xl font-bold text-yellow-400" id="today-coins">0</div>
-              <div class="text-blue-200">Monedas Hoy</div>
+              <div class="text-2xl font-bold text-yellow-400" id="today-coins">0</div>
+              <div class="text-blue-200 text-sm">Monedas</div>
             </div>
           </div>
-          <a href="/nike-fc-cards" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors">
+          <a href="/nike-fc-cards" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors text-sm">
             Volver al Dashboard
           </a>
         </div>
       </div>
     </div>
   </div>
+</div>
 
   <script>
     // State management
@@ -187,6 +219,23 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     let coinsEarned = 0;
     let answeredLock = false; // evita doble envío por pregunta
 
+    // Get current user ID for personalized storage
+    function getCurrentUserId() {
+      if (currentUser && currentUser.id) {
+        return currentUser.id;
+      }
+      // Fallback: try to decode token to get userId
+      if (authToken) {
+        try {
+          const payload = JSON.parse(atob(authToken.split('.')[1]));
+          return payload.userId || payload.sub || null;
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
+
     // Load auth state
     function checkAuthState() {
       const token = storage.getItem('nike_fc_token');
@@ -194,25 +243,31 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       return false;
     }
 
-    // Local progress fallback (persists until 20:00)
-    function currentWindowKey() {
+    // Local progress fallback (persists until 20:00) - Now personalized per user
+    function currentWindowKey(userId) {
       const now = new Date();
       const base = new Date(now);
       if (now.getHours() < 20) base.setDate(base.getDate() - 1);
       base.setHours(20,0,0,0);
-      return 'quiz_window_' + base.toISOString();
+      return `quiz_window_${userId}_` + base.toISOString();
     }
 
     function loadLocalProgress() {
-      const key = currentWindowKey();
-      const savedKey = storage.getItem('quiz_window_key');
+      const userId = getCurrentUserId();
+      if (!userId) {
+        console.log('No userId available for storage');
+        return { answered: 0, correct: 0, completed: false };
+      }
+      
+      const key = currentWindowKey(userId);
+      const savedKey = storage.getItem(`quiz_window_key_${userId}`);
       if (savedKey !== key) {
-        storage.removeItem('quiz_progress');
-        storage.setItem('quiz_window_key', key);
+        storage.removeItem(`quiz_progress_${userId}`);
+        storage.setItem(`quiz_window_key_${userId}`, key);
         return { answered: 0, correct: 0, completed: false };
       }
       try {
-        const raw = storage.getItem('quiz_progress');
+        const raw = storage.getItem(`quiz_progress_${userId}`);
         if (!raw) return { answered: 0, correct: 0, completed: false };
         const p = JSON.parse(raw);
         return { answered: p.answered||0, correct: p.correct||0, completed: !!p.completed };
@@ -220,7 +275,12 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     function saveLocalProgress(answered, correct, completed=false) {
-      storage.setItem('quiz_progress', JSON.stringify({ answered, correct, completed }));
+      const userId = getCurrentUserId();
+      if (!userId) {
+        console.log('No userId available for storage');
+        return;
+      }
+      storage.setItem(`quiz_progress_${userId}`, JSON.stringify({ answered, correct, completed }));
     }
 
     // API calls
@@ -266,6 +326,10 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
     function displayQuestion(question) {
       answeredLock = false;
+      
+      // Asegurar que las opciones estén visibles
+      document.getElementById('answer-options').classList.remove('hidden');
+      
       document.getElementById('player-name').textContent = question.player.name;
       document.getElementById('player-position').textContent = `${question.player.position1} - FC Bufas`;
       document.getElementById('stat-name').textContent = getStatDisplayName(question.stat_name);
@@ -283,7 +347,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         option.dataset.answer = letter;
         option.querySelector('.option-value').textContent = values[index];
         option.disabled = false;
-        option.className = 'answer-option p-4 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all';
+        option.className = 'answer-option p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-sm sm:text-base';
       });
 
       const current = currentQuestionIndex + 1;
@@ -305,6 +369,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     function showResult(isCorrect, correctAnswer, earnedCoins = 0) {
+      // Ocultar las opciones de respuesta
+      document.getElementById('answer-options').classList.add('hidden');
+      
       document.getElementById('result-message').classList.remove('hidden');
       
       if (isCorrect) {
@@ -448,7 +515,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         return;
       }
 
-      // Highlight correct and wrong answers
+      // Highlight correct and wrong answers (antes de ocultarlas)
       document.querySelectorAll('.answer-option').forEach(btn => {
         const value = parseInt(btn.querySelector('.option-value').textContent);
         if (value === result.correctAnswer) {
@@ -457,6 +524,11 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           btn.classList.add('bg-red-500/50');
         }
       });
+      
+      // Dar un breve momento para ver la respuesta antes de ocultar
+      setTimeout(() => {
+        showResult(result.isCorrect, result.correctAnswer, result.coinsEarned);
+      }, 1000);
 
       // Update local counters to reflect server-side progress
       const ansEl = document.getElementById('questions-answered');
@@ -475,13 +547,14 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       // Persist locally
       saveLocalProgress(newAnswered, newCorrect, newAnswered >= 5);
 
-      showResult(result.isCorrect, result.correctAnswer, result.coinsEarned);
+      // El showResult se llama en el setTimeout arriba
     }
 
     async function nextQuestion() {
       currentQuestionIndex++;
       
-      
+      // Mostrar las opciones de nuevo y ocultar mensajes de resultado
+      document.getElementById('answer-options').classList.remove('hidden');
       document.getElementById('result-message').classList.add('hidden');
       document.getElementById('correct-message').classList.add('hidden');
       document.getElementById('wrong-message').classList.add('hidden');
@@ -528,12 +601,38 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       // Coins are already updated in DB by API
     }
 
+    // Fetch current user info
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch('/api/nike-fc-cards/auth/me', { 
+          headers: { Authorization: `Bearer ${authToken}` } 
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentUser = data.user;
+          return true;
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+      return false;
+    }
+
     // Initialization function to support SPA navigations
     async function startQuizPage() {
       if (!checkAuthState()) {
         showSection('not-logged-in');
         return;
       }
+      
+      // Get current user info before proceeding
+      const userFetched = await fetchCurrentUser();
+      if (!userFetched) {
+        console.error('Could not fetch user info');
+        showSection('not-logged-in');
+        return;
+      }
+      
       await initializeQuiz();
     }
 
@@ -542,4 +641,4 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     document.addEventListener('astro:page-load', startQuizPage);
     document.addEventListener('astro:after-swap', startQuizPage);
   </script>
-</Layout>
+</NikeFCLayout>

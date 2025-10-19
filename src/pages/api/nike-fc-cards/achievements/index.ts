@@ -54,7 +54,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     // Métricas
     const [jRows, totCards, distinctCards, sbcCount, buys, sells, packsOpened, quizRight, claimedRows] = await Promise.all([
-      executeQuerySingle<any>('SELECT COUNT(DISTINCT jornada) AS n FROM fantasy_rush WHERE user_id = ?', [uid]),
+      executeQuerySingle<any>('SELECT COUNT(DISTINCT jornada) AS n FROM fantasy_rush WHERE user_id = ? AND jornada IS NOT NULL', [uid]),
       executeQuerySingle<any>('SELECT COUNT(*) AS n FROM user_cards WHERE user_id = ?', [uid]),
       executeQuerySingle<any>('SELECT COUNT(DISTINCT card_id) AS n FROM user_cards WHERE user_id = ?', [uid]),
       executeQuerySingle<any>('SELECT COUNT(*) AS n FROM sbc_submissions WHERE user_id = ?', [uid]).catch(()=>({ n:0 } as any)),

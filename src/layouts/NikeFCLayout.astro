@@ -1,0 +1,57 @@
+---
+import Layout from './Layout.astro';
+import HelpButton from '@/components/nike-fc-cards/HelpButton.astro';
+import MobileMenu from '@/components/nike-fc-cards/MobileMenu.astro';
+
+export interface Props {
+  title: string;
+  description?: string;
+  canonical?: string;
+  robots?: string;
+  helpKey?: string;
+  customHelpText?: string;
+}
+
+const { 
+  title, 
+  description, 
+  canonical, 
+  robots, 
+  helpKey, 
+  customHelpText 
+} = Astro.props;
+---
+
+<Layout 
+  title={title}
+  description={description}
+  canonical={canonical}
+  robots={robots}
+>
+  <!-- Menú móvil fijo para todas las páginas -->
+  <MobileMenu />
+  
+  <slot />
+  
+  <!-- Solo mostrar el helper en páginas de nike-fc-cards -->
+  <HelpButton 
+    helpKey={helpKey}
+    customText={customHelpText}
+  />
+</Layout>
+
+<style>
+  /* Asegurar que el contenido no interfiera con el botón de ayuda */
+  :global(body) {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  /* Evitar que elementos fijos interfieran */
+  :global(.fixed) {
+    z-index: auto;
+  }
+  
+  :global(#help-button-container) {
+    z-index: 9999 !important;
+  }
+</style>

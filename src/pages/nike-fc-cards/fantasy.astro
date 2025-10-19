@@ -1,21 +1,21 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<Layout title="Fantasy Rush - Nike FC Cards">
+<NikeFCLayout title="Fantasy Rush - Nike FC Cards" helpKey="fantasy">
   <div class="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900">
-    <div class="container mx-auto px-2 py-2">
+    <div class="container mx-auto px-4 py-2">
       <!-- Subheader Nav -->
       <Subheader variant="minimal" />
       <!-- Header -->
-      <div class="text-center mb-2">
-        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
-          ⚡ Fantasy Rush
+      <div class="text-center mb-4">
+        <h1 class="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
+          Fantasy Rush
         </h1>
-        <p class="text-lg text-purple-100 mb-4">
-          Elige tu equipo semanal: 1 Delantero, 1 Centrocampista, 1 Defensa/Portero. 
-          Los puntos fantasy se convierten en monedas x20
+        <p class="text-xs md:text-sm text-purple-100 mb-1 md:mb-2 px-2">
+          Elige tu equipo semanal de 3 Jugadores
+          Los puntos fantasy se convierten en monedas
         </p>
       </div>
 
@@ -35,9 +35,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         
 
         <!-- Player Selection -->
-        <div id="player-selection" class="space-y-8">
-          <h2 class="text-2xl font-bold text-white text-center mb-2">Selecciona Tu Equipo</h2>
-          <div class="text-center text-purple-200 mb-4" id="week-label-top"></div>
+        <div id="player-selection" class="space-y-2 md:space-y-8">
+          <h2 class="text-xs md:text-base font-bold text-white text-center mb-1">Selecciona Tu Equipo</h2>
+          <div class="text-center text-purple-200 mb-1 md:mb-2 text-xs md:text-sm" id="week-label-top"></div>
 
           <!-- Position Tabs -->
           <div class="flex justify-center mb-6 hidden">
@@ -54,39 +54,107 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
             </div>
           </div>
 
-          <!-- Selector en 2 filas (7 columnas fijas) con separadores arriba: 2/3/2 -->
-          <div class="w-full max-w-none space-y-2">
-            <div id="labels" class="relative z-10 grid grid-cols-7 gap-2 w-full"></div>
-            <div class="relative w-full">
-              <!-- Vertical separators only across player rows -->
-              <div class="pointer-events-none absolute inset-0 z-0">
-                <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 2 / 7);"></div>
-                <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 5 / 7);"></div>
+          <!-- Responsive Player Layout -->
+          <div class="w-full max-w-none mx-auto">
+            <!-- Desktop Layout (7-column grid) -->
+            <div class="hidden md:block space-y-2">
+              <div id="labels" class="relative z-10 grid grid-cols-7 gap-2 w-full"></div>
+              <div class="relative w-full">
+                <!-- Vertical separators only across player rows -->
+                <div class="pointer-events-none absolute inset-0 z-0">
+                  <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 2 / 7);"></div>
+                  <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 5 / 7);"></div>
+                </div>
+                <div id="row1" class="relative z-10 grid grid-cols-7 gap-0 w-full"></div>
+                <div id="row2" class="relative z-10 grid grid-cols-7 gap-0 w-full"></div>
               </div>
-              <div id="row1" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
-              <div id="row2" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
+            </div>
+            
+            <!-- Mobile Layout (Carousel slider) -->
+            <div class="md:hidden">
+              <!-- Section indicator and navigation -->
+              <div class="flex items-center mb-3">
+                <div class="w-12 flex justify-center">
+                  <button id="mobile-prev" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded text-white">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div class="text-center flex-1 px-2">
+                  <h3 id="current-section-title" class="text-white font-semibold text-xs mb-1">DELANTEROS</h3>
+                  <div class="flex gap-1 justify-center">
+                    <div id="dot-0" class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                    <div id="dot-1" class="w-1.5 h-1.5 rounded-full bg-white/30"></div>
+                    <div id="dot-2" class="w-1.5 h-1.5 rounded-full bg-white/30"></div>
+                  </div>
+                </div>
+                
+                <div class="w-12 flex justify-center">
+                  <button id="mobile-next" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded text-white">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Carousel container with sliding sections -->
+              <div class="bg-white/5 rounded-lg p-4 overflow-hidden">
+                <div id="mobile-carousel-track" class="flex transition-transform duration-500 ease-in-out">
+                  <div id="forwards-mobile" class="w-full flex-shrink-0 grid grid-cols-2 gap-3"></div>
+                  <div id="midfielders-mobile" class="w-full flex-shrink-0 grid grid-cols-2 gap-3"></div>
+                  <div id="defenders-mobile" class="w-full flex-shrink-0 grid grid-cols-2 gap-3"></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Selection Summary -->
-          <div id="selection-summary" class="bg-white/10 backdrop-blur-md rounded-xl p-6 max-w-2xl mx-auto">
-            <h3 class="text-xl font-bold text-white text-center mb-4">Selección Actual</h3>
-            <div class="grid grid-cols-3 gap-4 text-center mb-6">
-              <div>
-                <div class="text-purple-200 mb-2">Delantero</div>
-                <div class="text-white font-bold" id="summary-forward">No seleccionado</div>
-              </div>
-              <div>
-                <div class="text-purple-200 mb-2">Centrocampista</div>
-                <div class="text-white font-bold" id="summary-midfielder">No seleccionado</div>
-              </div>
-              <div>
-                <div class="text-purple-200 mb-2">Defensa/Portero</div>
-                <div class="text-white font-bold" id="summary-defender">No seleccionado</div>
+          <!-- Selection Summary - Compact horizontal line -->
+          <div id="selection-summary" class="max-w-4xl mx-auto">
+            <!-- Mobile compact line -->
+            <div class="md:hidden bg-white/10 backdrop-blur-md rounded-lg p-3 mb-3">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex-1 text-center">
+                  <div class="w-20 h-10 mx-auto mb-1 bg-white/20 rounded border-2 flex items-center justify-center" id="slot-forward-mobile">
+                    <span class="text-xs text-white font-bold">D</span>
+                  </div>
+                </div>
+                <div class="flex-1 text-center">
+                  <div class="w-20 h-10 mx-auto mb-1 bg-white/20 rounded border-2 flex items-center justify-center" id="slot-midfielder-mobile">
+                    <span class="text-xs text-white font-bold">C</span>
+                  </div>
+                </div>
+                <div class="flex-1 text-center">
+                  <div class="w-20 h-10 mx-auto mb-1 bg-white/20 rounded border-2 flex items-center justify-center" id="slot-defender-mobile">
+                    <span class="text-xs text-white font-bold">DF</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="text-center">
-              <button id="confirm-selection-btn" class="px-8 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-500" disabled>
+            
+            <!-- Desktop layout -->
+            <div class="hidden md:block bg-white/10 backdrop-blur-md rounded-xl p-4 md:p-6">
+              <h3 class="text-lg md:text-xl font-bold text-white text-center mb-4">Selección Actual</h3>
+              <div class="grid grid-cols-3 gap-6 text-center mb-6">
+                <div id="forward-container" class="bg-white/5 rounded-lg p-4 min-w-0">
+                  <div class="text-purple-200 mb-2 text-sm">Delantero</div>
+                  <div class="text-white font-bold text-sm" id="summary-forward">No seleccionado</div>
+                </div>
+                <div id="midfielder-container" class="bg-white/5 rounded-lg p-4 min-w-0">
+                  <div class="text-purple-200 mb-2 text-sm">Centrocampista</div>
+                  <div class="text-white font-bold text-sm" id="summary-midfielder">No seleccionado</div>
+                </div>
+                <div id="defender-container" class="bg-white/5 rounded-lg p-4 min-w-0">
+                  <div class="text-purple-200 mb-2 text-sm">Defensa/Portero</div>
+                  <div class="text-white font-bold text-sm" id="summary-defender">No seleccionado</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center mt-3">
+              <button id="confirm-selection-btn" class="w-full md:w-auto px-6 md:px-8 py-2 md:py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-500 text-sm md:text-base" disabled>
                 Confirmar Selección
               </button>
             </div>
@@ -113,30 +181,30 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
       <!-- Selection Summary (final view) -->
       <div id="selection-summary-view" class="hidden">
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 max-w-5xl mx-auto">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-3xl font-bold text-white">Tu Equipo</h2>
-            <div class="text-purple-200" id="week-label">Jornada</div>
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 md:p-8 max-w-5xl mx-auto">
+          <div class="flex flex-col md:flex-row items-center justify-between mb-4 md:mb-6 gap-2">
+            <h2 class="text-xl md:text-3xl font-bold text-white">Tu Equipo</h2>
+            <div class="text-purple-200 text-sm md:text-base" id="week-label">Jornada</div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white/5 rounded-xl p-4 text-center">
-              <div class="text-purple-300 mb-2">Delantero</div>
-              <div id="view-forward" class="text-white">-</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="bg-white/5 rounded-xl p-3 md:p-4 text-center">
+              <div class="text-purple-300 mb-2 text-sm">Delantero</div>
+              <div id="view-forward" class="text-white text-sm">-</div>
             </div>
-            <div class="bg-white/5 rounded-xl p-4 text-center">
-              <div class="text-purple-300 mb-2">Centrocampista</div>
-              <div id="view-midfielder" class="text-white">-</div>
+            <div class="bg-white/5 rounded-xl p-3 md:p-4 text-center">
+              <div class="text-purple-300 mb-2 text-sm">Centrocampista</div>
+              <div id="view-midfielder" class="text-white text-sm">-</div>
             </div>
-            <div class="bg-white/5 rounded-xl p-4 text-center">
-              <div class="text-purple-300 mb-2">Defensa/Portero</div>
-              <div id="view-defender" class="text-white">-</div>
+            <div class="bg-white/5 rounded-xl p-3 md:p-4 text-center">
+              <div class="text-purple-300 mb-2 text-sm">Defensa/Portero</div>
+              <div id="view-defender" class="text-white text-sm">-</div>
             </div>
           </div>
-          <div class="mt-8 text-center">
-            <div id="points-info" class="text-xl text-yellow-300">Puntos al finalizar el partido</div>
+          <div class="mt-6 md:mt-8 text-center">
+            <div id="points-info" class="text-base md:text-xl text-yellow-300">Puntos al finalizar el partido</div>
           </div>
-          <div class="mt-6 text-center">
-            <a href="/nike-fc-cards" class="px-6 py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors">Volver al Dashboard</a>
+          <div class="mt-4 md:mt-6 text-center">
+            <a href="/nike-fc-cards" class="inline-block w-full md:w-auto px-6 py-2 md:py-3 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors text-sm md:text-base">Volver al Dashboard</a>
           </div>
         </div>
       </div>
@@ -161,7 +229,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     const storage = window.sessionStorage;
     let eligiblePlayers = { forwards: [], midfielders: [], defenders: [] };
     
-function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-96 object-cover\"/>` : `<div class=\\\"w-full h-96 bg-purple-500\\\"></div>`; }
+function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-48 md:h-64 object-contain\"/>` : `<div class=\\\"w-full h-48 md:h-64 bg-purple-500\\\"></div>`; }
     let currentSelection = null;
     let currentJornadaNum = null;
     let selectedPlayers = {
@@ -293,12 +361,12 @@ function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-96 
     function renderPlayerMini(p, imagePathOverride) {
       const imgPath = imagePathOverride || p?.best_image_path || p?.image_path || p?.image_url || null;
       if (!p) return '<div class="text-purple-200">-</div>';
-const img = imgPath ? `<img src=\"${imgPath}\" class=\"w-full h-48 object-cover rounded-lg\"/>` : '';
+      const img = imgPath ? `<img src=\"${imgPath}\" class=\"w-full h-32 md:h-56 object-contain rounded-lg\"/>` : '';
       return `
-        <div class="space-y-2">
+        <div class="space-y-1 md:space-y-2">
           ${img}
-          <div class="font-bold">${p.name}</div>
-          <div class="text-purple-200 text-sm">${p.position1}</div>
+          <div class="font-bold text-sm md:text-base">${p.name}</div>
+          <div class="text-purple-200 text-xs md:text-sm">${p.position1}</div>
         </div>`;
     }
 
@@ -330,16 +398,24 @@ const img = imgPath ? `<img src=\"${imgPath}\" class=\"w-full h-48 object-cover 
     }
 
     function displayPlayers() {
+      const fw = (eligiblePlayers.forwards || []).slice(0, 4);
+      const mids = (eligiblePlayers.midfielders || []).slice(0, 6);
+      const defs = (eligiblePlayers.defenders || []).slice(0, 4);
+
+      // Desktop Layout
+      displayDesktopPlayers(fw, mids, defs);
+      
+      // Mobile Layout
+      displayMobilePlayers(fw, mids, defs);
+    }
+
+    function displayDesktopPlayers(fw, mids, defs) {
       const labels = document.getElementById('labels');
       const row1 = document.getElementById('row1');
       const row2 = document.getElementById('row2');
       if (!labels || !row1 || !row2) return;
 
       [labels, row1, row2].forEach(el => el.innerHTML = '');
-
-      const fw = (eligiblePlayers.forwards || []).slice(0, 4);
-      const mids = (eligiblePlayers.midfielders || []).slice(0, 6);
-      const defs = (eligiblePlayers.defenders || []).slice(0, 4);
 
       // Build label row with exact spans and without flex (prevents drift)
       const makeLabelGroup = (text, span, borderRight) => {
@@ -360,21 +436,21 @@ const img = imgPath ? `<img src=\"${imgPath}\" class=\"w-full h-48 object-cover 
         const g1 = document.createElement('div');
         g1.className = 'col-span-2 pr-3 md:pr-4';
         const g1grid = document.createElement('div');
-g1grid.className = 'grid grid-cols-2 gap-[1px]';
+        g1grid.className = 'grid grid-cols-2 gap-0';
         fwArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'forward')); g1grid.appendChild(w); });
         g1.appendChild(g1grid);
 
         const g2 = document.createElement('div');
-        g2.className = 'col-span-3 px-3 md:px-4';
+        g2.className = 'col-span-3 px-2 md:px-3';
         const g2grid = document.createElement('div');
-g2grid.className = 'grid grid-cols-3 gap-[1px]';
+        g2grid.className = 'grid grid-cols-3 gap-0';
         midArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'midfielder')); g2grid.appendChild(w); });
         g2.appendChild(g2grid);
 
         const g3 = document.createElement('div');
-        g3.className = 'col-span-2 pl-3 md:pl-4';
+        g3.className = 'col-span-2 pl-2 md:pl-3';
         const g3grid = document.createElement('div');
-g3grid.className = 'grid grid-cols-2 gap-[1px]';
+        g3grid.className = 'grid grid-cols-2 gap-0';
         defArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'defender')); g3grid.appendChild(w); });
         g3.appendChild(g3grid);
 
@@ -387,6 +463,192 @@ g3grid.className = 'grid grid-cols-2 gap-[1px]';
       buildRow(row1, fw.slice(0,2), mids.slice(0,3), defs.slice(0,2));
       // Row 2: 2/3/2
       buildRow(row2, fw.slice(2,4), mids.slice(3,6), defs.slice(2,4));
+    }
+
+    function displayMobilePlayers(fw, mids, defs) {
+      const forwardsMobile = document.getElementById('forwards-mobile');
+      const midfieldersMobile = document.getElementById('midfielders-mobile');
+      const defendersMobile = document.getElementById('defenders-mobile');
+      
+      if (!forwardsMobile || !midfieldersMobile || !defendersMobile) return;
+
+      // Clear existing content
+      [forwardsMobile, midfieldersMobile, defendersMobile].forEach(el => el.innerHTML = '');
+
+      // Populate forwards (2x2 grid)
+      fw.forEach(p => {
+        forwardsMobile.appendChild(createPlayerCard(p, 'forward'));
+      });
+
+      // Populate midfielders (2x3 grid - changed from 3x2 to fit better)
+      mids.forEach(p => {
+        midfieldersMobile.appendChild(createPlayerCard(p, 'midfielder'));
+      });
+
+      // Populate defenders (2x2 grid)
+      defs.forEach(p => {
+        defendersMobile.appendChild(createPlayerCard(p, 'defender'));
+      });
+      
+      // Setup carousel after populating
+      setupMobileCarousel();
+    }
+
+    // Mobile carousel state
+    let currentMobileSection = 0;
+    const mobileSections = [
+      { title: 'DELANTEROS', prev: null, next: 'CENTROCAMPISTAS' },
+      { title: 'CENTROCAMPISTAS', prev: 'DELANTEROS', next: 'DEFENSAS' },
+      { title: 'DEFENSAS', prev: 'CENTROCAMPISTAS', next: null }
+    ];
+
+    // Global references to avoid multiple listeners
+    let mobileCarouselInitialized = false;
+    
+    function setupMobileCarousel() {
+      // Only initialize once
+      if (mobileCarouselInitialized) return;
+      
+      const prevBtn = document.getElementById('mobile-prev');
+      const nextBtn = document.getElementById('mobile-next');
+      const track = document.getElementById('mobile-carousel-track');
+      
+      if (!prevBtn || !nextBtn || !track) return;
+      
+      const newPrevBtn = prevBtn;
+      const newNextBtn = nextBtn;
+      const newTrack = track;
+      
+      newPrevBtn.addEventListener('click', () => moveMobileCarousel(-1));
+      newNextBtn.addEventListener('click', () => moveMobileCarousel(1));
+      
+      // Initialize carousel state
+      currentMobileSection = 0;
+      newTrack.style.transform = 'translateX(0%)';
+      newTrack.style.transition = 'transform 0.5s ease-in-out';
+      
+      // Add touch/swipe gesture support
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
+      
+      newTrack.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        newTrack.style.transition = 'none'; // Disable transition during drag
+      }, { passive: true });
+      
+      newTrack.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentX = e.touches[0].clientX;
+        const deltaX = currentX - startX;
+        const currentTranslate = -currentMobileSection * 100;
+        const dragPercentage = (deltaX / newTrack.clientWidth) * 100;
+        newTrack.style.transform = `translateX(${currentTranslate + dragPercentage}%)`;
+      }, { passive: true });
+      
+      newTrack.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        newTrack.style.transition = 'transform 0.5s ease-in-out'; // Re-enable transition
+        
+        const deltaX = currentX - startX;
+        const threshold = 30; // Minimum swipe distance
+        
+        if (Math.abs(deltaX) > threshold) {
+          if (deltaX > 0 && currentMobileSection > 0) {
+            moveMobileCarousel(-1); // Swipe right -> go to previous
+          } else if (deltaX < 0 && currentMobileSection < mobileSections.length - 1) {
+            moveMobileCarousel(1); // Swipe left -> go to next
+          } else {
+            // Snap back to current position
+            newTrack.style.transform = `translateX(${-currentMobileSection * 100}%)`;
+          }
+        } else {
+          // Snap back to current position
+          newTrack.style.transform = `translateX(${-currentMobileSection * 100}%)`;
+        }
+      }, { passive: true });
+      
+      // Mark as initialized
+      mobileCarouselInitialized = true;
+      
+      updateMobileCarouselUI();
+    }
+
+    // Add debounce protection for carousel movement
+    let isCarouselMoving = false;
+    
+    function moveMobileCarousel(direction) {
+      // Prevent multiple rapid calls
+      if (isCarouselMoving) return;
+      
+      const newSection = currentMobileSection + direction;
+      
+      if (newSection < 0 || newSection >= mobileSections.length) return;
+      
+      isCarouselMoving = true;
+      currentMobileSection = newSection;
+      
+      // Apply sliding transform to carousel track
+      const track = document.getElementById('mobile-carousel-track');
+      if (track) {
+        const translateX = -currentMobileSection * 100; // Each section is 100% width
+        track.style.transform = `translateX(${translateX}%)`;
+        track.style.transition = 'transform 0.5s ease-in-out';
+      }
+      
+      // Update UI
+      updateMobileCarouselUI();
+      
+      // Re-enable after animation completes
+      setTimeout(() => {
+        isCarouselMoving = false;
+      }, 500); // Match the CSS transition duration
+    }
+
+    function updateMobileCarouselUI() {
+      const currentSection = mobileSections[currentMobileSection];
+      
+      // Update title
+      const titleEl = document.getElementById('current-section-title');
+      if (titleEl) titleEl.textContent = currentSection.title;
+      
+      // Update navigation labels
+      const prevLabel = document.getElementById('prev-label');
+      const nextLabel = document.getElementById('next-label');
+      const prevBtn = document.getElementById('mobile-prev');
+      const nextBtn = document.getElementById('mobile-next');
+      
+      if (prevLabel) prevLabel.textContent = currentSection.prev || '-';
+      if (nextLabel) nextLabel.textContent = currentSection.next || '-';
+      
+      if (prevBtn) {
+        prevBtn.disabled = !currentSection.prev;
+        if (currentSection.prev) {
+          prevBtn.classList.remove('invisible');
+        } else {
+          prevBtn.classList.add('invisible');
+        }
+      }
+      if (nextBtn) {
+        nextBtn.disabled = !currentSection.next;
+        if (currentSection.next) {
+          nextBtn.classList.remove('invisible');
+        } else {
+          nextBtn.classList.add('invisible');
+        }
+      }
+      
+      // Update dots
+      for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (dot) {
+          dot.className = i === currentMobileSection 
+            ? 'w-2 h-2 rounded-full bg-white'
+            : 'w-2 h-2 rounded-full bg-white/30';
+        }
+      }
     }
 
     function createPlayerCard(player, position) {
@@ -409,11 +671,13 @@ g3grid.className = 'grid grid-cols-2 gap-[1px]';
           </div>
           <div class=\"bg-pink-400 absolute -bottom-1 left-1/2 h-1 w-0 -translate-x-1/2 transform rounded-t-md transition-all duration-300 group-hover:w-2/3\"></div>
         </div>
-        ${disabled ? '<div class=\"text-[10px] text-purple-300 mt-1 text-center\">No tienes la base</div>' : ''}
+        ${disabled ? '<div class=\"text-[10px] text-purple-300 mt-1 text-center\">No tienes carta</div>' : ''}
       `;
 
       if (!disabled && !resting) { // click only if not disabled by ownership or rest
-        card.addEventListener('click', () => selectPlayer(player, position));
+        card.addEventListener('click', () => {
+          selectPlayer(player, position);
+        });
       }
       return card;
     }
@@ -421,9 +685,15 @@ g3grid.className = 'grid grid-cols-2 gap-[1px]';
     function selectPlayer(player, position) {
       // Ignore if this card is locked
       const clicked = document.querySelector(`.player-card[data-player-id=\"${player.id}\"][data-position=\"${position}\"]`);
-      if (clicked && clicked.classList.contains('locked')) return;
-      if (restPlayerIds.includes(player.id)) return; // rest lock
-      if (!player.owned) return;
+      if (clicked && clicked.classList.contains('locked')) {
+        return;
+      }
+      if (restPlayerIds.includes(player.id)) {
+        return; // rest lock
+      }
+      if (!player.owned) {
+        return;
+      }
       selectedPlayers[position] = player;
       
       // Update visual selection
@@ -443,18 +713,131 @@ g3grid.className = 'grid grid-cols-2 gap-[1px]';
       updateSelectionSummary();
     }
 
+    // Function to get display name for mobile slots
+    function getMobileDisplayName(player) {
+      if (!player) return null;
+      const fullName = player.name.toLowerCase();
+      
+      // Special cases for specific players
+      if (fullName.includes('marc permanyer')) {
+        return 'Perma';
+      }
+      if (fullName.includes('marc sanchez') || fullName.includes('marc sánchez')) {
+        return 'Mister';
+      }
+      
+      // Default: first name only
+      return player.name.split(' ')[0];
+    }
+
     function updateSelectionSummary() {
-      document.getElementById('summary-forward').textContent = 
-        selectedPlayers.forward ? selectedPlayers.forward.name : 'No seleccionado';
-      document.getElementById('summary-midfielder').textContent = 
-        selectedPlayers.midfielder ? selectedPlayers.midfielder.name : 'No seleccionado';
-      document.getElementById('summary-defender').textContent = 
-        selectedPlayers.defender ? selectedPlayers.defender.name : 'No seleccionado';
+      // Update desktop summary
+      const forwardSummary = document.getElementById('summary-forward');
+      const midfielderSummary = document.getElementById('summary-midfielder');
+      const defenderSummary = document.getElementById('summary-defender');
+      
+      // Update forward
+      if (forwardSummary) {
+        const forwardContainer = document.getElementById('forward-container');
+        if (selectedPlayers.forward) {
+          forwardSummary.textContent = selectedPlayers.forward.name;
+          if (forwardContainer) {
+            forwardContainer.classList.remove('bg-white/5');
+            forwardContainer.classList.add('bg-green-500/20', 'border', 'border-green-400');
+          }
+        } else {
+          forwardSummary.textContent = 'No seleccionado';
+          if (forwardContainer) {
+            forwardContainer.classList.add('bg-white/5');
+            forwardContainer.classList.remove('bg-green-500/20', 'border', 'border-green-400');
+          }
+        }
+      }
+      
+      // Update midfielder
+      if (midfielderSummary) {
+        const midfielderContainer = document.getElementById('midfielder-container');
+        if (selectedPlayers.midfielder) {
+          midfielderSummary.textContent = selectedPlayers.midfielder.name;
+          if (midfielderContainer) {
+            midfielderContainer.classList.remove('bg-white/5');
+            midfielderContainer.classList.add('bg-green-500/20', 'border', 'border-green-400');
+          }
+        } else {
+          midfielderSummary.textContent = 'No seleccionado';
+          if (midfielderContainer) {
+            midfielderContainer.classList.add('bg-white/5');
+            midfielderContainer.classList.remove('bg-green-500/20', 'border', 'border-green-400');
+          }
+        }
+      }
+      
+      // Update defender
+      if (defenderSummary) {
+        const defenderContainer = document.getElementById('defender-container');
+        if (selectedPlayers.defender) {
+          defenderSummary.textContent = selectedPlayers.defender.name;
+          if (defenderContainer) {
+            defenderContainer.classList.remove('bg-white/5');
+            defenderContainer.classList.add('bg-green-500/20', 'border', 'border-green-400');
+          }
+        } else {
+          defenderSummary.textContent = 'No seleccionado';
+          if (defenderContainer) {
+            defenderContainer.classList.add('bg-white/5');
+            defenderContainer.classList.remove('bg-green-500/20', 'border', 'border-green-400');
+          }
+        }
+      }
+      
+      // Update mobile slots
+      const forwardSlot = document.getElementById('slot-forward-mobile');
+      const midfielderSlot = document.getElementById('slot-midfielder-mobile');
+      const defenderSlot = document.getElementById('slot-defender-mobile');
+      
+      if (forwardSlot) {
+        if (selectedPlayers.forward) {
+          forwardSlot.classList.remove('bg-white/20', 'border-white/30');
+          forwardSlot.classList.add('bg-green-500', 'border-green-400');
+          const playerName = getMobileDisplayName(selectedPlayers.forward);
+          forwardSlot.innerHTML = `<span class="text-xs text-white font-bold truncate px-1">${playerName}</span>`;
+        } else {
+          forwardSlot.classList.add('bg-white/20', 'border-white/30');
+          forwardSlot.classList.remove('bg-green-500', 'border-green-400');
+          forwardSlot.innerHTML = `<span class="text-xs text-white font-bold">D</span>`;
+        }
+      }
+      
+      if (midfielderSlot) {
+        if (selectedPlayers.midfielder) {
+          midfielderSlot.classList.remove('bg-white/20', 'border-white/30');
+          midfielderSlot.classList.add('bg-green-500', 'border-green-400');
+          const playerName = getMobileDisplayName(selectedPlayers.midfielder);
+          midfielderSlot.innerHTML = `<span class="text-xs text-white font-bold truncate px-1">${playerName}</span>`;
+        } else {
+          midfielderSlot.classList.add('bg-white/20', 'border-white/30');
+          midfielderSlot.classList.remove('bg-green-500', 'border-green-400');
+          midfielderSlot.innerHTML = `<span class="text-xs text-white font-bold">C</span>`;
+        }
+      }
+      
+      if (defenderSlot) {
+        if (selectedPlayers.defender) {
+          defenderSlot.classList.remove('bg-white/20', 'border-white/30');
+          defenderSlot.classList.add('bg-green-500', 'border-green-400');
+          const playerName = getMobileDisplayName(selectedPlayers.defender);
+          defenderSlot.innerHTML = `<span class="text-xs text-white font-bold truncate px-1">${playerName}</span>`;
+        } else {
+          defenderSlot.classList.add('bg-white/20', 'border-white/30');
+          defenderSlot.classList.remove('bg-green-500', 'border-green-400');
+          defenderSlot.innerHTML = `<span class="text-xs text-white font-bold">DF</span>`;
+        }
+      }
 
       // Enable/disable confirm button
       const confirmBtn = document.getElementById('confirm-selection-btn');
       const allSelected = selectedPlayers.forward && selectedPlayers.midfielder && selectedPlayers.defender;
-      confirmBtn.disabled = !allSelected || false; // lock handled at page-level
+      if (confirmBtn) confirmBtn.disabled = !allSelected || false; // lock handled at page-level
     }
 
     function updateCrossPositionLocks() {
@@ -558,6 +941,7 @@ g3grid.className = 'grid grid-cols-2 gap-[1px]';
         document.getElementById('week-label-top').textContent = (currentJornadaNum ? (`Jornada ${currentJornadaNum}`) : formatWeekLabel(getWeekStart().toISOString().slice(0,10)));
         displayPlayers();
         updateCrossPositionLocks();
+        updateSelectionSummary();
       }
 
       // Set up event listeners
@@ -646,8 +1030,9 @@ g3grid.className = 'grid grid-cols-2 gap-[1px]';
       transform: none !important;
     }
   }
+  
 </style>
 <style>
   .player-card.locked { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
 </style>
-</Layout>
+</NikeFCLayout>

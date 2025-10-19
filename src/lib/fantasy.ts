@@ -48,10 +48,10 @@ export type EligiblePlayer = {
   fantasy_points: number;
   image_path: string | null;
   best_image_path: string | null; // mejor carta poseída para este jugador
-  owned: boolean; // posee carta base (Regular)
+  owned: boolean; // posee cualquier carta de este jugador
 };
 
-// Obtener SOLO los 10 jugadores base, marcando si el usuario posee su carta base (Regular)
+// Obtener SOLO los 10 jugadores base, marcando si el usuario posee cualquier carta de ese jugador
 export async function getEligiblePlayers(userId: number): Promise<{
   forwards: EligiblePlayer[];
   midfielders: EligiblePlayer[];
@@ -64,7 +64,7 @@ export async function getEligiblePlayers(userId: number): Promise<{
       'Marcos Lopez','Nico Uriburu','Javo Ayesta','Marc Permanyer','Fan Xu'
     ];
 
-    // Traer datos base + si posee carta Regular + imagen base
+    // Traer datos base + si posee cualquier carta + imagen base
     const rows = await executeQuery<any>(
       `SELECT 
          p.id, p.name, p.position1, p.position2, p.fifa_rating, p.fantasy_points,
@@ -101,7 +101,7 @@ export async function getEligiblePlayers(userId: number): Promise<{
          EXISTS(
            SELECT 1 FROM user_cards uc 
            JOIN cards c2 ON uc.card_id = c2.id 
-           WHERE uc.user_id = ? AND c2.player_id = p.id AND c2.special_type = 'Regular'
+           WHERE uc.user_id = ? AND c2.player_id = p.id
          ) AS owned
        FROM players p
        WHERE p.name IN (${baseNames.map(()=>'?').join(',')})
@@ -219,26 +219,26 @@ export async function createFantasySelection(
       };
     }
 
-    // Verificar que el usuario posee la CARTA BASE (Regular) de cada jugador seleccionado
-    const ownsBase = async (pid: number) => {
+    // Verificar que el usuario posee CUALQUIER carta de cada jugador seleccionado
+    const ownsAnyCard = async (pid: number) => {
       const row = await executeQuerySingle<any>(
         `SELECT 1 FROM user_cards uc JOIN cards c ON uc.card_id = c.id 
-         WHERE uc.user_id = ? AND c.player_id = ? AND c.special_type = 'Regular' LIMIT 1`,
+         WHERE uc.user_id = ? AND c.player_id = ? LIMIT 1`,
         [userId, pid]
       );
       return !!row;
     };
 
     const [okF, okM, okD] = await Promise.all([
-      ownsBase(selection.forwardPlayerId),
-      ownsBase(selection.midfielderPlayerId),
-      ownsBase(selection.defenderPlayerId)
+      ownsAnyCard(selection.forwardPlayerId),
+      ownsAnyCard(selection.midfielderPlayerId),
+      ownsAnyCard(selection.defenderPlayerId)
     ]);
 
     if (!okF || !okM || !okD) {
       return {
         success: false,
-        error: 'Necesitas la carta base de cada jugador seleccionado'
+        error: 'Necesitas tener una carta de cada jugador seleccionado'
       };
     }
 
@@ -363,25 +363,25 @@ export async function updateFantasySelection(
       };
     }
 
-    const ownsBase = async (pid: number) => {
+    const ownsAnyCard = async (pid: number) => {
       const row = await executeQuerySingle<any>(
         `SELECT 1 FROM user_cards uc JOIN cards c ON uc.card_id = c.id 
-         WHERE uc.user_id = ? AND c.player_id = ? AND c.special_type = 'Regular' LIMIT 1`,
+         WHERE uc.user_id = ? AND c.player_id = ? LIMIT 1`,
         [userId, pid]
       );
       return !!row;
     };
 
     const [okF, okM, okD] = await Promise.all([
-      ownsBase(selection.forwardPlayerId),
-      ownsBase(selection.midfielderPlayerId),
-      ownsBase(selection.defenderPlayerId)
+      ownsAnyCard(selection.forwardPlayerId),
+      ownsAnyCard(selection.midfielderPlayerId),
+      ownsAnyCard(selection.defenderPlayerId)
     ]);
 
     if (!okF || !okM || !okD) {
       return {
         success: false,
-        error: 'Necesitas la carta base de cada jugador seleccionado'
+        error: 'Necesitas tener una carta de cada jugador seleccionado'
       };
     }
 

@@ -1,0 +1,377 @@
+---
+export interface Props {
+  helpKey?: string;
+  customText?: string;
+}
+
+const { helpKey, customText } = Astro.props;
+---
+
+<div id="help-button-container" class="fixed bottom-6 right-6 z-50">
+  <button
+    id="help-button"
+    class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 group"
+    aria-label="Mostrar ayuda"
+    title="¿Cómo funciona esta sección?"
+  >
+    <svg 
+      class="w-6 h-6 group-hover:scale-110 transition-transform" 
+      fill="none" 
+      stroke="currentColor" 
+      viewBox="0 0 24 24"
+    >
+      <path 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        stroke-width="2" 
+        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  </button>
+
+  <!-- Modal de ayuda -->
+  <div 
+    id="help-modal" 
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden"
+  >
+    <div 
+      class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto"
+      role="dialog"
+      aria-labelledby="help-title"
+      aria-describedby="help-content"
+    >
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="help-title" class="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            ¿Cómo funciona?
+          </h2>
+          <button
+            id="help-close"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Cerrar ayuda"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div id="help-content" class="text-gray-700 space-y-3">
+          <!-- El contenido se cargará dinámicamente -->
+        </div>
+        
+        <div class="mt-6 flex justify-end">
+          <button
+            id="help-got-it"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            ¡Entendido!
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ helpKey, customText }}>
+  // Configuración de ayuda para cada sección
+  const helpTexts = {
+    'dashboard': {
+      title: '🏠 Dashboard Principal',
+      content: `
+        <p><strong>Bienvenido a Nike FC Cards!</strong> Este es tu panel principal donde puedes:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Ver tu perfil:</strong> Consulta tus monedas y nombre de usuario</li>
+          <li><strong>Acceder a todas las secciones:</strong> Quiz diario, sobres, colección, mercado, etc.</li>
+          <li><strong>Obtener un resumen:</strong> De todas las funcionalidades disponibles</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Tip:</strong> Completa el quiz diario para ganar monedas fácilmente.</p>
+      `
+    },
+    'quiz': {
+      title: '❓ Quiz Diario',
+      content: `
+        <p><strong>¡Demuestra tu conocimiento sobre FC Bufas!</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>5 preguntas diarias</strong> sobre estadísticas de jugadores</li>
+          <li><strong>Gana monedas:</strong> 50 por respuesta correcta (máximo 250/día)</li>
+          <li><strong>Bonificaciones:</strong> Respuestas consecutivas dan bonos extra</li>
+          <li><strong>Se reinicia cada 24h</strong> para nuevas preguntas</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Estrategia:</strong> Estudia las stats de los jugadores en la sección colección.</p>
+      `
+    },
+    'packs': {
+      title: '📦 Sobres de Cartas',
+      content: `
+        <p><strong>¡Expande tu colección con sobres!</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Sobre gratis:</strong> Disponible cada 24 horas</li>
+          <li><strong>Sobres premium:</strong> Compra con monedas para mejores cartas</li>
+          <li><strong>Rareza:</strong> Bronce, Plata, Oro y cartas especiales</li>
+          <li><strong>Duplicados:</strong> Se convierten en monedas automáticamente</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Tip:</strong> Espera a tener suficientes monedas para sobres premium.</p>
+      `
+    },
+    'collection': {
+      title: '🗃️ Mi Colección',
+      content: `
+        <p><strong>Gestiona todas tus cartas aquí:</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Ver cartas:</strong> Ordena por jugador, posición o rareza</li>
+          <li><strong>Estadísticas:</strong> Consulta stats detalladas de cada carta</li>
+          <li><strong>Filtros:</strong> Encuentra rápidamente cartas específicas</li>
+          <li><strong>Progreso:</strong> Ve tu % de colección completada</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Meta:</strong> Intenta completar la colección al 100%.</p>
+      `
+    },
+    'market': {
+      title: '💰 Mercado de Intercambio',
+      content: `
+        <p><strong>Compra y vende cartas con otros usuarios:</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Vender:</strong> Pon tus cartas duplicadas a la venta</li>
+          <li><strong>Comprar:</strong> Adquiere cartas que necesitas</li>
+          <li><strong>Filtros:</strong> Busca por jugador, posición, rareza y precio</li>
+          <li><strong>Precios dinámicos:</strong> Los precios cambian según oferta/demanda</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Estrategia:</strong> Vende cartas caras y compra las que necesitas baratas.</p>
+      `
+    },
+    'sbc': {
+      title: '🎯 SBC (Squad Building Challenges)',
+      content: `
+        <p><strong>Completa retos mensuales intercambiando cartas:</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Requisitos específicos:</strong> Media mínima, rareza, posiciones</li>
+          <li><strong>Entrega cartas:</strong> Cumple los requisitos y envía tu equipo</li>
+          <li><strong>Recompensas únicas:</strong> Sobres especiales o cartas exclusivas</li>
+          <li><strong>Retos mensuales:</strong> Nuevos desafíos cada mes</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Tip:</strong> Guarda cartas especiales para SBCs de alto valor.</p>
+      `
+    },
+    'fantasy': {
+      title: '⚡ Fantasy Rush',
+      content: `
+        <p><strong>Competición semanal basada en rendimiento real:</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Elige 3 jugadores</strong> de tu colección cada semana</li>
+          <li><strong>Puntos reales:</strong> Basados en rendimiento en partidos reales</li>
+          <li><strong>Conversión:</strong> Cada punto = 20 monedas</li>
+          <li><strong>Ranking semanal:</strong> Compite con otros usuarios</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Estrategia:</strong> Elige jugadores que jugarán esta semana.</p>
+      `
+    },
+    'ranking': {
+      title: '🏆 Clasificaciones',
+      content: `
+        <p><strong>Ve tu posición en diferentes categorías:</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Ranking de monedas:</strong> Usuarios con más monedas</li>
+          <li><strong>Colección:</strong> % de cartas completadas</li>
+          <li><strong>Fantasy Rush:</strong> Mejores puntuaciones semanales</li>
+          <li><strong>Actividad:</strong> Usuarios más activos del mes</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Meta:</strong> Aparece en el top 10 de alguna categoría.</p>
+      `
+    },
+    'ajustes': {
+      title: '⚙️ Configuración de Perfil',
+      content: `
+        <p><strong>Personaliza tu cuenta y configuración:</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Cambiar nombre:</strong> Modifica tu nombre de usuario</li>
+          <li><strong>Cambiar contraseña:</strong> Actualiza tu contraseña de forma segura</li>
+          <li><strong>Estadísticas:</strong> Ve tus logros y progreso general</li>
+          <li><strong>Preferencias:</strong> Configura notificaciones y privacidad</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Seguridad:</strong> Cambia tu contraseña regularmente.</p>
+      `
+    },
+    'logros': {
+      title: '🏅 Sistema de Logros',
+      content: `
+        <p><strong>Desbloquea achievements y recompensas:</strong></p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Logros de colección:</strong> Por completar sets de cartas</li>
+          <li><strong>Logros de actividad:</strong> Por días consecutivos jugando</li>
+          <li><strong>Logros especiales:</strong> Eventos y retos únicos</li>
+          <li><strong>Recompensas:</strong> Monedas extra y títulos exclusivos</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Meta:</strong> Intenta desbloquear todos los logros disponibles.</p>
+      `
+    }
+  };
+
+  // Función para obtener el texto de ayuda
+  function getHelpContent() {
+    if (customText) {
+      return {
+        title: '💡 Información',
+        content: customText
+      };
+    }
+
+    if (helpKey && helpTexts[helpKey]) {
+      return helpTexts[helpKey];
+    }
+
+    // Detectar automáticamente la página actual
+    const path = window.location.pathname;
+    
+    if (path.includes('/nike-fc-cards/quiz')) {
+      return helpTexts.quiz;
+    } else if (path.includes('/nike-fc-cards/packs')) {
+      return helpTexts.packs;
+    } else if (path.includes('/nike-fc-cards/collection')) {
+      return helpTexts.collection;
+    } else if (path.includes('/nike-fc-cards/market')) {
+      return helpTexts.market;
+    } else if (path.includes('/nike-fc-cards/sbc')) {
+      return helpTexts.sbc;
+    } else if (path.includes('/nike-fc-cards/fantasy')) {
+      return helpTexts.fantasy;
+    } else if (path.includes('/nike-fc-cards/ranking')) {
+      return helpTexts.ranking;
+    } else if (path.includes('/nike-fc-cards/ajustes')) {
+      return helpTexts.ajustes;
+    } else if (path.includes('/nike-fc-cards/logros')) {
+      return helpTexts.logros;
+    } else if (path.includes('/nike-fc-cards')) {
+      return helpTexts.dashboard;
+    }
+
+    // Texto por defecto
+    return {
+      title: '💡 Nike FC Cards',
+      content: `
+        <p><strong>¡Bienvenido al juego de cartas de FC Bufas!</strong></p>
+        <p>Este es un juego de colección donde puedes:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Coleccionar cartas de jugadores</li>
+          <li>Participar en quiz diarios</li>
+          <li>Intercambiar en el mercado</li>
+          <li>Completar desafíos SBC</li>
+          <li>Competir en Fantasy Rush</li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-3">💡 <strong>Tip:</strong> Usa la navegación para explorar todas las secciones.</p>
+      `
+    };
+  }
+
+  // Inicializar el componente
+  function initializeHelpButton() {
+    const helpButton = document.getElementById('help-button');
+    const helpModal = document.getElementById('help-modal');
+    const helpClose = document.getElementById('help-close');
+    const helpGotIt = document.getElementById('help-got-it');
+    const helpTitle = document.getElementById('help-title');
+    const helpContent = document.getElementById('help-content');
+
+    if (!helpButton || !helpModal || !helpClose || !helpGotIt || !helpTitle || !helpContent) {
+      return;
+    }
+
+    // Cargar contenido de ayuda
+    const content = getHelpContent();
+    helpTitle.innerHTML = `
+      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      ${content.title}
+    `;
+    helpContent.innerHTML = content.content;
+
+    // Event listeners
+    function openModal() {
+      helpModal.classList.remove('hidden');
+      helpModal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      
+      // Focus en el botón de cerrar para accesibilidad
+      setTimeout(() => helpClose.focus(), 100);
+    }
+
+    function closeModal() {
+      helpModal.classList.add('hidden');
+      helpModal.classList.remove('flex');
+      document.body.style.overflow = '';
+      helpButton.focus(); // Devolver focus al botón
+    }
+
+    helpButton.addEventListener('click', openModal);
+    helpClose.addEventListener('click', closeModal);
+    helpGotIt.addEventListener('click', closeModal);
+
+    // Cerrar con ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !helpModal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+
+    // Cerrar al hacer click fuera del modal
+    helpModal.addEventListener('click', (e) => {
+      if (e.target === helpModal) {
+        closeModal();
+      }
+    });
+  }
+
+  // Inicializar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeHelpButton);
+  } else {
+    initializeHelpButton();
+  }
+
+  // Reinicializar en navegaciones de Astro
+  document.addEventListener('astro:page-load', initializeHelpButton);
+  document.addEventListener('astro:after-swap', initializeHelpButton);
+</script>
+
+<style>
+  /* Animaciones y mejoras visuales */
+  #help-button {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  #help-button:hover {
+    animation: none;
+    transform: scale(1.1);
+  }
+
+  /* Mejoras de accesibilidad */
+  #help-modal {
+    backdrop-filter: blur(8px);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    #help-button-container {
+      bottom: 1rem;
+      right: 1rem;
+    }
+    
+    #help-modal > div {
+      margin: 1rem;
+      max-height: calc(100vh - 2rem);
+    }
+  }
+</style>

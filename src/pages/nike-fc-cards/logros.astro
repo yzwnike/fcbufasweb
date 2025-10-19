@@ -1,9 +1,9 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<Layout title="Logros - Nike FC Cards">
+<NikeFCLayout title="Logros - Nike FC Cards" helpKey="logros">
   <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900">
     <div class="container mx-auto px-4 pt-28 pb-10">
       <Subheader variant="minimal" />
@@ -58,40 +58,58 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         const card = document.createElement('div');
         card.className = 'relative rounded-xl border border-slate-700 bg-slate-800 p-4 text-white overflow-hidden';
         card.innerHTML = `
-          <div class=\"relative flex items-center justify-between mb-3\">
-            <div class=\"flex items-center gap-3\">
-              <div class=\"w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center text-lg\">${s.icon}</div>
+          <div class="relative flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center text-xl">${s.icon}</div>
               <div>
-                <div class=\"text-lg font-bold\">${a.title}</div>
-                <div class=\"text-xs ${s.accent}\">Objetivo: ${target}</div>
+                <div class="text-xl font-bold">${a.title}</div>
+                <div class="text-sm ${s.accent}">Progreso: ${a.currentValue}/${target}</div>
               </div>
             </div>
-            <div class=\"text-sm text-slate-300\">${next ? `Siguiente: ${next}` : 'Todos completados'}</div>
+            <div class="text-sm text-slate-300">${next ? `Siguiente: ${next}` : 'Completado'}</div>
           </div>
 
-          <div class=\"w-full h-2 bg-slate-700 rounded mb-3\">
-            <div class=\"h-2 ${completedThisLevel ? 'bg-emerald-500' : 'bg-indigo-500'} rounded\" style=\"width:${pct}%\"></div>
+          <div class="w-full h-3 bg-slate-700 rounded mb-4">
+            <div class="h-3 ${completedThisLevel ? 'bg-emerald-500' : 'bg-indigo-500'} rounded transition-all" style="width:${pct}%"></div>
           </div>
 
-          <div class=\"mb-3\">
-            <div class=\"text-xs text-slate-300 mb-1\">Niveles y recompensas</div>
-            <div class=\"grid grid-cols-2 gap-3\">
-              ${a.thresholds.map((t:number, i:number) => {
-                const done = a.currentValue >= t;
-                const canClaim = (a.claimable || []).some((c:any) => c.threshold === t);
-                const rw = (a.rewards || []).find((r:any)=>r.threshold===t) || {};
-                const base = 'h-16 md:h-20 w-full px-3 rounded border text-sm flex items-center justify-between';
-                const cls = done ? (canClaim ? 'bg-emerald-600/80 border-emerald-400' : 'bg-white/10 border-white/20') : 'bg-transparent border-white/10 text-white/70';
-                const icon = rw.reward_type==='PACK' ? '📦' : (rw.reward_type==='CARD' ? '🖼️' : '🪙');
-                const label = rw.reward_type==='PACK' ? (rw.pack_label || rw.pack_type || 'Sobre') : (rw.reward_type==='CARD' ? (rw.player_name || 'Carta') : (rw.coins ? `+${rw.coins}` : ''));
-                return `<span class=\\"${base} ${cls} cursor-pointer\\" data-th=\\"${t}\\">${t} <span class=\\"opacity-80\\">·</span> ${icon} ${label}</span>`;
-              }).join('')}
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+            <!-- Niveles -->
+            <div class="lg:col-span-2">
+              <div class="text-sm text-slate-300 mb-3">Niveles</div>
+              <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                ${a.thresholds.map((t:number) => {
+                  const done = a.currentValue >= t;
+                  const claimed = (a.claimedThresholds || []).includes(t);
+                  const canClaim = (a.claimable || []).some((c:any) => c.threshold === t);
+                  let btnClass = 'w-12 h-12 rounded-lg border-2 flex items-center justify-center text-sm font-bold cursor-pointer transition-all hover:scale-105 relative level-btn';
+                  
+                  const isCurrentTarget = t === target;
+                  
+                  if (claimed) {
+                    btnClass += ' bg-green-600 border-green-400 text-white';
+                  } else if (canClaim) {
+                    btnClass += ' bg-emerald-600/80 border-emerald-400 text-white animate-pulse';
+                  } else if (isCurrentTarget && !done) {
+                    btnClass += ' bg-yellow-600 border-yellow-400 text-white ring-2 ring-yellow-300';
+                  } else if (done) {
+                    btnClass += ' bg-indigo-600 border-indigo-400 text-white';
+                  } else {
+                    btnClass += ' bg-slate-700 border-slate-600 text-slate-400';
+                  }
+                  
+                  const checkIcon = claimed ? '<span class="absolute top-0 right-0 transform translate-x-1 -translate-y-1 bg-green-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">✓</span>' : '';
+                  
+                  return `<div class="${btnClass}" data-th="${t}">${t}${checkIcon}</div>`;
+                }).join('')}
+              </div>
             </div>
-          </div>
-
-          <div class=\"grid grid-cols-1 md:grid-cols-3 gap-4 mb-3\">
-            <div class=\"md:col-span-2\"></div>
-            <div class=\"md:col-span-1\"><div class=\"aspect-square rounded-lg border border-slate-600 bg-slate-700 overflow-hidden flex items-center justify-center relative preview-box\"></div></div>
+            
+            <!-- Preview -->
+            <div class="lg:col-span-1">
+              <div class="text-sm text-slate-300 mb-3">Vista previa</div>
+              <div class="aspect-square rounded-lg border border-slate-600 bg-slate-700 overflow-hidden flex items-center justify-center relative preview-box"></div>
+            </div>
           </div>
 
           <div class=\"flex items-center justify-between\">
@@ -102,33 +120,101 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         const previewBox = card.querySelector('.preview-box');
         const setPreview = (thr) => {
           const rw = (a.rewards || []).find((r)=>r.threshold===thr) || {};
+          const claimed = (a.claimedThresholds || []).includes(thr);
           if (!previewBox) return;
+          
+          let content = '';
+          let checkOverlay = claimed ? '<div class=\"absolute inset-0 bg-green-500/20 flex items-center justify-center\"><div class=\"bg-green-500 text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold\">✓</div></div>' : '';
+          
           if (rw.reward_type==='CARD' && rw.card_image_path) {
-            previewBox.innerHTML = `<img src=\"${rw.card_image_path}\" alt=\"${rw.player_name||'Carta'}\" class=\"w-full h-full object-cover\" />`;
+            content = `<img src=\"${rw.card_image_path}\" alt=\"${rw.player_name||'Carta'}\" class=\"w-full h-full object-cover\" />${checkOverlay}`;
           } else if (rw.reward_type==='PACK') {
-            previewBox.innerHTML = `<div class=\"text-center p-4\"><div class=\"text-6xl\">📦</div><div class=\"mt-2 text-sm text-slate-200\">${rw.pack_label || rw.pack_type || 'Sobre'}</div></div>`;
+            content = `<div class=\"text-center p-4\"><div class=\"text-6xl\">📦</div><div class=\"mt-2 text-sm text-slate-200\">${rw.pack_label || rw.pack_type || 'Sobre'}</div></div>${checkOverlay}`;
           } else {
-            previewBox.innerHTML = `<div class=\"text-center p-4\"><div class=\"text-6xl\">🪙</div><div class=\"mt-2 text-sm text-slate-200\">+${rw.coins||0} monedas</div></div>`;
+            content = `<div class=\"text-center p-4\"><div class=\"text-6xl\">🪙</div><div class=\"mt-2 text-sm text-slate-200\">+${rw.coins||0} monedas</div></div>${checkOverlay}`;
           }
+          
+          previewBox.innerHTML = content;
         };
-        card.querySelectorAll('[data-th]').forEach((el)=> el.addEventListener('click', ()=> setPreview(Number(el.getAttribute('data-th')))));
+        // Event listeners for level buttons
+        card.querySelectorAll('.level-btn[data-th]').forEach((el)=> {
+          el.addEventListener('click', ()=> {
+            // Remove active class from all buttons in this card
+            card.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-yellow-400'));
+            // Add active class to clicked button
+            el.classList.add('ring-2', 'ring-yellow-400');
+            // Update preview
+            setPreview(Number(el.getAttribute('data-th')));
+          });
+        });
+        // Set initial preview to current target
         setPreview(target);
+        // Highlight current target button initially
+        const targetBtn = card.querySelector(`[data-th="${target}"]`);
+        if (targetBtn) {
+          targetBtn.classList.add('ring-2', 'ring-yellow-400');
+        }
         const btn = card.querySelector('button');
         btn?.addEventListener('click', async () => {
           const claimables = Array.isArray(a.claimable) ? a.claimable : [];
-          const nextClaim = claimables.length ? claimables.sort((x:any,y:any)=>x.threshold-y.threshold)[0] : null;
-          if (!nextClaim) return;
+          if (claimables.length === 0) return;
+          
+          // Deshabilitar el botón mientras se procesa
+          btn.disabled = true;
+          btn.textContent = 'Reclamando...';
+          
           try {
-            const r = await fetch('/api/nike-fc-cards/achievements/claim', {
-              method: 'POST', headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ key: a.key, threshold: nextClaim.threshold })
+            const r = await fetch('/api/nike-fc-cards/achievements/claim-multiple', {
+              method: 'POST', 
+              headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ key: a.key })
             });
-            await r.json();
-            start();
-          } catch {}
+            const result = await r.json();
+            
+            if (result.success && result.coins > 0) {
+              // Mostrar notificación de éxito
+              showNotification(`¡Reclamaste ${result.claimedCount} logro(s) por +${result.coins} monedas!`, 'success');
+            }
+            
+            start(); // Recargar datos
+          } catch (error) {
+            showNotification('Error al reclamar recompensas', 'error');
+          } finally {
+            // Rehabilitar el botón
+            btn.disabled = false;
+            btn.textContent = 'Reclamar';
+          }
         });
         grid.appendChild(card);
       });
+    }
+
+    function showNotification(message, type = 'info') {
+      // Crear elemento de notificación
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-medium transform translate-x-full transition-transform duration-300 ${
+        type === 'success' ? 'bg-green-600' : 
+        type === 'error' ? 'bg-red-600' : 
+        'bg-blue-600'
+      }`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      // Animar entrada
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+      }, 100);
+      
+      // Auto remover después de 3 segundos
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
     }
 
     async function start() {
@@ -149,4 +235,4 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     window.addEventListener('pageshow', kickoff);
     setTimeout(kickoff, 0);
   </script>
-</Layout>
+</NikeFCLayout>

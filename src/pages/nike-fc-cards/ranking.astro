@@ -1,35 +1,51 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<Layout title="Ranking - Nike FC Cards">
+<NikeFCLayout title="Ranking - Nike FC Cards" helpKey="ranking">
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
-    <div class="container mx-auto px-4 py-6 pt-28 relative z-10">
+    <div class="container mx-auto px-4 py-2 pt-4 relative z-10">
       <Subheader variant="minimal" />
 
       <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-4 mb-2">Ranking</h1>
       <p class="text-slate-300 mb-6">Progreso de tu colección por categoría</p>
 
-      <div class="overflow-x-auto rounded-xl shadow-lg ring-1 ring-white/10 bg-slate-900/80 backdrop-blur">
-        <table class="min-w-full text-sm text-slate-100">
-          <thead>
-            <tr class="bg-slate-800/80 sticky top-0">
-              <th class="px-4 py-3 text-left">#</th>
-              <th class="px-4 py-3 text-left">Usuario</th>
-              <th class="px-4 py-3 text-left">Total</th>
-              <th class="px-4 py-3">BASE</th>
-              <th class="px-4 py-3">OG</th>
-              <th class="px-4 py-3">TOTW</th>
-              <th class="px-4 py-3">RR</th>
-              <th class="px-4 py-3">MM</th>
-              <th class="px-4 py-3">AE</th>
-              <th class="px-4 py-3">CH</th>
-              <th class="px-4 py-3">POTM</th>
-            </tr>
-          </thead>
-          <tbody id="rank-body"></tbody>
-        </table>
+      <div class="rounded-xl shadow-lg ring-1 ring-white/10 bg-slate-900/80 backdrop-blur">
+        <div class="ranking-wrapper">
+          <!-- Fixed columns -->
+          <div class="fixed-columns">
+            <table class="fixed-table">
+              <thead>
+                <tr class="bg-slate-800/80">
+                  <th class="px-2 py-2 text-left">#</th>
+                  <th class="px-2 py-2 text-left">Usuario</th>
+                </tr>
+              </thead>
+              <tbody id="rank-body-fixed"></tbody>
+            </table>
+          </div>
+          
+          <!-- Scrollable columns -->
+          <div class="scrollable-columns">
+            <table class="scrollable-table">
+              <thead>
+                <tr class="bg-slate-800/80">
+                  <th class="px-2 py-2 text-left">Total</th>
+                  <th class="px-2 py-2">BASE</th>
+                  <th class="px-2 py-2">OG</th>
+                  <th class="px-2 py-2">TOTW</th>
+                  <th class="px-2 py-2">RR</th>
+                  <th class="px-2 py-2">MM</th>
+                  <th class="px-2 py-2">AE</th>
+                  <th class="px-2 py-2">CH</th>
+                  <th class="px-2 py-2">POTM</th>
+                </tr>
+              </thead>
+              <tbody id="rank-body-scrollable"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <div id="rank-empty" class="hidden mt-6 text-slate-300">Sin datos todavía.</div>
@@ -52,34 +68,48 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     function renderBoard(board) {
-      const tbody = document.getElementById('rank-body');
+      const tbodyFixed = document.getElementById('rank-body-fixed');
+      const tbodyScrollable = document.getElementById('rank-body-scrollable');
       const empty = document.getElementById('rank-empty');
-      tbody.innerHTML = '';
+      
+      tbodyFixed.innerHTML = '';
+      tbodyScrollable.innerHTML = '';
+      
       const totals = board.totals || { totalAll: 0, byCode: {} };
       const users = Array.isArray(board.users) ? board.users : [];
+      
       if (!users.length) {
         empty?.classList.remove('hidden');
         return;
       }
+      
       empty?.classList.add('hidden');
+      
       users.forEach((u, idx) => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-800/60 transition-colors';
-        const cells = [
-          `<td class=\"px-4 py-3\">${idx+1}</td>`,
-          `<td class=\"px-4 py-3 font-semibold\">${u.username}</td>`,
-          `<td class=\"px-4 py-3\">${u.totalOwned}/${totals.totalAll}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.BASE}/${totals.byCode.BASE||0}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.OG}/${totals.byCode.OG||0}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.TOTW}/${totals.byCode.TOTW||0}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.RR}/${totals.byCode.RR||0}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.MM}/${totals.byCode.MM||0}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.AE}/${totals.byCode.AE||0}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.CH}/${totals.byCode.CH||0}</td>`,
-          `<td class=\"px-4 py-3 text-center\">${u.byCode.POTM}/${totals.byCode.POTM||0}</td>`,
-        ];
-        tr.innerHTML = cells.join('');
-        tbody.appendChild(tr);
+        // Fixed columns row
+        const trFixed = document.createElement('tr');
+        trFixed.className = 'hover:bg-slate-800/60 transition-colors text-sm text-slate-100';
+        trFixed.innerHTML = [
+          `<td class="px-2 py-2">${idx+1}</td>`,
+          `<td class="px-2 py-2 font-semibold">${u.username}</td>`
+        ].join('');
+        tbodyFixed.appendChild(trFixed);
+        
+        // Scrollable columns row
+        const trScrollable = document.createElement('tr');
+        trScrollable.className = 'hover:bg-slate-800/60 transition-colors text-sm text-slate-100';
+        trScrollable.innerHTML = [
+          `<td class="px-2 py-2">${u.totalOwned}/${totals.totalAll}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.BASE}/${totals.byCode.BASE||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.OG}/${totals.byCode.OG||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.TOTW}/${totals.byCode.TOTW||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.RR}/${totals.byCode.RR||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.MM}/${totals.byCode.MM||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.AE}/${totals.byCode.AE||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.CH}/${totals.byCode.CH||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.POTM}/${totals.byCode.POTM||0}</td>`
+        ].join('');
+        tbodyScrollable.appendChild(trScrollable);
       });
     }
 
@@ -94,8 +124,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
   const kickoff = () => {
-    const tbody = document.getElementById('rank-body');
-    if (!tbody) { requestAnimationFrame(kickoff); return; }
+    const tbodyFixed = document.getElementById('rank-body-fixed');
+    const tbodyScrollable = document.getElementById('rank-body-scrollable');
+    if (!tbodyFixed || !tbodyScrollable) { requestAnimationFrame(kickoff); return; }
     start();
   };
 
@@ -107,4 +138,85 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
   // Llamada inmediata por si el script carga tras el swap
   kickoff();
   </script>
-</Layout>
+
+  <style>
+    /* Dual table layout for fixed columns */
+    .ranking-wrapper {
+      display: flex;
+      position: relative;
+      width: 100%;
+    }
+
+    .fixed-columns {
+      flex-shrink: 0;
+      background: rgb(15 23 42 / 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .scrollable-columns {
+      flex: 1;
+      overflow-x: auto;
+      background: rgb(15 23 42 / 0.8);
+      backdrop-filter: blur(8px);
+    }
+
+    .fixed-table,
+    .scrollable-table {
+      width: 100%;
+      text-align: left;
+      color: rgb(241 245 249); /* text-slate-100 */
+      font-size: 0.875rem; /* text-sm */
+    }
+
+    .fixed-table {
+      width: auto;
+      min-width: 170px;
+    }
+
+    .scrollable-table {
+      min-width: 600px;
+    }
+
+    /* Header styles */
+    .fixed-table thead tr,
+    .scrollable-table thead tr {
+      background: rgb(30 41 59 / 0.8); /* bg-slate-800/80 */
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .fixed-table th,
+    .scrollable-table th,
+    .fixed-table td,
+    .scrollable-table td {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* Hover effects */
+    .fixed-table tbody tr:hover,
+    .scrollable-table tbody tr:hover {
+      background-color: rgb(30 41 59 / 0.6); /* hover:bg-slate-800/60 */
+    }
+
+    /* Synchronized scrolling would require JS but tables will align naturally */
+    
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .fixed-table {
+        min-width: 130px;
+      }
+      
+      .scrollable-table {
+        min-width: 500px;
+      }
+      
+      .fixed-columns,
+      .scrollable-columns {
+        font-size: 0.75rem; /* text-xs */
+      }
+    }
+  </style>
+</NikeFCLayout>

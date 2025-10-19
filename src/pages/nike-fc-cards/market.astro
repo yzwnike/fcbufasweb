@@ -1,19 +1,19 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
-<Layout title="Mercado - Nike FC Cards">
+<NikeFCLayout title="Mercado - Nike FC Cards" helpKey="market">
   <div class="min-h-screen bg-gradient-to-br from-yellow-900 via-yellow-800 to-orange-900">
-    <div class="container mx-auto px-4 py-20">
+    <div class="container mx-auto px-4 py-6">
       <!-- Subheader Nav -->
       <Subheader variant="minimal" />
       <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
-          💰 Mercado de Cartas
+      <div class="text-center mb-6">
+        <h1 class="text-sm md:text-base font-bold text-white mb-4">
+          Mercado de Cartas
         </h1>
-        <p class="text-xl text-yellow-100 max-w-2xl mx-auto">
+        <p class="text-sm md:text-base text-yellow-100 max-w-2xl mx-auto">
           Compra y vende cartas con otros usuarios. Encuentra las cartas que necesitas para completar tu colección
         </p>
       </div>
@@ -32,133 +32,53 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       <!-- Market Container -->
       <div id="market-container" class="hidden">
         <!-- User Balance -->
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-md mx-auto">
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 mb-4 max-w-md mx-auto">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-yellow-100">Tu saldo:</p>
-              <p id="user-balance" class="text-3xl font-bold text-yellow-400">0</p>
+              <p class="text-xs text-yellow-100">Tu saldo:</p>
+              <p id="user-balance" class="text-lg font-bold text-yellow-400">0</p>
             </div>
             <div class="text-right">
-              <p class="text-yellow-100">Cartas en venta:</p>
-              <p id="user-cards-for-sale" class="text-2xl font-bold text-green-400">0</p>
+              <p class="text-xs text-yellow-100">Cartas en venta:</p>
+              <p id="user-cards-for-sale" class="text-lg font-bold text-green-400">0</p>
             </div>
           </div>
         </div>
 
-        <!-- Market Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 max-w-4xl mx-auto">
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-            <div class="text-3xl font-bold text-yellow-300" id="total-listings">0</div>
-            <div class="text-yellow-200">Cartas en Venta</div>
-          </div>
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-            <div class="text-3xl font-bold text-green-400" id="avg-price">0</div>
-            <div class="text-yellow-200">Precio Promedio</div>
-          </div>
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-            <div class="text-3xl font-bold text-blue-400" id="active-sellers">0</div>
-            <div class="text-yellow-200">Vendedores Activos</div>
-          </div>
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
-            <div class="text-3xl font-bold text-purple-400" id="legend-cards">0</div>
-            <div class="text-yellow-200">Cartas Leyenda</div>
-          </div>
-        </div>
-
-        <!-- Search and Filters -->
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8 max-w-6xl mx-auto">
-          <h3 class="text-xl font-bold text-white mb-4">Buscar Cartas</h3>
-          
-          <!-- Search Bar -->
-          <div class="mb-4">
-            <input type="text" id="search-input" placeholder="Buscar por nombre de jugador..." 
-                   class="w-full px-4 py-3 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white placeholder-yellow-300">
-          </div>
-
-          <div class="grid md:grid-cols-5 gap-4">
-            <!-- Rarity Filter -->
-            <div>
-              <label class="block text-sm font-medium text-yellow-200 mb-2">Rareza</label>
-              <select id="rarity-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
-                <option value="">Todas</option>
-                <option value="NORMAL">Normal</option>
-                <option value="ESPECIAL">Especial</option>
-                <option value="ELITE">Elite</option>
-                <option value="LEGENDARIO">Legendario</option>
-              </select>
-            </div>
-
-            <!-- Position Filter -->
-            <div>
-              <label class="block text-sm font-medium text-yellow-200 mb-2">Posición</label>
-              <select id="position-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
-                <option value="">Todas</option>
-                <option value="GK">Portero</option>
-                <option value="CB">Defensa Central</option>
-                <option value="LB">Lateral Izquierdo</option>
-                <option value="RB">Lateral Derecho</option>
-                <option value="CM">Centrocampista</option>
-                <option value="CAM">Mediocentro Ofensivo</option>
-                <option value="CDM">Mediocentro Defensivo</option>
-                <option value="LM">Centrocampista Izquierdo</option>
-                <option value="RM">Centrocampista Derecho</option>
-                <option value="LW">Extremo Izquierdo</option>
-                <option value="RW">Extremo Derecho</option>
-                <option value="ST">Delantero</option>
-              </select>
-            </div>
-
-            <!-- Price Range -->
-            <div>
-              <label class="block text-sm font-medium text-yellow-200 mb-2">Precio Máximo</label>
-              <select id="max-price-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
-                <option value="">Sin límite</option>
-                <option value="100">100</option>
-                <option value="250">250</option>
-                <option value="500">500</option>
-                <option value="1000">1,000</option>
-                <option value="2500">2,500</option>
-              </select>
-            </div>
-
-            <!-- Sort By -->
-            <div>
-              <label class="block text-sm font-medium text-yellow-200 mb-2">Ordenar por</label>
-              <select id="sort-filter" class="w-full px-3 py-2 bg-yellow-800/50 border border-yellow-600 rounded-lg text-white">
-                <option value="price_asc">Precio: Menor a Mayor</option>
-                <option value="price_desc">Precio: Mayor a Menor</option>
-                <option value="rating_desc">Rating FIFA: Mayor</option>
-                <option value="rarity_desc">Rareza: Mayor</option>
-                <option value="recent">Más Recientes</option>
-              </select>
-            </div>
-
-            <!-- Apply Filters Button -->
-            <div class="flex items-end">
-              <button id="search-btn" class="w-full bg-yellow-500 text-black font-semibold py-2 rounded-lg hover:bg-yellow-400 transition-colors">
-                Buscar
-              </button>
-            </div>
-          </div>
-
-          <div class="mt-4">
-            <button id="clear-search-btn" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-              Limpiar Filtros
-            </button>
-          </div>
+        <!-- Filter Button -->
+        <div class="flex justify-between items-center mb-3 max-w-6xl mx-auto">
+          <div class="text-sm font-bold text-white">Mercado de Cartas</div>
+          <button id="open-filters-btn" class="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+            </svg>
+            Filtros
+          </button>
         </div>
 
         <!-- Market Listings -->
-        <div class="max-w-7xl mx-auto">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-white">Cartas en Venta</h2>
-            <div class="text-yellow-200">
-              <span id="results-count">0</span> cartas encontradas
-            </div>
+        <div class="max-w-6xl mx-auto">
+          <!-- Pagination Info -->
+          <div class="text-sm text-yellow-200 mb-3">
+            Mostrando <span id="cards-showing">0-0</span> de <span id="cards-total">0</span> cartas
           </div>
-
-          <div id="market-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          
+          <!-- Horizontal Cards List -->
+          <div id="market-grid" class="space-y-2">
             <!-- Market cards will be loaded here -->
+          </div>
+          
+          <!-- Pagination Controls -->
+          <div id="pagination-controls" class="flex justify-center items-center gap-2 mt-4">
+            <button id="prev-page" class="px-3 py-1 text-xs bg-yellow-500 text-black rounded hover:bg-yellow-400 transition-colors disabled:bg-gray-500">
+              « Anterior
+            </button>
+            <div id="page-numbers" class="flex gap-1">
+              <!-- Page numbers will be generated here -->
+            </div>
+            <button id="next-page" class="px-3 py-1 text-xs bg-yellow-500 text-black rounded hover:bg-yellow-400 transition-colors disabled:bg-gray-500">
+              Siguiente »
+            </button>
           </div>
 
           <!-- Loading -->
@@ -177,6 +97,96 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Modal -->
+  <div id="filters-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl max-w-md w-full mx-4">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-gray-900">Filtros y Búsqueda</h3>
+          <button id="close-filters-modal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Buscar jugador:</label>
+          <input type="text" id="search-input" placeholder="Nombre del jugador..." 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500">
+        </div>
+
+        <!-- Sort Options -->
+        <div class="mb-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">Ordenar por:</h4>
+          <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+            <option value="price_asc">Precio: Menor a Mayor</option>
+            <option value="price_desc">Precio: Mayor a Menor</option>
+            <option value="rating_desc">Rating FIFA: Mayor</option>
+            <option value="rarity_desc">Rareza: Mayor</option>
+            <option value="recent">Más Recientes</option>
+          </select>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Rareza:</label>
+            <select id="rarity-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+              <option value="">Todas</option>
+              <option value="NORMAL">Normal</option>
+              <option value="ESPECIAL">Especial</option>
+              <option value="ELITE">Elite</option>
+              <option value="LEGENDARIO">Legendario</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Posición:</label>
+            <select id="position-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+              <option value="">Todas</option>
+              <option value="GK">Portero</option>
+              <option value="CB">Defensa Central</option>
+              <option value="LB">Lateral Izquierdo</option>
+              <option value="RB">Lateral Derecho</option>
+              <option value="CM">Centrocampista</option>
+              <option value="CAM">Mediocentro Ofensivo</option>
+              <option value="CDM">Mediocentro Defensivo</option>
+              <option value="LM">Centrocampista Izquierdo</option>
+              <option value="RM">Centrocampista Derecho</option>
+              <option value="LW">Extremo Izquierdo</option>
+              <option value="RW">Extremo Derecho</option>
+              <option value="ST">Delantero</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Precio Máximo:</label>
+            <select id="max-price-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900">
+              <option value="">Sin límite</option>
+              <option value="100">100</option>
+              <option value="250">250</option>
+              <option value="500">500</option>
+              <option value="1000">1,000</option>
+              <option value="2500">2,500</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 mt-6">
+          <button id="apply-filters-btn" class="flex-1 bg-yellow-500 text-black py-2 rounded-lg hover:bg-yellow-400 transition-colors">
+            Aplicar Filtros
+          </button>
+          <button id="clear-filters-btn" class="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors">
+            Limpiar Todo
+          </button>
         </div>
       </div>
     </div>
@@ -248,6 +258,31 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     let selectedListing = null;
     const storage = window.sessionStorage;
 
+    // Pagination variables
+    let currentPage = 1;
+    const itemsPerPage = 20;
+    let totalPages = 1;
+
+    // Global helper function for display rarity
+    function getDisplayRarity(specialType) {
+      switch (specialType) {
+        case 'Regular':
+        case 'OLD_GENERATION':
+          return 'NORMAL';
+        case 'TEAM_OF_THE_WEEK':
+          return 'ESPECIAL';
+        case 'MARKET_MASTER':
+        case 'RATING_RELOAD':
+        case 'COMEBACK_HERO':
+        case 'ASSIST_ENGINE':
+          return 'ELITE';
+        case 'PLAYER_OF_THE_MONTH':
+          return 'LEGENDARIO';
+        default:
+          return 'NORMAL';
+      }
+    }
+
     // Auth functions
     function checkAuthState() {
       const token = storage.getItem('nike_fc_token');
@@ -299,11 +334,21 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       document.getElementById('legend-cards').textContent = stats.legendCards;
     }
 
-    function displayListings(listings) {
-      const grid = document.getElementById('market-grid');
-      const resultsCount = document.getElementById('results-count');
+    function displayListingsPaginated(listings) {
+      totalPages = Math.ceil(listings.length / itemsPerPage);
+      if (currentPage > totalPages) currentPage = 1;
       
-      resultsCount.textContent = listings.length;
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const currentPageListings = listings.slice(startIndex, endIndex);
+      
+      // Update pagination info
+      const showing = `${startIndex + 1}-${Math.min(endIndex, listings.length)}`;
+      document.getElementById('cards-showing').textContent = showing;
+      document.getElementById('cards-total').textContent = listings.length;
+      
+      // Display cards
+      const grid = document.getElementById('market-grid');
       
       if (listings.length === 0) {
         grid.classList.add('hidden');
@@ -316,34 +361,49 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       
       grid.innerHTML = '';
       
-      listings.forEach(listing => {
+      currentPageListings.forEach(listing => {
         const cardElement = createMarketCardElement(listing);
         grid.appendChild(cardElement);
       });
+      
+      // Update pagination controls
+      updatePaginationControls();
+    }
+
+    function updatePaginationControls() {
+      const prevBtn = document.getElementById('prev-page');
+      const nextBtn = document.getElementById('next-page');
+      const pageNumbers = document.getElementById('page-numbers');
+      
+      // Show/hide buttons based on need
+      prevBtn.style.display = currentPage > 1 ? 'inline-block' : 'none';
+      nextBtn.style.display = currentPage < totalPages ? 'inline-block' : 'none';
+      
+      // Disable buttons appropriately
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      
+      // Generate page numbers (show current page and neighbors)
+      pageNumbers.innerHTML = '';
+      if (totalPages <= 1) return;
+      
+      const start = Math.max(1, currentPage - 2);
+      const end = Math.min(totalPages, currentPage + 2);
+      
+      for (let i = start; i <= end; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = `px-2 py-1 text-xs rounded ${i === currentPage ? 'bg-yellow-600 text-white' : 'bg-yellow-500 text-black hover:bg-yellow-400'} transition-colors`;
+        pageBtn.addEventListener('click', () => {
+          currentPage = i;
+          displayListingsPaginated(filteredListings);
+        });
+        pageNumbers.appendChild(pageBtn);
+      }
     }
 
     function createMarketCardElement(listing) {
       const card = listing.card;
-      
-      // Función helper para obtener rareza de UI
-      function getDisplayRarity(specialType) {
-        switch (specialType) {
-          case 'Regular':
-          case 'OLD_GENERATION':
-            return 'NORMAL';
-          case 'TEAM_OF_THE_WEEK':
-            return 'ESPECIAL';
-          case 'MARKET_MASTER':
-          case 'RATING_RELOAD':
-          case 'COMEBACK_HERO':
-          case 'ASSIST_ENGINE':
-            return 'ELITE';
-          case 'PLAYER_OF_THE_MONTH':
-            return 'LEGENDARIO';
-          default:
-            return 'NORMAL';
-        }
-      }
       
       function getRarityColor(displayRarity) {
         switch (displayRarity) {
@@ -364,26 +424,35 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       const rarityColor = getRarityColor(displayRarity);
 
       const cardDiv = document.createElement('div');
-      cardDiv.className = `bg-gradient-to-br ${rarityColor} rounded-xl p-4 text-center transform hover:scale-105 transition-transform cursor-pointer relative`;
+      cardDiv.className = `bg-gradient-to-br ${rarityColor} rounded-xl p-3 flex items-center gap-3 hover:scale-[1.02] transition-transform cursor-pointer relative`;
       cardDiv.addEventListener('click', () => openPurchaseModal(listing));
 
       // Check if user can afford this card
       const canAfford = (currentUser?.coins || 0) >= listing.sale_price;
       const isOwn = !!listing.is_own || listing.seller_username === (currentUser?.username || '');
 
-      const img = card.image_path ? `<img src="${card.image_path}" alt="${card.player.name}" class="w-full rounded-lg mb-3 mt-6" />` : `
-        <div class=\"w-20 h-20 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-3 mt-6\">⚽</div>`;
+      const img = card.image_path ? 
+        `<img src="${card.image_path}" alt="${card.player.name}" class="w-16 h-20 rounded-lg flex-shrink-0 object-cover" />` : 
+        `<div class="w-16 h-20 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+          <span class="text-2xl">⚽</span>
+        </div>`;
 
-      cardDiv.innerHTML = `
+      const statusBadge = `
         <div class="absolute top-2 right-2 ${isOwn ? 'bg-blue-500' : (canAfford ? 'bg-green-500' : 'bg-red-500')} text-white text-xs px-2 py-1 rounded-full">
           ${isOwn ? 'TUYA' : (canAfford ? '✓' : '✗')}
         </div>
+      `;
+
+      cardDiv.innerHTML = `
+        ${statusBadge}
         ${img}
-        <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
-        <div class="text-xs text-white/80 mb-2">${card.player.position1} - ${displayRarity}</div>
-        <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
-        <div class="text-xs text-yellow-300 mb-2">Vendedor: ${listing.seller_username}</div>
-        <div class="text-lg font-bold text-green-300">${listing.sale_price.toLocaleString()} 💰</div>
+        <div class="flex-1">
+          <div class="text-white font-bold text-sm mb-1">${card.player.name}</div>
+          <div class="text-xs text-white/80 mb-1">${card.player.position1} - ${displayRarity}</div>
+          <div class="text-xs text-white/90 mb-1">FIFA: ${card.player.fifa_rating}</div>
+          <div class="text-xs text-yellow-300 mb-1">Vendedor: ${listing.seller_username}</div>
+          <div class="text-sm font-bold text-green-300">${listing.sale_price.toLocaleString()} 💰</div>
+        </div>
       `;
 
       if (isOwn) {
@@ -430,25 +499,6 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       const positionFilter = document.getElementById('position-filter').value;
       const maxPriceFilter = parseInt(document.getElementById('max-price-filter').value) || Infinity;
       const sortFilter = document.getElementById('sort-filter').value;
-
-      function getDisplayRarity(specialType) {
-        switch (specialType) {
-          case 'Regular':
-          case 'OLD_GENERATION':
-            return 'NORMAL';
-          case 'TEAM_OF_THE_WEEK':
-            return 'ESPECIAL';
-          case 'MARKET_MASTER':
-          case 'RATING_RELOAD':
-          case 'COMEBACK_HERO':
-          case 'ASSIST_ENGINE':
-            return 'ELITE';
-          case 'PLAYER_OF_THE_MONTH':
-            return 'LEGENDARIO';
-          default:
-            return 'NORMAL';
-        }
-      }
       
       filteredListings = marketListings.filter(listing => {
         const card = listing.card;
@@ -488,7 +538,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         }
       });
 
-      displayListings(filteredListings);
+      displayListingsPaginated(filteredListings);
     }
 
     function clearSearch() {
@@ -499,7 +549,15 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       document.getElementById('sort-filter').value = 'price_asc';
       
       filteredListings = [...marketListings];
-      displayListings(filteredListings);
+      displayListingsPaginated(filteredListings);
+    }
+
+    function openFiltersModal() {
+      document.getElementById('filters-modal').classList.remove('hidden');
+    }
+
+    function closeFiltersModal() {
+      document.getElementById('filters-modal').classList.add('hidden');
     }
 
     async function purchaseCard() {
@@ -524,7 +582,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         // Remove listing from arrays
         marketListings = marketListings.filter(l => l.id !== selectedListing.id);
         filteredListings = filteredListings.filter(l => l.id !== selectedListing.id);
-        displayListings(filteredListings);
+        displayListingsPaginated(filteredListings);
         closePurchaseModal();
         alert('Compra realizada con éxito. La carta se ha añadido a tu colección.');
       } catch (e) {
@@ -554,13 +612,30 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
       showSection('market-container');
       await updateUserBalance();
-      displayStats(result.stats || { totalListings: marketListings.length, avgPrice: 0, activeSellers: 0, legendCards: 0 });
-      displayListings(filteredListings);
+      displayListingsPaginated(filteredListings);
 
       // Event listeners
-      document.getElementById('search-btn').addEventListener('click', applySearch);
-      document.getElementById('clear-search-btn').addEventListener('click', clearSearch);
-      document.getElementById('clear-all-btn').addEventListener('click', clearSearch);
+      document.getElementById('open-filters-btn').addEventListener('click', openFiltersModal);
+      document.getElementById('close-filters-modal').addEventListener('click', closeFiltersModal);
+      document.getElementById('apply-filters-btn').addEventListener('click', () => {
+        applySearch();
+        closeFiltersModal();
+      });
+      document.getElementById('clear-filters-btn').addEventListener('click', clearSearch);
+      
+      // Pagination event listeners
+      document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          displayListingsPaginated(filteredListings);
+        }
+      });
+      document.getElementById('next-page').addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          displayListingsPaginated(filteredListings);
+        }
+      });
       
       document.getElementById('close-purchase-modal').addEventListener('click', closePurchaseModal);
       document.getElementById('cancel-purchase-btn').addEventListener('click', closePurchaseModal);
@@ -579,10 +654,17 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           closePurchaseModal();
         }
       });
+      
+      // Close filters modal on backdrop click
+      document.getElementById('filters-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'filters-modal') {
+          closeFiltersModal();
+        }
+      });
     }
 
     document.addEventListener('DOMContentLoaded', startMarketPage);
     document.addEventListener('astro:page-load', startMarketPage);
     document.addEventListener('astro:after-swap', startMarketPage);
   </script>
-</Layout>
+</NikeFCLayout>

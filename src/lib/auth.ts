@@ -114,7 +114,7 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
     const result = await executeTransaction(async (connection) => {
       // Insertar usuario
       const [userResult] = await connection.execute(
-        'INSERT INTO users (username, email, password_hash, coins) VALUES (?, ?, ?, ?)',
+        'INSERT INTO users (username, email, password_hash, coins, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())',
         [data.username, data.email, passwordHash, 1000] // 1000 monedas iniciales
       );
 

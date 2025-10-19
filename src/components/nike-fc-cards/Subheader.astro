@@ -16,7 +16,7 @@ const navItems = [
 const isActive = (href: string) => current === href || (href !== '/nike-fc-cards' && current.startsWith(href));
 ---
 
-<nav class="mb-8">
+<nav class="mb-8 hidden lg:block">
   {variant === 'minimal' ? (
     <div class="inline-flex bg-black/60 border border-white/10 rounded-xl">
       <a href="/nike-fc-cards" class="px-4 py-2 text-sm font-semibold text-white bg-black/70 hover:bg-black/80 rounded-xl transition-colors">Inicio</a>

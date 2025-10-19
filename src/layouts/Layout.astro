@@ -21,6 +21,9 @@ const {
   canonical,
   robots,
 } = Astro.props
+
+// Detectar si es una página de Nike FC Cards
+const isNikeFCPage = Astro.url.pathname.startsWith('/nike-fc-cards')
 ---
 
 <!doctype html>
@@ -204,19 +207,21 @@ const {
   </head>
   <body>
     <Spotlight />
-    <Header />
+    {!isNikeFCPage && <Header />}
     <!-- Añadir skip link para que los usuarios de teclado puedan saltar al contenido principal -->
     <a href="#main-content" class="sr-only focus:not-sr-only"> Saltar al contenido principal </a>
     <main id="main-content">
-      <div
-        transition:persist
-        class="mask-fade-bottom absolute inset-0 w-full bg-[url('/images/hero.avif')] bg-cover bg-center"
-      >
-      </div>
+      {!isNikeFCPage && (
+        <div
+          transition:persist
+          class="mask-fade-bottom absolute inset-0 w-full bg-[url('/images/hero.avif')] bg-cover bg-center"
+        >
+        </div>
+      )}
       <slot />
     </main>
     
-    <Footer />
+    {!isNikeFCPage && <Footer />}
   </body>
 </html>
 
