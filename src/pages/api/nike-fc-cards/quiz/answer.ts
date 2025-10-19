@@ -47,7 +47,8 @@ export const POST: APIRoute = async ({ request }) => {
       }
       
       // Verificar si completó todas las preguntas del día para calcular payout final
-      const today = new Date().toISOString().split('T')[0];
+      const { currentQuizDate } = await import('@/lib/quiz');
+      const today = currentQuizDate();
       const progress = await getUserQuizProgress(userId, today);
       
       let finalPayout = result.coinsEarned;
@@ -83,6 +84,24 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Ruta 2: compatibilidad con flujo random (cardId + statName)
     if (cardId && statName) {
+      const { executeQuerySingle: q1, executeQuery: q } = await import('@/lib/mysql');
+      // Gate: si ya completó 5 en la ventana actual (20:00), bloquear
+      const progRow = await q1<any>(
+        `SELECT COALESCE(SUM(answered_count),0) AS answered_count
+           FROM daily_quiz_progress 
+          WHERE user_id = ? AND window_start = (
+            CASE WHEN (now()::time >= time '20:00:00')
+                 THEN date_trunc('day', now()) + interval '20 hours'
+                 ELSE date_trunc('day', now()) - interval '4 hours'
+            END
+          )`,
+        [Number(userId)]
+      );
+      const alreadyAnswered = Number(progRow?.answered_count || 0);
+      if (alreadyAnswered >= 5) {
+        return new Response(JSON.stringify({ success: false, error: 'Quiz ya completado hasta las 20:00' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+
       // Obtener stat desde la carta/jugador
       const row = await (await import('@/lib/mysql')).executeQuerySingle<any>(
         `SELECT 
@@ -109,8 +128,49 @@ export const POST: APIRoute = async ({ request }) => {
       const clamp = (n: number) => Math.max(1, Math.min(99, Math.round(n)));
       const correctAnswer = clamp(val);
       const isCorrect = Number(selectedAnswer) === correctAnswer;
-      // Sin persistencia en random: respondemos resultado sin tocar monedas/diario
-      return new Response(JSON.stringify({ success: true, isCorrect, correctAnswer, coinsEarned: 0 }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+      // Persistencia mínima para random: sumar progreso y monedas en ventana diaria (20:00)
+      try {
+        const { executeTransaction } = await import('@/lib/mysql');
+        const { QUIZ_CONFIG } = await import('@/lib/quiz');
+        await executeTransaction(async (conn: any) => {
+          // Upsert progreso
+          await conn.execute(
+            `WITH target AS (
+               SELECT CASE WHEN (now()::time >= time '20:00:00')
+                           THEN date_trunc('day', now()) + interval '20 hours'
+                           ELSE date_trunc('day', now()) - interval '4 hours'
+                      END AS ws
+             ), up AS (
+               UPDATE daily_quiz_progress dqp
+                  SET answered_count = answered_count + 1,
+                      correct_count  = correct_count  + CASE WHEN ? THEN 1 ELSE 0 END
+                 FROM target
+                WHERE dqp.user_id = ? AND dqp.window_start = (SELECT ws FROM target)
+                RETURNING 1
+             )
+             INSERT INTO daily_quiz_progress (user_id, window_start, answered_count, correct_count)
+             SELECT ?, (SELECT ws FROM target), 1, CASE WHEN ? THEN 1 ELSE 0 END
+             WHERE NOT EXISTS (SELECT 1 FROM up)`,
+            [
+              isCorrect,
+              Number(userId),
+              Number(userId),
+              isCorrect
+            ]
+          );
+          if (isCorrect) {
+            // Update coins + transaction
+            await conn.execute('UPDATE users SET coins = coins + ? WHERE id = ?', [QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, Number(userId)]);
+            await conn.execute(
+              'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
+              [Number(userId), QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, 'DAILY_QUIZ', 'Respuesta correcta en quiz (random)']
+            );
+          }
+        });
+      } catch {}
+
+      return new Response(JSON.stringify({ success: true, isCorrect, correctAnswer, coinsEarned: isCorrect ? 40 : 0 }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
 
     // Faltan parámetros

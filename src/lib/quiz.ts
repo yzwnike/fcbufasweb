@@ -5,6 +5,15 @@ import { ECONOMY_CONFIG, calculateQuizPayout } from './economy';
 
 // Configuración del quiz (ahora desde economy.ts)
 export const QUIZ_CONFIG = ECONOMY_CONFIG.QUIZ;
+
+// Fecha efectiva del quiz (reseteo diario a las 20:00 hora del servidor)
+export function currentQuizDate(): string {
+  const now = new Date();
+  const d = new Date(now);
+  if (now.getHours() < 20) d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+}
+
 // Estadísticas disponibles para preguntas
 export const AVAILABLE_STATS = [
   'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physical', 'fifa_rating'
@@ -56,7 +65,7 @@ function generateIncorrectOptions(correctAnswer: number, statName: StatName): [n
 }
 
 // Generar preguntas diarias
-export async function generateDailyQuestions(date: string = new Date().toISOString().split('T')[0]): Promise<boolean> {
+export async function generateDailyQuestions(date: string = currentQuizDate()): Promise<boolean> {
   try {
     // Verificar si ya existen preguntas para esta fecha
     const existingQuestions = await executeQuery<DailyQuizQuestion>(
@@ -128,7 +137,7 @@ export async function generateDailyQuestions(date: string = new Date().toISOStri
 // Obtener preguntas del día para un usuario
 export async function getDailyQuestions(
   userId: number,
-  date: string = new Date().toISOString().split('T')[0]
+  date: string = currentQuizDate()
 ): Promise<QuizQuestionWithOptions[]> {
   try {
     // Generar preguntas si no existen
@@ -195,7 +204,7 @@ export async function getDailyQuestions(
 // Obtener progreso del quiz diario del usuario
 export async function getUserQuizProgress(
   userId: number,
-  date: string = new Date().toISOString().split('T')[0]
+  date: string = currentQuizDate()
 ): Promise<{
   questionsAnswered: number;
   correctAnswers: number;
@@ -208,13 +217,12 @@ export async function getUserQuizProgress(
       `SELECT 
         COUNT(*) as questions_answered,
         SUM(CASE WHEN is_correct = true THEN 1 ELSE 0 END) as correct_answers,
-        SUM(coins_earned) as total_coins_earned
+        COUNT(DISTINCT CAST(answered_at AS DATE)) as days_played
        FROM daily_quiz_answers dqa
        JOIN daily_quiz_questions dqq ON dqa.question_id = dqq.id
        WHERE dqa.user_id = ? AND dqq.date = ?`,
       [userId, date]
     );
-
     const answeredQuestionIds = await executeQuery<any>(
       `SELECT dqq.question_number FROM daily_quiz_answers dqa
        JOIN daily_quiz_questions dqq ON dqa.question_id = dqq.id
@@ -225,10 +233,11 @@ export async function getUserQuizProgress(
     const questionsAnswered = progress?.questions_answered || 0;
     const canPlayToday = questionsAnswered < QUIZ_CONFIG.QUESTIONS_PER_DAY;
 
+    const correctAnswers = progress?.correct_answers || 0;
     return {
       questionsAnswered,
-      correctAnswers: progress?.correct_answers || 0,
-      totalCoinsEarned: progress?.total_coins_earned || 0,
+      correctAnswers,
+      totalCoinsEarned: correctAnswers * QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER,
       canPlayToday,
       answeredQuestions: answeredQuestionIds.map(q => q.question_number)
     };

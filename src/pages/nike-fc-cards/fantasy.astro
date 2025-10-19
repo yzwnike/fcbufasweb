@@ -5,7 +5,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
 <Layout title="Fantasy Rush - Nike FC Cards">
   <div class="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900">
-    <div class="container mx-auto px-4 py-2">
+    <div class="container mx-auto px-2 py-2">
       <!-- Subheader Nav -->
       <Subheader variant="minimal" />
       <!-- Header -->
@@ -56,14 +56,16 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
           <!-- Selector en 2 filas (7 columnas fijas) con separadores arriba: 2/3/2 -->
           <div class="w-full max-w-none space-y-2">
-            <!-- Vertical separators at 2/7 and 5/7 -->
-            <div class="pointer-events-none absolute inset-0 z-0">
-              <div class="absolute top-0 bottom-0 w-px bg-white" style="left: calc(100% * 2 / 7);"></div>
-              <div class="absolute top-0 bottom-0 w-px bg-white" style="left: calc(100% * 5 / 7);"></div>
-            </div>
             <div id="labels" class="relative z-10 grid grid-cols-7 gap-2 w-full"></div>
-            <div id="row1" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
-            <div id="row2" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
+            <div class="relative w-full">
+              <!-- Vertical separators only across player rows -->
+              <div class="pointer-events-none absolute inset-0 z-0">
+                <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 2 / 7);"></div>
+                <div class="absolute top-0 bottom-0 w-px bg-white/40" style="left: calc(100% * 5 / 7);"></div>
+              </div>
+              <div id="row1" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
+              <div id="row2" class="relative z-10 grid grid-cols-7 gap-1 w-full"></div>
+            </div>
           </div>
 
           <!-- Selection Summary -->
@@ -94,6 +96,18 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         <!-- Loading -->
         <div id="loading" class="text-center py-8">
           <div class="text-white">Cargando jugadores...</div>
+        </div>
+
+        <!-- Locked notice -->
+        <div id="fantasy-locked" class="hidden text-center py-12">
+          <div class="bg-red-500/20 backdrop-blur-md rounded-xl p-8 max-w-2xl mx-auto">
+            <div class="text-5xl mb-4">🔒</div>
+            <h2 class="text-3xl font-bold text-white mb-2">Fantasy no disponible</h2>
+            <p class="text-red-200">Las plantillas están cerradas por esta jornada. Vuelve cuando empiece la próxima.</p>
+            <div class="mt-6">
+              <a href="/nike-fc-cards" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors">Volver</a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -147,7 +161,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     const storage = window.sessionStorage;
     let eligiblePlayers = { forwards: [], midfielders: [], defenders: [] };
     
-    function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-96 object-cover\"/>` : `<div class=\\\"w-full h-96 bg-purple-500\\\"></div>`; }
+function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-96 object-cover\"/>` : `<div class=\\\"w-full h-96 bg-purple-500\\\"></div>`; }
     let currentSelection = null;
     let currentJornadaNum = null;
     let selectedPlayers = {
@@ -227,6 +241,13 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       }
     }
 
+    async function fetchFantasyLock() {
+      try {
+        const res = await fetch('/api/nike-fc-cards/fantasy/admin/lock', { cache: 'no-store' });
+        return await res.json();
+      } catch (e) { return { success: false }; }
+    }
+
     async function createSelection() {
       try {
         const response = await fetch('/api/nike-fc-cards/fantasy/selection', {
@@ -270,9 +291,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     function renderPlayerMini(p, imagePathOverride) {
-      const imgPath = imagePathOverride || p?.image_path || p?.image_url || null;
+      const imgPath = imagePathOverride || p?.best_image_path || p?.image_path || p?.image_url || null;
       if (!p) return '<div class="text-purple-200">-</div>';
-      const img = imgPath ? `<img src="${imgPath}" class="w-full h-48 object-cover rounded-lg"/>` : '';
+const img = imgPath ? `<img src=\"${imgPath}\" class=\"w-full h-48 object-cover rounded-lg\"/>` : '';
       return `
         <div class="space-y-2">
           ${img}
@@ -323,7 +344,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       // Build label row with exact spans and without flex (prevents drift)
       const makeLabelGroup = (text, span, borderRight) => {
         const g = document.createElement('div');
-        g.className = `col-span-${span} ${borderRight ? 'border-r border-white' : ''}`;
+        g.className = `col-span-${span} ${borderRight ? 'pr-3 md:pr-4' : 'pl-3 md:pl-4'}`;
         const s = document.createElement('span');
         s.className = 'block w-full text-center px-6 py-2 rounded-md bg-black/60 border border-white/10 text-white text-xl font-extrabold tracking-wide';
         s.textContent = text;
@@ -337,23 +358,23 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       // Row builders: create group wrappers with borders and inner grids
       const buildRow = (container, fwArr, midArr, defArr) => {
         const g1 = document.createElement('div');
-        g1.className = 'col-span-2 border-r border-white';
+        g1.className = 'col-span-2 pr-3 md:pr-4';
         const g1grid = document.createElement('div');
-        g1grid.className = 'grid grid-cols-2 gap-1';
+g1grid.className = 'grid grid-cols-2 gap-[1px]';
         fwArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'forward')); g1grid.appendChild(w); });
         g1.appendChild(g1grid);
 
         const g2 = document.createElement('div');
-        g2.className = 'col-span-3 border-r border-white';
+        g2.className = 'col-span-3 px-3 md:px-4';
         const g2grid = document.createElement('div');
-        g2grid.className = 'grid grid-cols-3 gap-1';
+g2grid.className = 'grid grid-cols-3 gap-[1px]';
         midArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'midfielder')); g2grid.appendChild(w); });
         g2.appendChild(g2grid);
 
         const g3 = document.createElement('div');
-        g3.className = 'col-span-2';
+        g3.className = 'col-span-2 pl-3 md:pl-4';
         const g3grid = document.createElement('div');
-        g3grid.className = 'grid grid-cols-2 gap-1';
+g3grid.className = 'grid grid-cols-2 gap-[1px]';
         defArr.forEach(p => { const w = document.createElement('div'); w.appendChild(createPlayerCard(p, 'defender')); g3grid.appendChild(w); });
         g3.appendChild(g3grid);
 
@@ -376,7 +397,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       card.dataset.playerId = player.id;
       card.dataset.position = position; card.dataset.owned = owned ? 'true' : 'false';
 
-      const img = playerImg(player.image_path);
+      const img = playerImg(player.best_image_path || player.image_path);
       card.innerHTML = `
         <div class=\"relative overflow-hidden rounded-lg\" ${resting ? 'title=\\\"Descanso: jugó la jornada anterior\\\"' : ''}>
           ${resting ? '<div class=\"absolute inset-0 bg-red-700/40 z-10\"></div><div class=\"absolute top-2 left-2 z-20 text-red-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18\" /></svg></div><div class=\"absolute bottom-2 right-2 z-20 bg-red-600/90 text-white text-[10px] px-2 py-1 rounded\">DESCANSO</div>' : ''}
@@ -433,7 +454,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       // Enable/disable confirm button
       const confirmBtn = document.getElementById('confirm-selection-btn');
       const allSelected = selectedPlayers.forward && selectedPlayers.midfielder && selectedPlayers.defender;
-      confirmBtn.disabled = !allSelected;
+      confirmBtn.disabled = !allSelected || false; // lock handled at page-level
     }
 
     function updateCrossPositionLocks() {
@@ -468,12 +489,20 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
       showSection('loading');
 
-
       // Load data
-      const [playersResult, selectionResult] = await Promise.all([
+      const [playersResult, selectionResult, lockResult] = await Promise.all([
         fetchEligiblePlayers(),
-        fetchCurrentSelection()
+        fetchCurrentSelection(),
+        fetchFantasyLock()
       ]);
+
+      // Admin lock logic: if locked and no selection, show locked notice and stop
+      const isLocked = !!lockResult?.locked;
+      const selectionData = selectionResult?.selection || null;
+      if (isLocked && !(selectionData && selectionData.forward_player_id)) {
+        showSection('fantasy-locked');
+        return;
+      }
 
       // Show settle modal if previous jornada exists and not settled (guard DOM)
       const prev = selectionResult && selectionResult.prev ? selectionResult.prev : null;
@@ -498,6 +527,12 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
         }
       }
       currentJornadaNum = selectionResult?.currentJornada || null;
+      // If locked and selection exists, directly show summary view and skip selector
+      if (isLocked && selectionData && selectionData.forward_player_id) {
+        showSection('fantasy-container');
+        showSummaryView(selectionData);
+        return;
+      }
       restPlayerIds = Array.isArray(selectionResult?.restPlayerIds) ? selectionResult.restPlayerIds : [];
 
       if (!playersResult.success) {

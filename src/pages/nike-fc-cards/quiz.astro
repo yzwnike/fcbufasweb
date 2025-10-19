@@ -185,12 +185,42 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
     let coinsEarned = 0;
+    let answeredLock = false; // evita doble envío por pregunta
 
     // Load auth state
     function checkAuthState() {
       const token = storage.getItem('nike_fc_token');
       if (token) { authToken = token; return true; }
       return false;
+    }
+
+    // Local progress fallback (persists until 20:00)
+    function currentWindowKey() {
+      const now = new Date();
+      const base = new Date(now);
+      if (now.getHours() < 20) base.setDate(base.getDate() - 1);
+      base.setHours(20,0,0,0);
+      return 'quiz_window_' + base.toISOString();
+    }
+
+    function loadLocalProgress() {
+      const key = currentWindowKey();
+      const savedKey = storage.getItem('quiz_window_key');
+      if (savedKey !== key) {
+        storage.removeItem('quiz_progress');
+        storage.setItem('quiz_window_key', key);
+        return { answered: 0, correct: 0, completed: false };
+      }
+      try {
+        const raw = storage.getItem('quiz_progress');
+        if (!raw) return { answered: 0, correct: 0, completed: false };
+        const p = JSON.parse(raw);
+        return { answered: p.answered||0, correct: p.correct||0, completed: !!p.completed };
+      } catch { return { answered: 0, correct: 0, completed: false }; }
+    }
+
+    function saveLocalProgress(answered, correct, completed=false) {
+      storage.setItem('quiz_progress', JSON.stringify({ answered, correct, completed }));
     }
 
     // API calls
@@ -235,6 +265,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     function displayQuestion(question) {
+      answeredLock = false;
       document.getElementById('player-name').textContent = question.player.name;
       document.getElementById('player-position').textContent = `${question.player.position1} - FC Bufas`;
       document.getElementById('stat-name').textContent = getStatDisplayName(question.stat_name);
@@ -291,6 +322,8 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       document.getElementById('questions-answered').textContent = currentQuestionIndex + 1;
       document.getElementById('correct-answers').textContent = correctAnswers;
       document.getElementById('coins-earned').textContent = coinsEarned;
+      const totalCoinsEl = document.getElementById('total-coins');
+      if (totalCoinsEl) totalCoinsEl.textContent = String(coinsEarned);
 
       // Show next/finish button and (re)bind click handler to be safe on SPA swaps
       const nextBtn = document.getElementById('next-question');
@@ -320,6 +353,15 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     async function initializeQuiz() {
+      // Local completed gate
+      const local = loadLocalProgress();
+      if (local.completed) {
+        document.getElementById('today-correct').textContent = String(local.correct);
+        document.getElementById('today-coins').textContent = String(local.correct * 40);
+        showSection('already-completed');
+        return;
+      }
+
       const result = await fetchQuizData();
       
       if (!result.success) {
@@ -330,7 +372,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       // Already completed window
       if (result.alreadyCompleted) {
         document.getElementById('today-correct').textContent = (result.progress?.correct || 0).toString();
-        document.getElementById('today-coins').textContent = ((result.progress?.correct || 0) * 100).toString();
+        document.getElementById('today-coins').textContent = ((result.progress?.correct || 0) * 40).toString();
         showSection('already-completed');
         return;
       }
@@ -351,12 +393,16 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           attempts++;
         }
       }
-      // Load persisted progress from server
-      const answeredSoFar = result.progress?.answered || 0;
-      const correctSoFar = result.progress?.correct || 0;
+      // Load persisted progress (prefer server, fallback local)
+      let answeredSoFar = result.progress?.answered ?? null;
+      let correctSoFar = result.progress?.correct ?? null;
+      if (answeredSoFar === null || correctSoFar === null) {
+        answeredSoFar = local.answered;
+        correctSoFar = local.correct;
+      }
       currentQuestionIndex = 0;
       correctAnswers = correctSoFar;
-      coinsEarned = correctSoFar * 100;
+      coinsEarned = correctSoFar * 40;
       document.getElementById('questions-answered').textContent = answeredSoFar.toString();
       document.getElementById('correct-answers').textContent = correctSoFar.toString();
       document.getElementById('coins-earned').textContent = coinsEarned.toString();
@@ -379,15 +425,11 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
       bindOnce(document.getElementById('next-question'), 'click', nextQuestion);
       bindOnce(document.getElementById('finish-quiz'), 'click', finishQuiz);
-      // Fallback: event delegation in case listeners get detached after transitions
-      bindOnce(document, 'click', (e) => {
-        const t = e.target as HTMLElement;
-        if (t && (t.closest && t.closest('#next-question'))) nextQuestion();
-        if (t && (t.closest && t.closest('#finish-quiz'))) finishQuiz();
-      });
     }
 
     async function handleAnswer(event) {
+      if (answeredLock) return; // ya se respondió esta pregunta
+      answeredLock = true;
       const selectedButton = event.target.closest('.answer-option');
       const selectedAnswer = parseInt(selectedButton.querySelector('.option-value').textContent);
       const currentQuestion = questions[currentQuestionIndex];
@@ -421,13 +463,17 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       const corrEl = document.getElementById('correct-answers');
       const coinsEl = document.getElementById('coins-earned');
       const prevAnswered = parseInt(ansEl.textContent || '0');
-      ansEl.textContent = (prevAnswered + 1).toString();
+      const newAnswered = prevAnswered + 1;
+      ansEl.textContent = String(newAnswered);
+      let newCorrect = parseInt(corrEl.textContent || '0');
       if (result.isCorrect) {
-        const prevCorrect = parseInt(corrEl.textContent || '0');
-        corrEl.textContent = (prevCorrect + 1).toString();
+        newCorrect = newCorrect + 1;
+        corrEl.textContent = String(newCorrect);
         const prevCoins = parseInt(coinsEl.textContent || '0');
-        coinsEl.textContent = (prevCoins + (result.coinsEarned || 0)).toString();
+        coinsEl.textContent = String(prevCoins + (result.coinsEarned || 0));
       }
+      // Persist locally
+      saveLocalProgress(newAnswered, newCorrect, newAnswered >= 5);
 
       showResult(result.isCorrect, result.correctAnswer, result.coinsEarned);
     }
@@ -475,6 +521,9 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       document.getElementById('final-correct').textContent = correctAnswers;
       document.getElementById('final-coins').textContent = coinsEarned;
       showSection('quiz-completed');
+
+      // Persist local completion until 20:00
+      saveLocalProgress(5, correctAnswers, true);
 
       // Coins are already updated in DB by API
     }

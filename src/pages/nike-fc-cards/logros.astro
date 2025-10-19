@@ -10,7 +10,7 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       <h1 class="text-4xl font-extrabold text-white mb-6">Logros</h1>
       <p class="text-indigo-200 mb-4">Cumple objetivos y gana monedas</p>
 
-      <div id="achv-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="achv-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4"></div>
     </div>
   </div>
 
@@ -25,46 +25,105 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     async function fetchAchievements() {
-      const res = await fetch('/api/nike-fc-cards/achievements', { headers: { Authorization: `Bearer ${token}` }});
+      const res = await fetch('/api/nike-fc-cards/achievements', { cache: 'no-store', headers: { Authorization: `Bearer ${token}` }});
       return await res.json();
     }
 
     function render(list) {
       const grid = document.getElementById('achv-grid');
+      if (!grid) return;
       grid.innerHTML = '';
+
+      const STYLES = {
+        fantasy_jornadas: { icon: '🏁', accent: 'text-rose-300' },
+        cartas_totales: { icon: '🃏', accent: 'text-amber-300' },
+        cartas_distintas: { icon: '🌈', accent: 'text-fuchsia-300' },
+        sbc_completados: { icon: '🧩', accent: 'text-sky-300' },
+        mercado_compras: { icon: '🛒', accent: 'text-emerald-300' },
+        mercado_ventas: { icon: '💸', accent: 'text-lime-300' },
+        sobres_abiertos: { icon: '📦', accent: 'text-indigo-300' },
+        quiz_aciertos: { icon: '❓', accent: 'text-purple-300' },
+      };
+
       list.forEach(a => {
-        const next = a.nextTarget;
-        const pct = a.thresholds.length ? Math.min(100, Math.round(100 * a.currentValue / a.thresholds[a.thresholds.length-1])) : 0;
-        const card = document.createElement('div');
-        card.className = 'rounded-xl bg-white/10 border border-white/10 backdrop-blur-md p-4 text-white';
+        const s = STYLES[a.key] || { icon:'⭐', accent:'text-white' };
+
+        // Target del nivel actual: si hay umbrales reclamables, usamos el menor para mostrar barra completa; si no, usamos el próximo objetivo
         const claimables = Array.isArray(a.claimable) ? a.claimable : [];
-        const rewardsText = claimables.length ? `+${claimables.reduce((s,x)=>s+x.coins,0)} monedas` : '';
+        const next = a.nextTarget;
+        const target = claimables.length ? Math.min(...claimables.map((c:any)=>c.threshold)) : (next || (a.thresholds[a.thresholds.length-1] || 1));
+        const pct = target ? Math.max(0, Math.min(100, Math.round(100 * a.currentValue / target))) : 0;
+        const completedThisLevel = a.currentValue >= target && claimables.some((c:any)=>c.threshold === target);
+
+        const card = document.createElement('div');
+        card.className = 'relative rounded-xl border border-slate-700 bg-slate-800 p-4 text-white overflow-hidden';
         card.innerHTML = `
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-lg font-bold">${a.title}</div>
-            <div class="text-sm text-indigo-200">${a.currentValue}</div>
+          <div class=\"relative flex items-center justify-between mb-3\">
+            <div class=\"flex items-center gap-3\">
+              <div class=\"w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center text-lg\">${s.icon}</div>
+              <div>
+                <div class=\"text-lg font-bold\">${a.title}</div>
+                <div class=\"text-xs ${s.accent}\">Objetivo: ${target}</div>
+              </div>
+            </div>
+            <div class=\"text-sm text-slate-300\">${next ? `Siguiente: ${next}` : 'Todos completados'}</div>
           </div>
-          <div class="w-full h-2 bg-white/10 rounded mb-2">
-            <div class="h-2 bg-emerald-500 rounded" style="width:${pct}%"></div>
+
+          <div class=\"w-full h-2 bg-slate-700 rounded mb-3\">
+            <div class=\"h-2 ${completedThisLevel ? 'bg-emerald-500' : 'bg-indigo-500'} rounded\" style=\"width:${pct}%\"></div>
           </div>
-          <div class="text-sm text-indigo-200 mb-2">${next ? `Siguiente: ${next}` : 'Completado'}</div>
-          <div class="flex items-center justify-between">
-            <div class="text-sm text-yellow-300">${rewardsText}</div>
-            <button class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-500" ${claimables.length? '' : 'disabled'} data-key="${a.key}">Reclamar</button>
+
+          <div class=\"mb-3\">
+            <div class=\"text-xs text-slate-300 mb-1\">Niveles y recompensas</div>
+            <div class=\"grid grid-cols-2 gap-3\">
+              ${a.thresholds.map((t:number, i:number) => {
+                const done = a.currentValue >= t;
+                const canClaim = (a.claimable || []).some((c:any) => c.threshold === t);
+                const rw = (a.rewards || []).find((r:any)=>r.threshold===t) || {};
+                const base = 'h-16 md:h-20 w-full px-3 rounded border text-sm flex items-center justify-between';
+                const cls = done ? (canClaim ? 'bg-emerald-600/80 border-emerald-400' : 'bg-white/10 border-white/20') : 'bg-transparent border-white/10 text-white/70';
+                const icon = rw.reward_type==='PACK' ? '📦' : (rw.reward_type==='CARD' ? '🖼️' : '🪙');
+                const label = rw.reward_type==='PACK' ? (rw.pack_label || rw.pack_type || 'Sobre') : (rw.reward_type==='CARD' ? (rw.player_name || 'Carta') : (rw.coins ? `+${rw.coins}` : ''));
+                return `<span class=\\"${base} ${cls} cursor-pointer\\" data-th=\\"${t}\\">${t} <span class=\\"opacity-80\\">·</span> ${icon} ${label}</span>`;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class=\"grid grid-cols-1 md:grid-cols-3 gap-4 mb-3\">
+            <div class=\"md:col-span-2\"></div>
+            <div class=\"md:col-span-1\"><div class=\"aspect-square rounded-lg border border-slate-600 bg-slate-700 overflow-hidden flex items-center justify-center relative preview-box\"></div></div>
+          </div>
+
+          <div class=\"flex items-center justify-between\">
+            <div class=\"text-sm text-yellow-300\">${claimables.length ? `+${claimables.reduce((s:any,x:any)=>s+x.coins,0)} monedas disponibles` : ''}</div>
+            <button class=\"px-3 py-1 rounded ${completedThisLevel ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-600'} disabled:bg-gray-500\" ${completedThisLevel? '' : 'disabled'} data-key=\"${a.key}\">Reclamar</button>
           </div>
         `;
+        const previewBox = card.querySelector('.preview-box');
+        const setPreview = (thr) => {
+          const rw = (a.rewards || []).find((r)=>r.threshold===thr) || {};
+          if (!previewBox) return;
+          if (rw.reward_type==='CARD' && rw.card_image_path) {
+            previewBox.innerHTML = `<img src=\"${rw.card_image_path}\" alt=\"${rw.player_name||'Carta'}\" class=\"w-full h-full object-cover\" />`;
+          } else if (rw.reward_type==='PACK') {
+            previewBox.innerHTML = `<div class=\"text-center p-4\"><div class=\"text-6xl\">📦</div><div class=\"mt-2 text-sm text-slate-200\">${rw.pack_label || rw.pack_type || 'Sobre'}</div></div>`;
+          } else {
+            previewBox.innerHTML = `<div class=\"text-center p-4\"><div class=\"text-6xl\">🪙</div><div class=\"mt-2 text-sm text-slate-200\">+${rw.coins||0} monedas</div></div>`;
+          }
+        };
+        card.querySelectorAll('[data-th]').forEach((el)=> el.addEventListener('click', ()=> setPreview(Number(el.getAttribute('data-th')))));
+        setPreview(target);
         const btn = card.querySelector('button');
         btn?.addEventListener('click', async () => {
+          const claimables = Array.isArray(a.claimable) ? a.claimable : [];
+          const nextClaim = claimables.length ? claimables.sort((x:any,y:any)=>x.threshold-y.threshold)[0] : null;
+          if (!nextClaim) return;
           try {
-            // Reclamar todos los claimables (de menor a mayor)
-            for (const c of claimables) {
-              const r = await fetch('/api/nike-fc-cards/achievements/claim', {
-                method: 'POST', headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ key: a.key, threshold: c.threshold })
-              });
-              await r.json();
-            }
-            alert('Recompensas acreditadas');
+            const r = await fetch('/api/nike-fc-cards/achievements/claim', {
+              method: 'POST', headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ key: a.key, threshold: nextClaim.threshold })
+            });
+            await r.json();
             start();
           } catch {}
         });
@@ -74,10 +133,20 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 
     async function start() {
       if (!requireAuth()) return;
-      const data = await fetchAchievements();
-      if (data && data.success) render(data.achievements || []);
+      const grid = document.getElementById('achv-grid');
+      if (!grid) return;
+      try {
+        const data = await fetchAchievements();
+        if (data && data.success) render(data.achievements || []);
+      } catch {}
     }
 
-    document.addEventListener('DOMContentLoaded', start);
+    const kickoff = () => start();
+    document.addEventListener('DOMContentLoaded', kickoff);
+    document.addEventListener('astro:page-load', kickoff);
+    document.addEventListener('astro:after-swap', kickoff);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') kickoff(); });
+    window.addEventListener('pageshow', kickoff);
+    setTimeout(kickoff, 0);
   </script>
 </Layout>

@@ -61,16 +61,88 @@ export const GET: APIRoute = async ({ request }) => {
            p3.pace AS d_pace, p3.shooting AS d_shooting, p3.passing AS d_passing, p3.defending AS d_defending, p3.physical AS d_physical,
            p3.fifa_rating AS d_fifa_rating, p3.market_value AS d_market_value, p3.fantasy_points AS d_fantasy_points, p3.image_url AS d_image_url, p3.created_at AS d_created_at,
            -- card images
-           (SELECT image_path FROM cards c WHERE c.player_id = p1.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS f_image_path,
-           (SELECT image_path FROM cards c WHERE c.player_id = p2.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS m_image_path,
-           (SELECT image_path FROM cards c WHERE c.player_id = p3.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS d_image_path
+          (
+            SELECT c.image_path FROM user_cards uc 
+            JOIN cards c ON uc.card_id = c.id 
+            WHERE uc.user_id = ? AND c.player_id = p1.id 
+            ORDER BY 
+              CASE c.special_type 
+                WHEN 'PLAYER_OF_THE_MONTH' THEN 6 
+                WHEN 'TEAM_OF_THE_WEEK' THEN 5 
+                WHEN 'COMEBACK_HERO' THEN 4 
+                WHEN 'MARKET_MASTER' THEN 3 
+                WHEN 'ASSIST_ENGINE' THEN 3 
+                WHEN 'RATING_RELOAD' THEN 3 
+                WHEN 'OLD_GENERATION' THEN 2 
+                ELSE 1 
+              END DESC,
+              LEAST(99, COALESCE(c.fifa_rating_override, p1.fifa_rating + CASE c.special_type
+                WHEN 'TEAM_OF_THE_WEEK' THEN 2
+                WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+                WHEN 'RATING_RELOAD' THEN 2
+                WHEN 'ASSIST_ENGINE' THEN 2
+                WHEN 'MARKET_MASTER' THEN 2
+                WHEN 'COMEBACK_HERO' THEN 3
+                ELSE 0 END)) DESC
+            LIMIT 1
+          ) AS f_image_path,
+          (
+            SELECT c.image_path FROM user_cards uc 
+            JOIN cards c ON uc.card_id = c.id 
+            WHERE uc.user_id = ? AND c.player_id = p2.id 
+            ORDER BY 
+              CASE c.special_type 
+                WHEN 'PLAYER_OF_THE_MONTH' THEN 6 
+                WHEN 'TEAM_OF_THE_WEEK' THEN 5 
+                WHEN 'COMEBACK_HERO' THEN 4 
+                WHEN 'MARKET_MASTER' THEN 3 
+                WHEN 'ASSIST_ENGINE' THEN 3 
+                WHEN 'RATING_RELOAD' THEN 3 
+                WHEN 'OLD_GENERATION' THEN 2 
+                ELSE 1 
+              END DESC,
+              LEAST(99, COALESCE(c.fifa_rating_override, p2.fifa_rating + CASE c.special_type
+                WHEN 'TEAM_OF_THE_WEEK' THEN 2
+                WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+                WHEN 'RATING_RELOAD' THEN 2
+                WHEN 'ASSIST_ENGINE' THEN 2
+                WHEN 'MARKET_MASTER' THEN 2
+                WHEN 'COMEBACK_HERO' THEN 3
+                ELSE 0 END)) DESC
+            LIMIT 1
+          ) AS m_image_path,
+          (
+            SELECT c.image_path FROM user_cards uc 
+            JOIN cards c ON uc.card_id = c.id 
+            WHERE uc.user_id = ? AND c.player_id = p3.id 
+            ORDER BY 
+              CASE c.special_type 
+                WHEN 'PLAYER_OF_THE_MONTH' THEN 6 
+                WHEN 'TEAM_OF_THE_WEEK' THEN 5 
+                WHEN 'COMEBACK_HERO' THEN 4 
+                WHEN 'MARKET_MASTER' THEN 3 
+                WHEN 'ASSIST_ENGINE' THEN 3 
+                WHEN 'RATING_RELOAD' THEN 3 
+                WHEN 'OLD_GENERATION' THEN 2 
+                ELSE 1 
+              END DESC,
+              LEAST(99, COALESCE(c.fifa_rating_override, p3.fifa_rating + CASE c.special_type
+                WHEN 'TEAM_OF_THE_WEEK' THEN 2
+                WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+                WHEN 'RATING_RELOAD' THEN 2
+                WHEN 'ASSIST_ENGINE' THEN 2
+                WHEN 'MARKET_MASTER' THEN 2
+                WHEN 'COMEBACK_HERO' THEN 3
+                ELSE 0 END)) DESC
+            LIMIT 1
+          ) AS d_image_path
          FROM fantasy_rush fr
          JOIN players p1 ON fr.forward_player_id = p1.id
          JOIN players p2 ON fr.midfielder_player_id = p2.id
          JOIN players p3 ON fr.defender_player_id = p3.id
          WHERE fr.user_id = ? AND fr.jornada = ?
          LIMIT 1`,
-        [userId, currentJornada]
+        [userId, userId, userId, userId, currentJornada]
       );
       if (row) {
         selection = {

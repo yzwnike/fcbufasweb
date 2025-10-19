@@ -25,7 +25,8 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     const userId = decoded.userId;
-    const today = new Date().toISOString().split('T')[0];
+    const { currentQuizDate } = await import('@/lib/quiz');
+    const today = currentQuizDate();
 
     // Obtener progreso del usuario
     const progress = await getUserQuizProgress(userId, today);

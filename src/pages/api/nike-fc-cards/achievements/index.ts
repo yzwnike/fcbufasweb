@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { getAuthUserFromRequest } from '@/lib/auth';
 import { executeQuerySingle, executeQuery } from '@/lib/mysql';
 
+export const runtime = 'node';
+
 // Catálogo simple de logros y umbrales
 const ACHIEVEMENTS = [
   { key: 'fantasy_jornadas', title: 'Jornadas Fantasy jugadas', thresholds: [3,5,10,15,20] },
@@ -30,6 +32,20 @@ function rewardCoins(key: AchvKey, threshold: number): number {
   }
 }
 
+// Construye la recompensa por nivel. Por defecto: monedas.
+function buildReward(key: AchvKey, threshold: number) {
+  return {
+    threshold,
+    reward_type: 'COINS' as const,
+    coins: rewardCoins(key, threshold),
+    pack_type: null as any,
+    pack_label: null as any,
+    card_id: null as any,
+    card_image_path: null as any,
+    player_name: null as any,
+  };
+}
+
 export const GET: APIRoute = async ({ request }) => {
   try {
     const auth = getAuthUserFromRequest(request);
@@ -44,8 +60,8 @@ export const GET: APIRoute = async ({ request }) => {
       executeQuerySingle<any>('SELECT COUNT(*) AS n FROM sbc_submissions WHERE user_id = ?', [uid]).catch(()=>({ n:0 } as any)),
       executeQuerySingle<any>("SELECT COUNT(*) AS n FROM card_trades WHERE buyer_id = ? AND status = 'SOLD'", [uid]),
       executeQuerySingle<any>("SELECT COUNT(*) AS n FROM card_trades WHERE seller_id = ? AND status = 'SOLD'", [uid]),
-      executeQuerySingle<any>('SELECT COUNT(*) AS n FROM packs WHERE user_id = ? AND opened = 1', [uid]),
-      executeQuerySingle<any>('SELECT COUNT(*) AS n FROM daily_quiz_answers WHERE user_id = ? AND is_correct = 1', [uid]),
+      executeQuerySingle<any>('SELECT COUNT(*) AS n FROM packs WHERE user_id = ? AND opened = true', [uid]),
+      executeQuerySingle<any>('SELECT COUNT(*) AS n FROM daily_quiz_answers WHERE user_id = ? AND is_correct = true', [uid]),
       executeQuery<any>("SELECT description FROM coin_transactions WHERE user_id = ? AND description LIKE 'ACHV:%'", [uid])
     ]);
 
@@ -68,14 +84,18 @@ export const GET: APIRoute = async ({ request }) => {
       const nextTarget = def.thresholds.find(t => curr < t) || null;
       const claimable = def.thresholds.filter(t => curr >= t && !claimed.has(`ACHV:${def.key}:${t}`))
         .map(t => ({ threshold: t, coins: rewardCoins(def.key, t) }));
+      const claimedThresholds = def.thresholds.filter(t => claimed.has(`ACHV:${def.key}:${t}`));
+      const rewards = def.thresholds.map(t => buildReward(def.key, t));
       return {
         key: def.key,
         title: def.title,
         thresholds: def.thresholds,
+        rewards,
         currentValue: curr,
         completedCount,
         nextTarget,
         claimable,
+        claimedThresholds,
       };
     });
 

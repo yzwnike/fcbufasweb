@@ -48,6 +48,18 @@ function currentWindowStart(): string {
 export const GET: APIRoute = async ({ request, url }) => {
   try {
     const authHeader = request.headers.get('Authorization');
+    // Ensure progress table exists (idempotent)
+    await executeQuery(`
+      CREATE TABLE IF NOT EXISTS daily_quiz_progress (
+        id BIGSERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        window_start timestamptz NOT NULL,
+        answered_count INT NOT NULL DEFAULT 0,
+        correct_count INT NOT NULL DEFAULT 0,
+        created_at timestamptz DEFAULT NOW(),
+        UNIQUE(user_id, window_start)
+      )
+    `);
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ success: false, error: 'Token requerido' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
@@ -62,14 +74,15 @@ export const GET: APIRoute = async ({ request, url }) => {
 
     // Load progress for this window (compute window in SQL to avoid TZ mismatches)
     const prog = await executeQuery<any>(
-      `SELECT answered_count, correct_count FROM daily_quiz_progress 
-       WHERE user_id = ? AND window_start = (
-         CASE WHEN (now()::time >= time '12:00:00')
-              THEN date_trunc('day', now()) + interval '12 hours'
-              ELSE date_trunc('day', now()) - interval '12 hours'
-         END
-       )
-       LIMIT 1`,
+      `SELECT COALESCE(SUM(answered_count),0) AS answered_count,
+              COALESCE(SUM(correct_count),0)  AS correct_count
+         FROM daily_quiz_progress 
+        WHERE user_id = ? AND window_start = (
+          CASE WHEN (now()::time >= time '20:00:00')
+               THEN date_trunc('day', now()) + interval '20 hours'
+               ELSE date_trunc('day', now()) - interval '4 hours'
+          END
+        )`,
       [decoded.userId]
     );
     const answeredSoFar = prog.length ? Number(prog[0].answered_count) : 0;
@@ -79,7 +92,9 @@ export const GET: APIRoute = async ({ request, url }) => {
       return new Response(JSON.stringify({ success: true, alreadyCompleted: true, progress: { answered: answeredSoFar, correct: correctSoFar } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // Pick random cards joined with players eligible for quiz
+    const fetchCount = remaining;
+
+    // Pick random cards
     const cards = await executeQuery<any>(
       `SELECT c.id AS card_id
             , c.image_path AS card_image_path
@@ -87,15 +102,13 @@ export const GET: APIRoute = async ({ request, url }) => {
             , p.id AS player_id, p.name, p.team, p.position1, p.position2
        FROM cards c
        JOIN players p ON c.player_id = p.id
-       WHERE (p.eligible_for_quiz IS NULL OR p.eligible_for_quiz = true)
-         AND c.special_type IN ('Regular','OLD_GENERATION')
-         AND c.image_path IS NOT NULL
+       WHERE c.special_type IN ('Regular','OLD_GENERATION')
        ORDER BY RANDOM()
        LIMIT ?`,
-      [count * 3] // oversample a bit more with filters
+      [fetchCount]
     );
 
-    const selected = cards.slice(0, remaining);
+    const selected = cards;
 
     const questions = [] as any[];
     // Use only substats (exclude fifa_rating)

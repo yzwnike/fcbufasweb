@@ -4,33 +4,35 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
 ---
 
 <Layout title="Ranking - Nike FC Cards">
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
     <div class="container mx-auto px-4 py-6 pt-28 relative z-10">
       <Subheader variant="minimal" />
 
-      <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-4 mb-6">Ranking</h1>
-      <p class="text-slate-200 mb-6">Progreso de tu colección por categoría</p>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-4 mb-2">Ranking</h1>
+      <p class="text-slate-300 mb-6">Progreso de tu colección por categoría</p>
 
-      <div class="overflow-x-auto bg-white/5 rounded-xl border border-white/10">
-        <table class="min-w-full text-sm text-white">
+      <div class="overflow-x-auto rounded-xl shadow-lg ring-1 ring-white/10 bg-slate-900/80 backdrop-blur">
+        <table class="min-w-full text-sm text-slate-100">
           <thead>
-            <tr class="bg-white/10">
-              <th class="px-3 py-2 text-left">#</th>
-              <th class="px-3 py-2 text-left">Usuario</th>
-              <th class="px-3 py-2 text-left">Total</th>
-              <th class="px-3 py-2">BASE</th>
-              <th class="px-3 py-2">OG</th>
-              <th class="px-3 py-2">TOTW</th>
-              <th class="px-3 py-2">RR</th>
-              <th class="px-3 py-2">MM</th>
-              <th class="px-3 py-2">AE</th>
-              <th class="px-3 py-2">CH</th>
-              <th class="px-3 py-2">POTM</th>
+            <tr class="bg-slate-800/80 sticky top-0">
+              <th class="px-4 py-3 text-left">#</th>
+              <th class="px-4 py-3 text-left">Usuario</th>
+              <th class="px-4 py-3 text-left">Total</th>
+              <th class="px-4 py-3">BASE</th>
+              <th class="px-4 py-3">OG</th>
+              <th class="px-4 py-3">TOTW</th>
+              <th class="px-4 py-3">RR</th>
+              <th class="px-4 py-3">MM</th>
+              <th class="px-4 py-3">AE</th>
+              <th class="px-4 py-3">CH</th>
+              <th class="px-4 py-3">POTM</th>
             </tr>
           </thead>
           <tbody id="rank-body"></tbody>
         </table>
       </div>
+
+      <div id="rank-empty" class="hidden mt-6 text-slate-300">Sin datos todavía.</div>
     </div>
   </div>
 
@@ -45,39 +47,43 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     }
 
     async function fetchRanking() {
-      const res = await fetch('/api/nike-fc-cards/ranking');
+      const res = await fetch('/api/nike-fc-cards/ranking', { cache: 'no-store' });
       return await res.json();
     }
 
     function renderBoard(board) {
       const tbody = document.getElementById('rank-body');
+      const empty = document.getElementById('rank-empty');
       tbody.innerHTML = '';
       const totals = board.totals || { totalAll: 0, byCode: {} };
       const users = Array.isArray(board.users) ? board.users : [];
+      if (!users.length) {
+        empty?.classList.remove('hidden');
+        return;
+      }
+      empty?.classList.add('hidden');
       users.forEach((u, idx) => {
         const tr = document.createElement('tr');
-        tr.className = idx % 2 ? 'bg-white/0' : 'bg-white/5';
+        tr.className = 'hover:bg-slate-800/60 transition-colors';
         const cells = [
-          `<td class=\"px-3 py-2\">${idx+1}</td>`,
-          `<td class=\"px-3 py-2 font-semibold\">${u.username}</td>`,
-          `<td class=\"px-3 py-2\">${u.totalOwned}/${totals.totalAll}</td>`,
-          `<td class=\"px-3 py-2 text-center\">${u.byCode.BASE}/${totals.byCode.BASE||0}</td>`,
-          `<td class="px-3 py-2 text-center">${u.byCode.OG}/${totals.byCode.OG||0}</td>`,
-          `<td class="px-3 py-2 text-center">${u.byCode.TOTW}/${totals.byCode.TOTW||0}</td>`,
-          `<td class="px-3 py-2 text-center">${u.byCode.RR}/${totals.byCode.RR||0}</td>`,
-          `<td class="px-3 py-2 text-center">${u.byCode.MM}/${totals.byCode.MM||0}</td>`,
-          `<td class="px-3 py-2 text-center">${u.byCode.AE}/${totals.byCode.AE||0}</td>`,
-          `<td class="px-3 py-2 text-center">${u.byCode.CH}/${totals.byCode.CH||0}</td>`,
-          `<td class="px-3 py-2 text-center">${u.byCode.POTM}/${totals.byCode.POTM||0}</td>`,
+          `<td class=\"px-4 py-3\">${idx+1}</td>`,
+          `<td class=\"px-4 py-3 font-semibold\">${u.username}</td>`,
+          `<td class=\"px-4 py-3\">${u.totalOwned}/${totals.totalAll}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.BASE}/${totals.byCode.BASE||0}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.OG}/${totals.byCode.OG||0}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.TOTW}/${totals.byCode.TOTW||0}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.RR}/${totals.byCode.RR||0}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.MM}/${totals.byCode.MM||0}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.AE}/${totals.byCode.AE||0}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.CH}/${totals.byCode.CH||0}</td>`,
+          `<td class=\"px-4 py-3 text-center\">${u.byCode.POTM}/${totals.byCode.POTM||0}</td>`,
         ];
         tr.innerHTML = cells.join('');
         tbody.appendChild(tr);
       });
     }
 
-    let started = false;
     async function start() {
-      if (started) return; started = true;
       try {
         const data = await fetchRanking();
         if (data && data.success) renderBoard(data);
@@ -87,6 +93,18 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       }
     }
 
-    document.addEventListener('DOMContentLoaded', start);
+  const kickoff = () => {
+    const tbody = document.getElementById('rank-body');
+    if (!tbody) { requestAnimationFrame(kickoff); return; }
+    start();
+  };
+
+  document.addEventListener('DOMContentLoaded', kickoff);
+  document.addEventListener('astro:page-load', kickoff);
+  document.addEventListener('astro:after-swap', kickoff);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) kickoff(); });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) { kickoff(); } });
+  // Llamada inmediata por si el script carga tras el swap
+  kickoff();
   </script>
 </Layout>

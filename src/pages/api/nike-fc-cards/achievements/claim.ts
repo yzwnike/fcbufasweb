@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { getAuthUserFromRequest } from '@/lib/auth';
 import { executeQuerySingle, executeTransaction } from '@/lib/mysql';
 
+export const runtime = 'node';
+
 function rewardCoins(key: string, threshold: number): number {
   switch (key) {
     case 'fantasy_jornadas': return threshold * 20;
@@ -53,11 +55,11 @@ export const POST: APIRoute = async ({ request }) => {
         curr = Number(r?.n || 0); break;
       }
       case 'sobres_abiertos': {
-        const r = await executeQuerySingle<any>('SELECT COUNT(*) AS n FROM packs WHERE user_id = ? AND opened = 1', [auth.id]);
+        const r = await executeQuerySingle<any>('SELECT COUNT(*) AS n FROM packs WHERE user_id = ? AND opened = true', [auth.id]);
         curr = Number(r?.n || 0); break;
       }
       case 'quiz_aciertos': {
-        const r = await executeQuerySingle<any>('SELECT COUNT(*) AS n FROM daily_quiz_answers WHERE user_id = ? AND is_correct = 1', [auth.id]);
+        const r = await executeQuerySingle<any>('SELECT COUNT(*) AS n FROM daily_quiz_answers WHERE user_id = ? AND is_correct = true', [auth.id]);
         curr = Number(r?.n || 0); break;
       }
       default:

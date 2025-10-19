@@ -47,7 +47,14 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-orange-100">Bienvenido,</p>
-                  <p id="username" class="text-2xl font-bold text-white"></p>
+                  <div class="flex items-center gap-2">
+                    <p id="username" class="text-2xl font-bold text-white"></p>
+                    <button id="open-username-modal" class="p-1 rounded bg-white/10 hover:bg-white/20" title="Editar nombre">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2m2 0h2m-8 0H7m6 16l3-3m0 0l3 3m-3-3v8m-6-8H5a2 2 0 01-2-2V7a2 2 0 012-2h6" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="text-right">
                   <p class="text-orange-100">Monedas</p>
@@ -204,6 +211,25 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
           <button type="button" id="close-register" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
             Cancelar
           </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Username modal -->
+  <div id="username-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4 text-center">Cambiar nombre de usuario</h2>
+      <form id="username-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nuevo username</label>
+          <input type="text" id="new-username" name="username" required minlength="3" maxlength="20" pattern="^[a-zA-Z0-9_]+$" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
+          <p class="text-xs text-gray-500 mt-1">3-20 caracteres, letras, números o _</p>
+        </div>
+        <div id="username-error" class="hidden text-red-500 text-sm"></div>
+        <div class="flex gap-4">
+          <button type="submit" class="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors">Guardar</button>
+          <button type="button" id="close-username" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">Cancelar</button>
         </div>
       </form>
     </div>
@@ -373,6 +399,18 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
     } catch {}
   }
 
+  async function updateUsername(newName) {
+    try {
+      const res = await fetch('/api/nike-fc-cards/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ username: newName })
+      });
+      const data = await res.json();
+      return data;
+    } catch (e) { return { success:false, error:'Error de conexión' }; }
+  }
+
   function initializeApp() {
     console.log('Initializing Nike FC Cards app...');
     
@@ -392,6 +430,36 @@ import Subheader from '@/components/nike-fc-cards/Subheader.astro';
       });
     } else {
       console.error('Login button not found');
+    }
+
+    // Open username modal
+    const openUsernameBtn = document.getElementById('open-username-modal');
+    const usernameForm = document.getElementById('username-form');
+    const closeUsernameBtn = document.getElementById('close-username');
+    if (openUsernameBtn) {
+      openUsernameBtn.addEventListener('click', (e) => { e.preventDefault(); openModal('username-modal'); const input = document.getElementById('new-username'); if (input && currentUser) input.value = currentUser.username; });
+    }
+    if (closeUsernameBtn) {
+      closeUsernameBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeModal('username-modal'); });
+    }
+    if (usernameForm) {
+      usernameForm.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const input = document.getElementById('new-username');
+        const err = document.getElementById('username-error');
+        const newName = input?.value?.trim();
+        const resp = await updateUsername(newName);
+        if (!resp.success) {
+          if (err) { err.classList.remove('hidden'); err.textContent = resp.error || 'Error'; }
+          return;
+        }
+        if (err) { err.classList.add('hidden'); err.textContent = ''; }
+        // Update UI and close
+        currentUser.username = resp.user?.username || newName;
+        const usernameEl = document.getElementById('username');
+        if (usernameEl) usernameEl.textContent = currentUser.username;
+        closeModal('username-modal');
+      });
     }
     
     if (registerBtn) {

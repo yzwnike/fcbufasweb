@@ -47,6 +47,7 @@ export type EligiblePlayer = {
   fifa_rating: number;
   fantasy_points: number;
   image_path: string | null;
+  best_image_path: string | null; // mejor carta poseída para este jugador
   owned: boolean; // posee carta base (Regular)
 };
 
@@ -72,6 +73,31 @@ export async function getEligiblePlayers(userId: number): Promise<{
            WHERE c.player_id = p.id AND c.special_type = 'Regular' 
            ORDER BY c.id ASC LIMIT 1
          ) AS image_path,
+         (
+           SELECT c.image_path FROM user_cards uc 
+           JOIN cards c ON uc.card_id = c.id 
+           WHERE uc.user_id = ? AND c.player_id = p.id 
+           ORDER BY 
+             CASE c.special_type 
+               WHEN 'PLAYER_OF_THE_MONTH' THEN 6 
+               WHEN 'TEAM_OF_THE_WEEK' THEN 5 
+               WHEN 'COMEBACK_HERO' THEN 4 
+               WHEN 'MARKET_MASTER' THEN 3 
+               WHEN 'ASSIST_ENGINE' THEN 3 
+               WHEN 'RATING_RELOAD' THEN 3 
+               WHEN 'OLD_GENERATION' THEN 2 
+               ELSE 1 
+             END DESC,
+             LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+               WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+               WHEN 'RATING_RELOAD' THEN 2
+               WHEN 'ASSIST_ENGINE' THEN 2
+               WHEN 'MARKET_MASTER' THEN 2
+               WHEN 'COMEBACK_HERO' THEN 3
+               ELSE 0 END)) DESC
+           LIMIT 1
+         ) AS best_image_path,
          EXISTS(
            SELECT 1 FROM user_cards uc 
            JOIN cards c2 ON uc.card_id = c2.id 
@@ -80,7 +106,7 @@ export async function getEligiblePlayers(userId: number): Promise<{
        FROM players p
        WHERE p.name IN (${baseNames.map(()=>'?').join(',')})
        ORDER BY p.name ASC`,
-      [userId, ...baseNames]
+      [userId, userId, ...baseNames]
     );
 
     const mapped: EligiblePlayer[] = rows.map(r => ({
@@ -91,6 +117,7 @@ export async function getEligiblePlayers(userId: number): Promise<{
       fifa_rating: r.fifa_rating,
       fantasy_points: r.fantasy_points,
       image_path: r.image_path || null,
+      best_image_path: r.best_image_path || null,
       owned: !!r.owned,
     }));
 
@@ -133,6 +160,13 @@ export async function createFantasySelection(
   error?: string;
 }> {
   try {
+    // Bloqueo de plantillas si admin lo ha cerrado
+    try {
+      const lock = await executeQuerySingle<any>('SELECT locked FROM fantasy_admin_flags WHERE id=1');
+      if (lock && lock.locked) {
+        return { success: false, error: 'Plantillas cerradas por el administrador hasta la próxima jornada' };
+      }
+    } catch {}
     const currentWeekStart = weekStart || getWeekStart();
 
     // Si no se especifica jornada, mantener la validación semanal heredada (permitiendo múltiples jornadas en misma semana)
@@ -229,24 +263,24 @@ export async function createFantasySelection(
     // Crear la selección de forma idempotente por (user_id, jornada)
     // Usamos UPSERT para evitar condiciones de carrera (doble POST)
     const newId = await executeTransaction<number>(async (conn) => {
-      // Nota: NO actualizamos jugadores en el DUPLICATE; solo devolvemos el id existente
-      await conn.execute(
-        `INSERT INTO fantasy_rush (user_id, jornada, forward_player_id, midfielder_player_id, defender_player_id, total_points, coins_earned)
-         VALUES (?, ?, ?, ?, ?, 0, 0)
-         ON DUPLICATE KEY UPDATE 
-           forward_player_id = VALUES(forward_player_id),
-           midfielder_player_id = VALUES(midfielder_player_id),
-           defender_player_id = VALUES(defender_player_id),
-           id = LAST_INSERT_ID(id)`,
+      // Insertar o actualizar por semana (week_start) y devolver id
+      const [rows] = await conn.execute(
+        `INSERT INTO fantasy_rush (user_id, week_start, jornada, forward_player_id, midfielder_player_id, defender_player_id, total_points, coins_earned)
+         VALUES (?, ?, ?, ?, ?, ?, 0, 0)
+         ON CONFLICT (user_id, week_start) DO UPDATE SET 
+           forward_player_id = EXCLUDED.forward_player_id,
+           midfielder_player_id = EXCLUDED.midfielder_player_id,
+           defender_player_id = EXCLUDED.defender_player_id
+         RETURNING id`,
         [
           userId,
+          currentWeekStart,
           (typeof jornada === 'number' && !Number.isNaN(jornada)) ? jornada : null,
           selection.forwardPlayerId,
           selection.midfielderPlayerId,
           selection.defenderPlayerId
         ]
       );
-      const [rows] = await conn.execute('SELECT LAST_INSERT_ID() AS id');
       const id = Array.isArray(rows) ? (rows[0] as any)?.id : (rows as any)?.id;
       return Number(id);
     });
@@ -274,6 +308,13 @@ export async function updateFantasySelection(
   error?: string;
 }> {
   try {
+    // Bloqueo de plantillas si admin lo ha cerrado
+    try {
+      const lock = await executeQuerySingle<any>('SELECT locked FROM fantasy_admin_flags WHERE id=1');
+      if (lock && lock.locked) {
+        return { success: false, error: 'Plantillas cerradas por el administrador hasta la próxima jornada' };
+      }
+    } catch {}
     // Obtener la selección existente
     const existingSelection = await executeQuerySingle<FantasyRush>(
       'SELECT * FROM fantasy_rush WHERE id = ? AND user_id = ?',
@@ -376,9 +417,81 @@ export async function getUserFantasySelection(
         p1.* as forward_player,
         p2.* as midfielder_player,
         p3.* as defender_player,
-        (SELECT image_path FROM cards c WHERE c.player_id = p1.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS f_image_path,
-        (SELECT image_path FROM cards c WHERE c.player_id = p2.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS m_image_path,
-        (SELECT image_path FROM cards c WHERE c.player_id = p3.id AND c.special_type='Regular' ORDER BY c.id ASC LIMIT 1) AS d_image_path
+        (
+          SELECT c.image_path FROM user_cards uc 
+          JOIN cards c ON uc.card_id = c.id 
+          WHERE uc.user_id = ? AND c.player_id = p1.id 
+          ORDER BY 
+            CASE c.special_type 
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 6 
+              WHEN 'TEAM_OF_THE_WEEK' THEN 5 
+              WHEN 'COMEBACK_HERO' THEN 4 
+              WHEN 'MARKET_MASTER' THEN 3 
+              WHEN 'ASSIST_ENGINE' THEN 3 
+              WHEN 'RATING_RELOAD' THEN 3 
+              WHEN 'OLD_GENERATION' THEN 2 
+              ELSE 1 
+            END DESC,
+            LEAST(99, COALESCE(c.fifa_rating_override, p1.fifa_rating + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+              WHEN 'RATING_RELOAD' THEN 2
+              WHEN 'ASSIST_ENGINE' THEN 2
+              WHEN 'MARKET_MASTER' THEN 2
+              WHEN 'COMEBACK_HERO' THEN 3
+              ELSE 0 END)) DESC
+          LIMIT 1
+        ) AS f_image_path,
+        (
+          SELECT c.image_path FROM user_cards uc 
+          JOIN cards c ON uc.card_id = c.id 
+          WHERE uc.user_id = ? AND c.player_id = p2.id 
+          ORDER BY 
+            CASE c.special_type 
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 6 
+              WHEN 'TEAM_OF_THE_WEEK' THEN 5 
+              WHEN 'COMEBACK_HERO' THEN 4 
+              WHEN 'MARKET_MASTER' THEN 3 
+              WHEN 'ASSIST_ENGINE' THEN 3 
+              WHEN 'RATING_RELOAD' THEN 3 
+              WHEN 'OLD_GENERATION' THEN 2 
+              ELSE 1 
+            END DESC,
+            LEAST(99, COALESCE(c.fifa_rating_override, p2.fifa_rating + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+              WHEN 'RATING_RELOAD' THEN 2
+              WHEN 'ASSIST_ENGINE' THEN 2
+              WHEN 'MARKET_MASTER' THEN 2
+              WHEN 'COMEBACK_HERO' THEN 3
+              ELSE 0 END)) DESC
+          LIMIT 1
+        ) AS m_image_path,
+        (
+          SELECT c.image_path FROM user_cards uc 
+          JOIN cards c ON uc.card_id = c.id 
+          WHERE uc.user_id = ? AND c.player_id = p3.id 
+          ORDER BY 
+            CASE c.special_type 
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 6 
+              WHEN 'TEAM_OF_THE_WEEK' THEN 5 
+              WHEN 'COMEBACK_HERO' THEN 4 
+              WHEN 'MARKET_MASTER' THEN 3 
+              WHEN 'ASSIST_ENGINE' THEN 3 
+              WHEN 'RATING_RELOAD' THEN 3 
+              WHEN 'OLD_GENERATION' THEN 2 
+              ELSE 1 
+            END DESC,
+            LEAST(99, COALESCE(c.fifa_rating_override, p3.fifa_rating + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+              WHEN 'RATING_RELOAD' THEN 2
+              WHEN 'ASSIST_ENGINE' THEN 2
+              WHEN 'MARKET_MASTER' THEN 2
+              WHEN 'COMEBACK_HERO' THEN 3
+              ELSE 0 END)) DESC
+          LIMIT 1
+        ) AS d_image_path
        FROM fantasy_rush fr
        JOIN players p1 ON fr.forward_player_id = p1.id
        JOIN players p2 ON fr.midfielder_player_id = p2.id
@@ -386,7 +499,7 @@ export async function getUserFantasySelection(
        WHERE fr.user_id = ?
        ORDER BY fr.id DESC
        LIMIT 1`,
-      [userId]
+      [userId, userId, userId, userId]
     );
 
     if (!result) return null;
@@ -418,7 +531,7 @@ export async function getUserFantasySelection(
         fifa_rating: result.forward_player.fifa_rating,
         market_value: result.forward_player.market_value,
         fantasy_points: result.forward_player.fantasy_points,
-        image_url: result.forward_player.image_url,
+        image_url: (result.f_image_path || result.forward_player.image_url),
         created_at: result.forward_player.created_at
       },
       midfielder_player: {
@@ -435,7 +548,7 @@ export async function getUserFantasySelection(
         fifa_rating: result.midfielder_player.fifa_rating,
         market_value: result.midfielder_player.market_value,
         fantasy_points: result.midfielder_player.fantasy_points,
-        image_url: result.midfielder_player.image_url,
+        image_url: (result.m_image_path || result.midfielder_player.image_url),
         created_at: result.midfielder_player.created_at
       },
       defender_player: {
@@ -452,7 +565,7 @@ export async function getUserFantasySelection(
         fifa_rating: result.defender_player.fifa_rating,
         market_value: result.defender_player.market_value,
         fantasy_points: result.defender_player.fantasy_points,
-        image_url: result.defender_player.image_url,
+        image_url: (result.d_image_path || result.defender_player.image_url),
         created_at: result.defender_player.created_at
       }
     };
