@@ -215,7 +215,7 @@ export interface UserCard {
 export interface Pack {
   id: number;
   user_id: number;
-  type: 'FREE_DAILY' | 'PREMIUM' | 'SPECIAL';
+  type: 'FREE_DAILY' | 'PREMIUM' | 'SPECIAL' | 'MEDIA_84_PLUS';
   cost: number;
   opened: boolean;
   next_free_pack: string | null;
@@ -288,6 +288,7 @@ export interface SbcChallenge {
   start_at: string;
   end_at: string;
   requirements: any;
+  repeatable: boolean | number;
   created_at: string;
 }
 

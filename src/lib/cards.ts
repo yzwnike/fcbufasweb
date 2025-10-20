@@ -457,7 +457,7 @@ export async function giveCardToUser(userId: number, cardId: number): Promise<bo
 // Abrir sobre de cartas
 export async function openCardPack(
   userId: number,
-  packType: 'FREE_DAILY' | 'PREMIUM' | 'SPECIAL' = 'FREE_DAILY',
+  packType: 'FREE_DAILY' | 'PREMIUM' | 'SPECIAL' | 'MEDIA_84_PLUS' = 'FREE_DAILY',
   existingConnection?: any
 ): Promise<{
   success: boolean;
@@ -515,31 +515,57 @@ export async function openCardPack(
 
     const runWithConnection = async (connection: any) => {
       for (let i = 0; i < numCards; i++) {
-        let group: 'BASE_OG' | 'LEGEND' | 'RARE' | 'ELITE';
-        const r = Math.random();
+        let selectedCard: Card | null = null;
         
-        // Usar las nuevas odds de economy.ts
-        if (packType === 'SPECIAL') {
-          const odds = ECONOMY_CONFIG.PACKS.SPECIAL.odds;
-          if (r < odds.ESPECIAL) group = 'RARE';
-          else if (r < odds.ESPECIAL + odds.ELITE) group = 'ELITE';
-          else group = 'LEGEND';
-        } else if (packType === 'PREMIUM') {
-          const odds = ECONOMY_CONFIG.PACKS.PREMIUM.odds;
-          if (r < odds.NORMAL) group = 'BASE_OG';
-          else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
-          else if (r < odds.NORMAL + odds.ESPECIAL + odds.ELITE) group = 'ELITE';
-          else group = 'LEGEND';
+        // Lógica especial para MEDIA_84_PLUS
+        if (packType === 'MEDIA_84_PLUS') {
+          // Seleccionar carta con FIFA rating >= 84 usando el rating efectivo
+          const [rows] = await connection.execute(`
+            SELECT c.* FROM cards c 
+            JOIN players p ON c.player_id = p.id 
+            WHERE LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+              WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+              WHEN 'RATING_RELOAD' THEN 2
+              WHEN 'ASSIST_ENGINE' THEN 2
+              WHEN 'MARKET_MASTER' THEN 2
+              WHEN 'COMEBACK_HERO' THEN 3
+              ELSE 0 END)) >= 84
+            ORDER BY RANDOM() LIMIT 1
+          `);
+          
+          if (Array.isArray(rows) && rows.length > 0) {
+            selectedCard = rows[0] as Card;
+          }
         } else {
-          // FREE_DAILY
-          const odds = ECONOMY_CONFIG.PACKS.BASIC.odds;
-          if (r < odds.NORMAL) group = 'BASE_OG';
-          else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
-          else if (r < odds.NORMAL + odds.ESPECIAL + odds.ELITE) group = 'ELITE';
-          else group = 'LEGEND';
+          // Lógica normal para otros tipos de packs
+          let group: 'BASE_OG' | 'LEGEND' | 'RARE' | 'ELITE';
+          const r = Math.random();
+          
+          // Usar las nuevas odds de economy.ts
+          if (packType === 'SPECIAL') {
+            const odds = ECONOMY_CONFIG.PACKS.SPECIAL.odds;
+            if (r < odds.ESPECIAL) group = 'RARE';
+            else if (r < odds.ESPECIAL + odds.ELITE) group = 'ELITE';
+            else group = 'LEGEND';
+          } else if (packType === 'PREMIUM') {
+            const odds = ECONOMY_CONFIG.PACKS.PREMIUM.odds;
+            if (r < odds.NORMAL) group = 'BASE_OG';
+            else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
+            else if (r < odds.NORMAL + odds.ESPECIAL + odds.ELITE) group = 'ELITE';
+            else group = 'LEGEND';
+          } else {
+            // FREE_DAILY
+            const odds = ECONOMY_CONFIG.PACKS.BASIC.odds;
+            if (r < odds.NORMAL) group = 'BASE_OG';
+            else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
+            else if (r < odds.NORMAL + odds.ESPECIAL + odds.ELITE) group = 'ELITE';
+            else group = 'LEGEND';
+          }
+          
+          selectedCard = await pickRandomCardIdByGroup(connection, group);
         }
-
-        const selectedCard = await pickRandomCardIdByGroup(connection, group);
+        
         if (!selectedCard) continue;
 
         // Dar la carta al usuario

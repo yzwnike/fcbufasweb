@@ -80,6 +80,15 @@ const icons = {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icons[item.icon]}></path>
             </svg>
             <span class="font-medium truncate">{item.label}</span>
+            {item.href === '/bufas-cards/logros' && (
+              <div id="mobile-achievements-badge" class="ml-auto bg-red-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold px-1 hidden">0</div>
+            )}
+            {item.href === '/bufas-cards/quiz' && (
+              <div id="mobile-quiz-badge" class="ml-auto bg-orange-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
+            )}
+            {item.href === '/bufas-cards/packs' && (
+              <div id="mobile-packs-badge" class="ml-auto bg-blue-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
+            )}
             {isActive(item.href) && (
               <div class="ml-auto w-2 h-2 bg-white rounded-full"></div>
             )}
@@ -115,6 +124,29 @@ const icons = {
 </nav>
 
 <script>
+  // Función global para actualizar el badge de logros
+  window.updateMobileAchievementsBadge = async function() {
+    try {
+      const token = window.sessionStorage.getItem('nike_fc_token');
+      if (!token) return;
+      
+      const res = await fetch('/api/bufas-cards/achievements/count', { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      const data = await res.json();
+      const mobileBadge = document.getElementById('mobile-achievements-badge');
+      
+      if (data.success && data.count > 0 && mobileBadge) {
+        mobileBadge.textContent = data.count.toString();
+        mobileBadge.classList.remove('hidden');
+      } else if (mobileBadge) {
+        mobileBadge.classList.add('hidden');
+      }
+    } catch (error) {
+      console.error('Error updating mobile achievements badge:', error);
+    }
+  };
+
   function initMobileMenu() {
     const toggleButton = document.getElementById('mobile-menu-toggle');
     const menu = document.getElementById('mobile-menu');
@@ -124,6 +156,11 @@ const icons = {
     
     if (!toggleButton || !menu || !overlay || !menuIcon || !closeIcon) {
       return;
+    }
+    
+    // Cargar badge de logros si hay token
+    if (window.sessionStorage.getItem('nike_fc_token')) {
+      window.updateMobileAchievementsBadge();
     }
 
     let isOpen = false;

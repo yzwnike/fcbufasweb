@@ -25,6 +25,7 @@ export type AchievementPackType =
   | 'MEDIA_81_85'      // Carta media 81-85
   | 'MEDIA_83_87'      // Carta media 83-87
   | 'MEDIA_84_88'      // Carta media 84-88
+  | 'MEDIA_84_PLUS'    // Carta media 84+
   | 'MEDIA_86_89'      // Carta media 86-89
   | 'BASE_85_89'       // Carta BASE media 85-89
   | 'OG_81_87'         // Carta OG media 81-87
@@ -70,6 +71,7 @@ function extractRatingRange(packType: AchievementPackType): { min: number, max: 
   if (packType.includes('81_85')) return { min: 81, max: 85 };
   if (packType.includes('83_87')) return { min: 83, max: 87 };
   if (packType.includes('84_88')) return { min: 84, max: 88 };
+  if (packType === 'MEDIA_84_PLUS') return { min: 84, max: 99 };
   if (packType.includes('85_89')) return { min: 85, max: 89 };
   if (packType.includes('86_89')) return { min: 86, max: 89 };
   if (packType.includes('85') || packType.includes('85_PLUS')) return { min: 85, max: 99 };

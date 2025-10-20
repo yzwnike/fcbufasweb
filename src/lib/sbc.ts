@@ -6,9 +6,22 @@ export interface ActiveSbc extends SbcChallenge {
 
 export async function getActiveChallenges(now = new Date()): Promise<ActiveSbc[]> {
   // Use DB timezone for windowing to avoid JS/DB TZ mismatches
-  const challenges = await executeQuery<SbcChallenge>(
-    'SELECT * FROM sbc_challenges WHERE start_at <= NOW() AND end_at >= NOW() ORDER BY start_at ASC'
-  );
+  // Handle case where repeatable column might not exist
+  let challenges: any[] = [];
+  try {
+    challenges = await executeQuery<SbcChallenge>(
+      'SELECT *, COALESCE(repeatable, FALSE) as repeatable FROM sbc_challenges WHERE start_at <= NOW() AND end_at >= NOW() ORDER BY start_at ASC'
+    );
+  } catch (error: any) {
+    if (error.message.includes('repeatable') || error.message.includes('Unknown column')) {
+      console.warn('SBC repeatable column not found in getActiveChallenges, using fallback');
+      challenges = await executeQuery<any>(
+        'SELECT *, FALSE as repeatable FROM sbc_challenges WHERE start_at <= NOW() AND end_at >= NOW() ORDER BY start_at ASC'
+      );
+    } else {
+      throw error;
+    }
+  }
   if (!challenges || challenges.length === 0) {
     return [];
   }
@@ -47,8 +60,21 @@ export async function getActiveChallenges(now = new Date()): Promise<ActiveSbc[]
   // Normalize requirements in case JSON is returned as string
   return challenges.map((c) => {
     let req: any = c.requirements;
+    // Handle different JSON formats (MySQL string vs PostgreSQL object)
     if (typeof req === 'string') {
-      try { req = JSON.parse(req); } catch { req = {}; }
+      try { 
+        req = JSON.parse(req); 
+      } catch (error) { 
+        console.warn('Failed to parse requirements JSON for challenge', c.id, ':', req);
+        req = {}; 
+      }
+    } else if (req === null || req === undefined) {
+      req = {};
+    }
+    // Ensure req is an object
+    if (typeof req !== 'object') {
+      console.warn('Requirements is not an object for challenge', c.id, ':', req);
+      req = {};
     }
     return { ...c, requirements: req, rewards: grouped[c.id] || [] };
   });
@@ -99,11 +125,24 @@ export async function submitChallenge(
   challengeId: number,
   userCardIds: number[]
 ): Promise<{ success: boolean; error?: string } > {
-  // Check if challenge is repeatable
-  const challenge = await executeQuerySingle<any>(
-    'SELECT repeatable FROM sbc_challenges WHERE id = ?',
-    [challengeId]
-  );
+  // Check if challenge is repeatable - handle missing column
+  let challenge: any = null;
+  try {
+    challenge = await executeQuerySingle<any>(
+      'SELECT COALESCE(repeatable, FALSE) as repeatable FROM sbc_challenges WHERE id = ?',
+      [challengeId]
+    );
+  } catch (error: any) {
+    if (error.message.includes('repeatable') || error.message.includes('Unknown column')) {
+      console.warn('SBC repeatable column not found in submitChallenge, assuming non-repeatable');
+      challenge = await executeQuerySingle<any>(
+        'SELECT id, FALSE as repeatable FROM sbc_challenges WHERE id = ?',
+        [challengeId]
+      );
+    } else {
+      throw error;
+    }
+  }
   if (!challenge) return { success: false, error: 'Desafío no encontrado' };
   
   // Check already submitted only for non-repeatable challenges
@@ -141,7 +180,7 @@ export async function submitChallenge(
     for (const r of rewards) {
       if (r.reward_type === 'PACK' && r.pack_type) {
         for (let i = 0; i < (r.amount || 1); i++) {
-          await conn.execute('INSERT INTO packs (user_id, type, cost, opened) VALUES (?, ?, 0, 0)', [userId, r.pack_type]);
+          await conn.execute('INSERT INTO packs (user_id, type, cost, opened) VALUES (?, ?, 0, FALSE)', [userId, r.pack_type]);
         }
       } else if (r.reward_type === 'CARD' && r.card_id) {
         for (let i = 0; i < (r.amount || 1); i++) {

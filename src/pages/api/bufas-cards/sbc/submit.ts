@@ -15,12 +15,27 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ success: false, error: 'Parámetros inválidos' }), { status: 400 });
     }
 
+    console.log('SBC Submit - Starting with:', { challenge_id, user_card_ids, userId: auth.id });
+    
     const result = await submitChallenge(auth.id, challenge_id, user_card_ids);
+    
+    console.log('SBC Submit - Result:', result);
+    
     if (!result.success) {
       return new Response(JSON.stringify({ success: false, error: result.error }), { status: 400 });
     }
     return new Response(JSON.stringify({ success: true, completed: true, challenge_id }), { status: 200 });
-  } catch (e) {
-    return new Response(JSON.stringify({ success: false, error: 'Error interno' }), { status: 500 });
+  } catch (e: any) {
+    console.error('Error en submit SBC:', e);
+    console.error('Error details:', {
+      message: e?.message,
+      stack: e?.stack,
+      name: e?.name
+    });
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: 'Error interno',
+      details: e?.message || String(e)
+    }), { status: 500 });
   }
 };

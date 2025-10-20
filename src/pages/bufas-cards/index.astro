@@ -82,21 +82,23 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
           
           <!-- Grid único - 2 columnas de 5 en móvil, 5+5 en escritorio -->
           <div class="grid grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3 mb-2 max-w-5xl mx-auto">
-            <a href="/bufas-cards/quiz" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+            <a href="/bufas-cards/quiz" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
               <div class="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
                 <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
+              <div id="quiz-quick-badge" class="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">!</div>
               <h3 class="font-semibold text-xs lg:text-sm">Quiz Diario</h3>
             </a>
             
-            <a href="/bufas-cards/packs" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+            <a href="/bufas-cards/packs" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
               <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
                 <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 1v6m6-6v6"></path>
                 </svg>
               </div>
+              <div id="packs-quick-badge" class="absolute -top-1 -right-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">!</div>
               <h3 class="font-semibold text-xs lg:text-sm">Abrir Sobres</h3>
             </a>
             
@@ -155,12 +157,14 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
               <h3 class="font-semibold text-xs lg:text-sm">Ajustes</h3>
             </a>
             
-            <a href="/bufas-cards/logros" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center">
+            <a href="/bufas-cards/logros" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
               <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
                 <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 713.138-3.138z"></path>
                 </svg>
               </div>
+              <!-- Badge para logros pendientes -->
+              <div id="achievements-badge" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">0</div>
               <h3 class="font-semibold text-xs lg:text-sm">Logros</h3>
             </a>
             
@@ -374,11 +378,140 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
       if (data.success) {
         currentUser = data.user;
         showLoggedInState();
+        // Cargar conteo de logros pendientes y notificaciones
+        await loadAchievementsBadge();
+        await loadQuizBadge();
+        await loadPacksBadge();
       } else {
         showLoggedOutState();
       }
     } catch {
       showLoggedOutState();
+    }
+  }
+  
+  async function loadAchievementsBadge() {
+    try {
+      const res = await fetch('/api/bufas-cards/achievements/count', { 
+        headers: { Authorization: `Bearer ${authToken}` } 
+      });
+      const data = await res.json();
+      const count = data.success ? data.count : 0;
+      
+      // Actualizar badge del dashboard
+      const badge = document.getElementById('achievements-badge');
+      if (badge) {
+        if (count > 0) {
+          badge.textContent = count.toString();
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+      
+      // Actualizar badge del desktop navigation
+      const desktopBadge = document.getElementById('desktop-achievements-badge');
+      if (desktopBadge) {
+        if (count > 0) {
+          desktopBadge.textContent = count.toString();
+          desktopBadge.classList.remove('hidden');
+        } else {
+          desktopBadge.classList.add('hidden');
+        }
+      }
+      
+      // Actualizar badge del menú móvil si existe la función
+      if (window.updateMobileAchievementsBadge) {
+        window.updateMobileAchievementsBadge();
+      }
+    } catch (error) {
+      console.error('Error loading achievements badge:', error);
+    }
+  }
+  
+  async function loadQuizBadge() {
+    try {
+      // Verificar si el quiz diario está disponible
+      const res = await fetch('/api/bufas-cards/quiz/status', { 
+        headers: { Authorization: `Bearer ${authToken}` } 
+      });
+      const data = await res.json();
+      const canPlay = data.success && data.canPlay;
+      
+      // Actualizar badge del desktop navigation
+      const desktopBadge = document.getElementById('desktop-quiz-badge');
+      if (desktopBadge) {
+        if (canPlay) {
+          desktopBadge.classList.remove('hidden');
+        } else {
+          desktopBadge.classList.add('hidden');
+        }
+      }
+      
+      // Actualizar badge del mobile menu
+      const mobileBadge = document.getElementById('mobile-quiz-badge');
+      if (mobileBadge) {
+        if (canPlay) {
+          mobileBadge.classList.remove('hidden');
+        } else {
+          mobileBadge.classList.add('hidden');
+        }
+      }
+      
+      // Actualizar badge de quick actions
+      const quickBadge = document.getElementById('quiz-quick-badge');
+      if (quickBadge) {
+        if (canPlay) {
+          quickBadge.classList.remove('hidden');
+        } else {
+          quickBadge.classList.add('hidden');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading quiz badge:', error);
+    }
+  }
+  
+  async function loadPacksBadge() {
+    try {
+      // Verificar si hay sobres gratuitos disponibles
+      const res = await fetch('/api/bufas-cards/packs/status', { 
+        headers: { Authorization: `Bearer ${authToken}` } 
+      });
+      const data = await res.json();
+      const canClaim = data.success && data.freePackStatus && data.freePackStatus.canClaim;
+      
+      // Actualizar badge del desktop navigation
+      const desktopBadge = document.getElementById('desktop-packs-badge');
+      if (desktopBadge) {
+        if (canClaim) {
+          desktopBadge.classList.remove('hidden');
+        } else {
+          desktopBadge.classList.add('hidden');
+        }
+      }
+      
+      // Actualizar badge del mobile menu
+      const mobileBadge = document.getElementById('mobile-packs-badge');
+      if (mobileBadge) {
+        if (canClaim) {
+          mobileBadge.classList.remove('hidden');
+        } else {
+          mobileBadge.classList.add('hidden');
+        }
+      }
+      
+      // Actualizar badge de quick actions
+      const quickBadge = document.getElementById('packs-quick-badge');
+      if (quickBadge) {
+        if (canClaim) {
+          quickBadge.classList.remove('hidden');
+        } else {
+          quickBadge.classList.add('hidden');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading packs badge:', error);
     }
   }
 

@@ -116,7 +116,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 
           <div class=\"flex items-center justify-between\">
             <div class=\"text-sm text-yellow-300\">${claimables.length ? `${claimables.length} recompensa(s) disponible(s)` : ''}</div>
-            <button class=\"px-3 py-1 rounded ${hasClaimableRewards ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-600'} disabled:bg-gray-500\" ${hasClaimableRewards ? '' : 'disabled'} data-key=\"${a.key}\">Reclamar</button>
+            <button class=\"claim-btn px-3 py-1 rounded ${hasClaimableRewards ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-600'} disabled:bg-gray-500\" ${hasClaimableRewards ? '' : 'disabled'} data-key=\"${a.key}\">Reclamar</button>
           </div>
         `;
         const previewBox = card.querySelector('.preview-box');
@@ -163,15 +163,37 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
           
           previewBox.innerHTML = content;
         };
+        // Función para actualizar el botón de reclamar según selección
+        const updateClaimButton = (selectedThreshold) => {
+          const btn = card.querySelector('.claim-btn');
+          const claimables = Array.isArray(a.claimable) ? a.claimable : [];
+          const selectedIsClaimable = claimables.some(c => c.threshold === selectedThreshold);
+          
+          if (btn) {
+            if (selectedIsClaimable) {
+              btn.textContent = 'Reclamar';
+              btn.disabled = false;
+              btn.className = 'claim-btn px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium';
+            } else {
+              btn.textContent = 'Reclamar';
+              btn.disabled = true;
+              btn.className = 'claim-btn px-3 py-1 rounded bg-gray-600 disabled:bg-gray-500 text-white font-medium';
+            }
+          }
+        };
+        
         // Event listeners for level buttons
         card.querySelectorAll('.level-btn[data-th]').forEach((el)=> {
           el.addEventListener('click', ()=> {
+            const selectedThreshold = Number(el.getAttribute('data-th'));
             // Remove active class from all buttons in this card
             card.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-yellow-400'));
             // Add active class to clicked button
             el.classList.add('ring-2', 'ring-yellow-400');
             // Update preview
-            setPreview(Number(el.getAttribute('data-th')));
+            setPreview(selectedThreshold);
+            // Update claim button
+            updateClaimButton(selectedThreshold);
           });
         });
         // Set initial preview to current target
@@ -181,23 +203,32 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         if (targetBtn) {
           targetBtn.classList.add('ring-2', 'ring-yellow-400');
         }
-        const btn = card.querySelector('button');
+        // Initialize claim button
+        updateClaimButton(target);
+        const btn = card.querySelector('.claim-btn');
         btn?.addEventListener('click', async () => {
           const claimables = Array.isArray(a.claimable) ? a.claimable : [];
           if (claimables.length === 0) return;
+          
+          // Encontrar el logro actualmente seleccionado (con ring amarillo)
+          const selectedBtn = card.querySelector('.level-btn.ring-yellow-400[data-th]');
+          if (!selectedBtn) return;
+          
+          const selectedThreshold = Number(selectedBtn.getAttribute('data-th'));
+          
+          // Verificar si el logro seleccionado es reclamable
+          const selectedClaimable = claimables.find(c => c.threshold === selectedThreshold);
+          if (!selectedClaimable) {
+            showNotification('El logro seleccionado no está disponible para reclamar', 'error');
+            return;
+          }
           
           // Deshabilitar botón mientras se procesa
           btn.disabled = true;
           btn.textContent = 'Reclamando...';
           
-          // Reclamar una por una para mostrar animaciones apropiadas
-          for (const claimable of claimables) {
-            await claimSingleReward(a.key, claimable.threshold, a.rewards);
-            // Pequeño delay entre recompensas para mejor UX
-            if (claimables.length > 1) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
+          // Reclamar solo el logro seleccionado
+          await claimSingleReward(a.key, selectedClaimable.threshold, a.rewards);
           
           // Rehabilitar botón
           btn.disabled = false;
@@ -299,54 +330,94 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       }, 200);
     }
     
-    // Apertura de sobre con animación
+    // Apertura de sobre con animación (igual que en packs)
     function showPackOpening(card, packType, onClose, compensation = 0) {
+      // Crear modal fullscreen como en packs
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/95 text-white flex items-center justify-center z-50 p-4 overflow-y-auto';
+      
       const compensationMessage = compensation > 0 
-        ? `<div class="bg-yellow-600/20 border border-yellow-500 rounded-lg p-3 mb-4">
+        ? `<div class="bg-yellow-600/20 border border-yellow-500 rounded-lg p-3 mb-4 text-center">
              <p class="text-yellow-300 text-sm font-bold">💰 Compensación: +${compensation} monedas</p>
              <p class="text-yellow-200 text-xs">No había cartas de la rareza prometida disponibles</p>
            </div>` 
         : '';
       
-      const modal = createModal(`
-        <div id="pack-opening-sequence" class="text-center w-full max-w-lg mx-auto">
-          <div id="pack-animation" class="mb-6">
-            <div class="text-4xl mb-4 animate-pulse">📦</div>
-            <p class="text-lg text-white mb-4">Abriendo sobre...</p>
-          </div>
-          <div id="card-reveal" class="hidden">
-            ${compensationMessage}
-            <div class="mb-4 opacity-0 transform scale-50 transition-all duration-700 card-appear">
-              ${createCardElement(card).outerHTML}
-            </div>
-            <h2 class="text-xl font-bold text-white mb-2">¡Carta del Sobre!</h2>
-            <p class="text-lg text-green-400 mb-4">${card.player?.name || 'Jugador'}</p>
-            <button onclick="closeModalWithCallback()" class="px-6 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-400 transition-colors">
-              Confirmar
-            </button>
-          </div>
+      modal.innerHTML = `
+        <div id="pack-reveal-sequence" class="text-center w-full max-w-lg mx-auto px-4 my-auto">
+          <div id="pack-loading-indicator" class="mt-6 text-green-300 text-lg sm:text-xl animate-pulse">Abriendo sobre…</div>
+          <div id="pack-reveal-pos" class="text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-extrabold opacity-0 transition-opacity duration-500 text-center w-full px-2 py-4 break-words"></div>
+          <div id="pack-reveal-rating" class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-yellow-400 font-extrabold mt-2 sm:mt-4 opacity-0 transition-opacity duration-500 text-center w-full"></div>
+          <div id="pack-card-zoom" class="mt-4 sm:mt-6 md:mt-8 opacity-0 transform scale-50 transition-all duration-700 w-full flex justify-center"></div>
+          <div id="pack-compensation-message" class="hidden">${compensationMessage}</div>
+          <button id="pack-confirm-reveal-btn" class="mt-4 sm:mt-6 px-6 sm:px-8 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors hidden w-full max-w-xs mx-auto text-sm sm:text-base">Confirmar</button>
         </div>
-      `);
+      `;
       
-      showModal(modal, onClose);
+      document.body.appendChild(modal);
       
-      // Secuencia de animación
-      setTimeout(() => {
-        const packAnim = modal.querySelector('#pack-animation');
-        const cardReveal = modal.querySelector('#card-reveal');
+      // Ejecutar secuencia de revelación exactamente como en packs
+      runPackRevealSequence(card, modal, onClose);
+    }
+    
+    // Secuencia de revelación idéntica a la de packs
+    async function runPackRevealSequence(card, modal, onClose) {
+      return new Promise((resolve) => {
+        const posEl = modal.querySelector('#pack-reveal-pos');
+        const ratingEl = modal.querySelector('#pack-reveal-rating');
+        const zoom = modal.querySelector('#pack-card-zoom');
+        const confirmBtn = modal.querySelector('#pack-confirm-reveal-btn');
+        const loadingEl = modal.querySelector('#pack-loading-indicator');
         
-        if (packAnim) packAnim.classList.add('hidden');
-        if (cardReveal) {
-          cardReveal.classList.remove('hidden');
-          
-          setTimeout(() => {
-            const cardAppear = cardReveal.querySelector('.card-appear');
-            if (cardAppear) {
-              cardAppear.classList.remove('opacity-0', 'scale-50');
-            }
-          }, 200);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        
+        if (posEl) {
+          posEl.textContent = translatePosition(card?.player?.position1);
+          setTimeout(() => posEl.classList.remove('opacity-0'), 150);
+          setTimeout(() => posEl.classList.add('opacity-0'), 1000);
         }
-      }, 2000);
+        if (ratingEl) {
+          setTimeout(() => { 
+            ratingEl.textContent = String(card?.player?.fifa_rating || ''); 
+            ratingEl.classList.remove('opacity-0'); 
+          }, 1300);
+          setTimeout(() => ratingEl.classList.add('opacity-0'), 2300);
+        }
+        
+        setTimeout(() => {
+          if (zoom) {
+            const el = createCardElement(card);
+            el.classList.add('mx-auto', 'w-full', 'max-w-xs', 'sm:max-w-sm');
+            zoom.appendChild(el);
+            zoom.classList.remove('opacity-0');
+            zoom.classList.remove('scale-50');
+          }
+          
+          // Mostrar mensaje de compensación si existe
+          const compensationEl = modal.querySelector('#pack-compensation-message');
+          if (compensationEl) compensationEl.classList.remove('hidden');
+          
+          if (confirmBtn) confirmBtn.classList.remove('hidden');
+        }, 2600);
+        
+        if (confirmBtn) {
+          const handler = async (e) => {
+            e.preventDefault();
+            confirmBtn.removeEventListener('click', handler);
+            document.body.removeChild(modal);
+            if (onClose) onClose();
+            resolve(true);
+          };
+          confirmBtn.addEventListener('click', handler);
+        } else {
+          // Fallback auto-resolve after 5s
+          setTimeout(async () => { 
+            document.body.removeChild(modal);
+            if (onClose) onClose();
+            resolve(true); 
+          }, 5000);
+        }
+      });
     }
     
     // Helper para crear elemento de carta

@@ -103,9 +103,9 @@ export const POST: APIRoute = async ({ request }) => {
         `SELECT COALESCE(SUM(answered_count),0) AS answered_count
            FROM daily_quiz_progress 
           WHERE user_id = ? AND window_start = (
-            CASE WHEN (now()::time >= time '20:00:00')
-                 THEN date_trunc('day', now()) + interval '20 hours'
-                 ELSE date_trunc('day', now()) - interval '4 hours'
+            CASE WHEN (EXTRACT(HOUR FROM NOW()) >= 20)
+                 THEN DATE_TRUNC('day', NOW()) + INTERVAL '20 hours'
+                 ELSE DATE_TRUNC('day', NOW()) + INTERVAL '20 hours' - INTERVAL '1 day'
             END
           )`,
         [Number(userId)]
@@ -147,31 +147,33 @@ export const POST: APIRoute = async ({ request }) => {
         const { executeTransaction } = await import('@/lib/mysql');
         const { QUIZ_CONFIG } = await import('@/lib/quiz');
         await executeTransaction(async (conn: any) => {
-          // Upsert progreso
-          await conn.execute(
-            `WITH target AS (
-               SELECT CASE WHEN (now()::time >= time '20:00:00')
-                           THEN date_trunc('day', now()) + interval '20 hours'
-                           ELSE date_trunc('day', now()) - interval '4 hours'
-                      END AS ws
-             ), up AS (
-               UPDATE daily_quiz_progress dqp
-                  SET answered_count = answered_count + 1,
-                      correct_count  = correct_count  + CASE WHEN ? THEN 1 ELSE 0 END
-                 FROM target
-                WHERE dqp.user_id = ? AND dqp.window_start = (SELECT ws FROM target)
-                RETURNING 1
-             )
-             INSERT INTO daily_quiz_progress (user_id, window_start, answered_count, correct_count)
-             SELECT ?, (SELECT ws FROM target), 1, CASE WHEN ? THEN 1 ELSE 0 END
-             WHERE NOT EXISTS (SELECT 1 FROM up)`,
-            [
-              isCorrect,
-              Number(userId),
-              Number(userId),
-              isCorrect
-            ]
+          // Calcular window_start
+          const windowStartQuery = `
+            SELECT CASE WHEN (EXTRACT(HOUR FROM NOW()) >= 20)
+                       THEN DATE_TRUNC('day', NOW()) + INTERVAL '20 hours'
+                       ELSE DATE_TRUNC('day', NOW()) + INTERVAL '20 hours' - INTERVAL '1 day'
+                   END AS window_start
+          `;
+          const wsResult = await conn.execute(windowStartQuery);
+          const windowStart = wsResult[0][0].window_start;
+          
+          // Intentar actualizar primero
+          const updateResult = await conn.execute(
+            `UPDATE daily_quiz_progress 
+             SET answered_count = answered_count + 1,
+                 correct_count = correct_count + ?
+             WHERE user_id = ? AND window_start = ?`,
+            [isCorrect ? 1 : 0, Number(userId), windowStart]
           );
+          
+          // Si no actualizó ninguna fila, insertar nueva
+          if (updateResult[0].rowCount === 0) {
+            await conn.execute(
+              `INSERT INTO daily_quiz_progress (user_id, window_start, answered_count, correct_count)
+               VALUES (?, ?, 1, ?)`,
+              [Number(userId), windowStart, isCorrect ? 1 : 0]
+            );
+          }
           if (isCorrect) {
             // Update coins + transaction
             console.log(`Quiz: Awarding ${QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER} coins to user ${userId}`);
