@@ -1,6 +1,7 @@
 ---
 import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/bufas-cards/Subheader.astro';
+import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
 ---
 
 <NikeFCLayout title="Bufas Cards" helpKey="main">
@@ -300,6 +301,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       </form>
     </div>
   </div>
+  
+  <!-- Loading Screen - se renderiza al final para cubrir todo el contenido -->
+  <LoadingScreen />
 </NikeFCLayout>
 
 <script>

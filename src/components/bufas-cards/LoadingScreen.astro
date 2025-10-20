@@ -1,0 +1,306 @@
+---
+// Componente de pantalla de carga para Bufas Cards
+---
+
+<!-- Loading Screen -->
+<div id="loading-screen" class="fixed inset-0 flex items-center justify-center" style="display: none; z-index: 999999999;">
+  <!-- Fondo adaptativo -->
+  <div class="absolute inset-0">
+    <!-- Imagen de fondo en escritorio (centrada) -->
+    <div 
+      class="hidden md:block absolute inset-0 bg-cover bg-center bg-no-repeat bg-gray-900"
+      style="background-image: url('/fondomes.png')"
+    >
+      <!-- Overlay oscuro completamente opaco -->
+      <div class="absolute inset-0 bg-black/70"></div>
+    </div>
+    
+    <!-- Diseño móvil con fondo uniforme completamente opaco -->
+    <div class="md:hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-orange-800 to-red-900" style="background-color: #7c2d12;">
+      <!-- Imagen centrada más grande -->
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div 
+          class="w-[95vw] h-[60vh] bg-contain bg-center bg-no-repeat"
+          style="background-image: url('/fondomes.png');"
+        ></div>
+      </div>
+      
+      <!-- Efectos de partículas en todo el fondo -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="loading-particle-mobile particle-mobile-1"></div>
+        <div class="loading-particle-mobile particle-mobile-2"></div>
+        <div class="loading-particle-mobile particle-mobile-3"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contenido de la pantalla de carga reorganizado -->
+  <div class="relative z-10 text-center text-white px-4 h-full flex flex-col">
+    <!-- Título arriba -->
+    <div class="pt-8 md:pt-12 mb-4 md:mb-6">
+      <h1 class="text-3xl md:text-6xl font-bold mb-2 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-600 drop-shadow-lg">
+        BUFAS CARDS
+      </h1>
+      <p class="text-sm md:text-xl text-white/90 drop-shadow-md">
+        Cargando tu experiencia de trading...
+      </p>
+    </div>
+    
+    <!-- Espacio para imagen (se renderiza en el fondo) -->
+    <div class="flex-1"></div>
+    
+    <!-- Contenido de carga abajo -->
+    <div class="pb-8 md:pb-12">
+      <!-- Contador de porcentaje -->
+      <div class="mb-4 md:mb-6">
+        <div class="text-4xl md:text-7xl font-black text-white drop-shadow-2xl" id="loading-counter">
+          0%
+        </div>
+      </div>
+      
+      <!-- Barra de progreso -->
+      <div class="w-72 md:w-96 mx-auto mb-4 md:mb-6">
+        <div class="bg-white/20 rounded-full h-3 md:h-4 backdrop-blur-sm border border-white/30">
+          <div 
+            id="loading-progress" 
+            class="bg-gradient-to-r from-orange-400 to-yellow-400 h-full rounded-full transition-all duration-100 ease-out shadow-lg"
+            style="width: 0%"
+          >
+            <!-- Efecto de brillo en la barra -->
+            <div class="h-full rounded-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Texto de estado -->
+      <div class="text-sm md:text-base text-white/80" id="loading-status">
+        Iniciando sistema...
+      </div>
+    </div>
+  </div>
+  
+  <!-- Efectos de partículas -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="loading-particle particle-1"></div>
+    <div class="loading-particle particle-2"></div>
+    <div class="loading-particle particle-3"></div>
+    <div class="loading-particle particle-4"></div>
+    <div class="loading-particle particle-5"></div>
+  </div>
+</div>
+
+<style>
+  /* Animaciones de partículas */
+  .loading-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 165, 0, 0.7);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.8);
+  }
+  
+  .particle-1 {
+    top: 20%;
+    left: 10%;
+    animation: float-1 3s ease-in-out infinite;
+  }
+  
+  .particle-2 {
+    top: 60%;
+    right: 15%;
+    animation: float-2 4s ease-in-out infinite;
+  }
+  
+  .particle-3 {
+    bottom: 30%;
+    left: 20%;
+    animation: float-3 3.5s ease-in-out infinite;
+  }
+  
+  .particle-4 {
+    top: 40%;
+    left: 80%;
+    animation: float-4 2.8s ease-in-out infinite;
+  }
+  
+  .particle-5 {
+    bottom: 20%;
+    right: 30%;
+    animation: float-5 3.2s ease-in-out infinite;
+  }
+  
+  @keyframes float-1 {
+    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.7; }
+    50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+  }
+  
+  @keyframes float-2 {
+    0%, 100% { transform: translateX(0px) scale(1); opacity: 0.6; }
+    50% { transform: translateX(15px) scale(1.1); opacity: 1; }
+  }
+  
+  @keyframes float-3 {
+    0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.8; }
+    50% { transform: translate(-10px, -15px) scale(1.3); opacity: 1; }
+  }
+  
+  @keyframes float-4 {
+    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.5; }
+    50% { transform: translateY(25px) scale(1.1); opacity: 1; }
+  }
+  
+  @keyframes float-5 {
+    0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.7; }
+    50% { transform: translate(10px, -20px) scale(1.2); opacity: 1; }
+  }
+  
+  /* Partículas móviles */
+  .loading-particle-mobile {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: rgba(255, 165, 0, 0.8);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 165, 0, 0.9);
+  }
+  
+  .particle-mobile-1 {
+    top: 15%;
+    left: 10%;
+    animation: float-mobile-1 2.5s ease-in-out infinite;
+  }
+  
+  .particle-mobile-2 {
+    top: 70%;
+    right: 15%;
+    animation: float-mobile-2 3s ease-in-out infinite;
+  }
+  
+  .particle-mobile-3 {
+    bottom: 20%;
+    left: 80%;
+    animation: float-mobile-3 2.8s ease-in-out infinite;
+  }
+  
+  @keyframes float-mobile-1 {
+    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-15px) scale(1.3); opacity: 1; }
+  }
+  
+  @keyframes float-mobile-2 {
+    0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.7; }
+    50% { transform: translate(-8px, -12px) scale(1.2); opacity: 1; }
+  }
+  
+  @keyframes float-mobile-3 {
+    0%, 100% { transform: translateX(0px) scale(1); opacity: 0.6; }
+    50% { transform: translateX(10px) scale(1.1); opacity: 1; }
+  }
+  
+  /* Animación de fade out */
+  .fade-out {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.8s ease-in-out;
+  }
+</style>
+
+<script>
+  function initLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const counter = document.getElementById('loading-counter');
+    const progressBar = document.getElementById('loading-progress');
+    const statusText = document.getElementById('loading-status');
+    
+    if (!loadingScreen || !counter || !progressBar || !statusText) return;
+    
+    const referrer = document.referrer;
+    const currentUrl = window.location.href;
+    
+    // Crear una clave única para esta sesión de entrada
+    const sessionKey = `bufas-cards-loading-${Date.now()}`;
+    const lastSessionKey = sessionStorage.getItem('bufas-cards-current-session');
+    
+    // Detectar diferentes tipos de navegación
+    const isFromBuffasCards = referrer && referrer.includes('/bufas-cards/');
+    const isFromSameSession = lastSessionKey && sessionStorage.getItem(lastSessionKey);
+    
+    // Solo NO mostrar si:
+    // Vienes desde una subpágina de bufas-cards (navegación interna) Y estás en la misma sesión
+    const shouldShowLoading = !isFromBuffasCards || !isFromSameSession;
+    
+    if (!shouldShowLoading) {
+      return;
+    }
+    
+    // Mostrar la pantalla de carga
+    loadingScreen.style.display = 'flex';
+    
+    // Guardar la nueva sesión
+    sessionStorage.setItem('bufas-cards-current-session', sessionKey);
+    sessionStorage.setItem(sessionKey, 'true');
+    
+    let progress = 0;
+    const duration = 3000; // 3 segundos (reducido)
+    const interval = 50; // Actualizar cada 50ms
+    const increment = 100 / (duration / interval);
+    
+    // Estados de carga con diferentes mensajes
+    const loadingStates = [
+      { threshold: 0, message: "Iniciando sistema..." },
+      { threshold: 20, message: "Cargando cartas de jugadores..." },
+      { threshold: 40, message: "Sincronizando mercado..." },
+      { threshold: 60, message: "Preparando tu colección..." },
+      { threshold: 80, message: "Configurando interfaz..." },
+      { threshold: 95, message: "¡Casi listo!" },
+    ];
+    
+    const loadingInterval = setInterval(() => {
+      progress += increment;
+      
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(loadingInterval);
+        
+        // Finalizar la carga
+        setTimeout(() => {
+          loadingScreen.classList.add('fade-out');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 800);
+        }, 500);
+      }
+      
+      // Actualizar counter y progress bar
+      counter.textContent = `${Math.floor(progress)}%`;
+      progressBar.style.width = `${progress}%`;
+      
+      // Actualizar mensaje de estado
+      const currentState = loadingStates
+        .reverse()
+        .find(state => progress >= state.threshold);
+      
+      if (currentState) {
+        statusText.textContent = currentState.message;
+      }
+      
+      // Revertir el orden para próximas iteraciones
+      loadingStates.reverse();
+      
+    }, interval);
+  }
+  
+  
+  // Inicializar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLoadingScreen);
+  } else {
+    initLoadingScreen();
+  }
+  
+  // Solo inicializar en carga de página, NO en navegaciones de Astro
+  // Comentamos estas líneas para evitar que se active en cada cambio de página
+  // document.addEventListener('astro:page-load', initLoadingScreen);
+  // document.addEventListener('astro:after-swap', initLoadingScreen);
+</script>
