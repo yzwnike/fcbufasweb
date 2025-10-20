@@ -99,12 +99,21 @@ export async function submitChallenge(
   challengeId: number,
   userCardIds: number[]
 ): Promise<{ success: boolean; error?: string } > {
-  // Check already submitted
-  const exists = await executeQuerySingle<any>(
-    'SELECT id FROM sbc_submissions WHERE challenge_id = ? AND user_id = ?',
-    [challengeId, userId]
+  // Check if challenge is repeatable
+  const challenge = await executeQuerySingle<any>(
+    'SELECT repeatable FROM sbc_challenges WHERE id = ?',
+    [challengeId]
   );
-  if (exists) return { success: false, error: 'Ya completado' };
+  if (!challenge) return { success: false, error: 'Desafío no encontrado' };
+  
+  // Check already submitted only for non-repeatable challenges
+  if (!challenge.repeatable) {
+    const exists = await executeQuerySingle<any>(
+      'SELECT id FROM sbc_submissions WHERE challenge_id = ? AND user_id = ?',
+      [challengeId, userId]
+    );
+    if (exists) return { success: false, error: 'Ya completado' };
+  }
 
   const validation = await validateSubmission(userId, challengeId, userCardIds);
   if (!validation.ok) return { success: false, error: validation.reasons.join('; ') };

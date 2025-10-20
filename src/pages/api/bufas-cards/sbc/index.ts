@@ -9,13 +9,17 @@ export const GET: APIRoute = async ({ request }) => {
     if (!auth) return new Response(JSON.stringify({ success: false, error: 'No autorizado' }), { status: 401 });
 
     const challenges = await getActiveChallenges();
-    // Mark completed challenges for this user
+    // Mark completed challenges for this user (only for non-repeatable challenges)
     const rows = await executeQuery<any>(
-      'SELECT challenge_id FROM sbc_submissions WHERE user_id = ?',
+      'SELECT sc.id as challenge_id, sc.repeatable FROM sbc_challenges sc LEFT JOIN sbc_submissions ss ON sc.id = ss.challenge_id AND ss.user_id = ? WHERE sc.start_at <= NOW() AND sc.end_at >= NOW()',
       [auth.id]
     );
-    const completedSet = new Set(rows.map((r: any) => r.challenge_id));
-    const enriched = challenges.map(ch => ({ ...ch, completed: completedSet.has(ch.id) }));
+    const completedSet = new Set(rows.filter((r: any) => r.repeatable === 0 && r.challenge_id).map((r: any) => r.challenge_id));
+    const enriched = challenges.map(ch => ({ 
+      ...ch, 
+      completed: ch.repeatable ? false : completedSet.has(ch.id),
+      repeatable: Boolean(ch.repeatable)
+    }));
 
     return new Response(JSON.stringify({ success: true, challenges: enriched }), { status: 200 });
   } catch (e: any) {

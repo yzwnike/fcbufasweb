@@ -16,9 +16,10 @@ export const ECONOMY_CONFIG = {
   
   // Rangos de cartas (renombrados)
   CARD_TIERS: {
-    NORMAL: { name: 'Normal', basePrice: 300 },      // era Silver
-    ESPECIAL: { name: 'Especial', basePrice: 2000 }, // era Elite
-    LEGENDARIA: { name: 'Legendaria', basePrice: 5000 } // era Legend
+    NORMAL: { name: 'Normal', basePrice: 300 },         // era Silver
+    ESPECIAL: { name: 'Especial', basePrice: 1200 },   // nuevo tier
+    ELITE: { name: 'Elite', basePrice: 3000 },         // era Elite
+    LEGENDARIA: { name: 'Legendaria', basePrice: 6000 } // era Legend
   },
   
   // Multiplicadores por tipo especial
@@ -48,18 +49,20 @@ export const ECONOMY_CONFIG = {
       cooldownHours: 24,
       speedupCostPerHour: 10,
       odds: {
-        NORMAL: 0.85,    // 85% Normal
-        ESPECIAL: 0.12,  // 12% Especial  
-        LEGENDARIA: 0.03 // 3% Legendaria
+        NORMAL: 0.87,    // 87% Normal
+        ESPECIAL: 0.09,  // 9% Especial
+        ELITE: 0.03,     // 3% Elite
+        LEGENDARIA: 0.01 // 1% Legendaria
       }
     },
     PREMIUM: {
       type: 'PREMIUM',
       cost: 600,
       odds: {
-        NORMAL: 0.60,    // 60% Normal
-        ESPECIAL: 0.30,  // 30% Especial
-        LEGENDARIA: 0.10 // 10% Legendaria
+        NORMAL: 0.78,    // 78% Normal
+        ESPECIAL: 0.14,  // 14% Especial
+        ELITE: 0.05,     // 5% Elite
+        LEGENDARIA: 0.03 // 3% Legendaria
       }
     },
     SPECIAL: {
@@ -67,8 +70,9 @@ export const ECONOMY_CONFIG = {
       cost: 1500,
       odds: {
         NORMAL: 0.00,    // 0% Normal
-        ESPECIAL: 0.70,  // 70% Especial
-        LEGENDARIA: 0.30 // 30% Legendaria
+        ESPECIAL: 0.80,  // 80% Especial
+        ELITE: 0.15,     // 15% Elite
+        LEGENDARIA: 0.05 // 5% Legendaria
       }
     }
   },
@@ -145,9 +149,10 @@ export function getCardBasePrice(rarity: string): number {
     case 'Bronze':
     case 'Silver': // legacy -> Normal
       return ECONOMY_CONFIG.CARD_TIERS.NORMAL.basePrice;
-    case 'Gold':
-    case 'Elite': // legacy -> Especial  
+    case 'Gold': // legacy -> Especial
       return ECONOMY_CONFIG.CARD_TIERS.ESPECIAL.basePrice;
+    case 'Elite': // legacy -> Elite
+      return ECONOMY_CONFIG.CARD_TIERS.ELITE.basePrice;
     case 'Legend': // legacy -> Legendaria
       return ECONOMY_CONFIG.CARD_TIERS.LEGENDARIA.basePrice;
     default:
@@ -174,7 +179,7 @@ export function calculatePackSpeedupCost(hoursRemaining: number): number {
 /**
  * Determina la rareza de una carta basada en las odds del pack
  */
-export function determinePackCardRarity(packType: 'BASIC' | 'PREMIUM' | 'SPECIAL'): 'NORMAL' | 'ESPECIAL' | 'LEGENDARIA' {
+export function determinePackCardRarity(packType: 'BASIC' | 'PREMIUM' | 'SPECIAL'): 'NORMAL' | 'ESPECIAL' | 'ELITE' | 'LEGENDARIA' {
   const random = Math.random();
   const odds = ECONOMY_CONFIG.PACKS[packType].odds;
   
@@ -182,7 +187,7 @@ export function determinePackCardRarity(packType: 'BASIC' | 'PREMIUM' | 'SPECIAL
   for (const [rarity, probability] of Object.entries(odds)) {
     cumulative += probability;
     if (random <= cumulative) {
-      return rarity as 'NORMAL' | 'ESPECIAL' | 'LEGENDARIA';
+      return rarity as 'NORMAL' | 'ESPECIAL' | 'ELITE' | 'LEGENDARIA';
     }
   }
   

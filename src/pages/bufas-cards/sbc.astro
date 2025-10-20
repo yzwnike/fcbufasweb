@@ -134,7 +134,12 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       challenges.forEach(ch => {
         const btn = document.createElement('button');
         btn.className = 'w-full text-left p-3 bg-emerald-900/40 hover:bg-emerald-800/50 rounded-lg text-white flex items-center justify-between';
-        const badge = ch.completed ? '<span class="ml-3 px-2 py-0.5 text-xs rounded bg-emerald-600/70">Completado</span>' : '';
+        let badge = '';
+        if (ch.repeatable) {
+          badge = '<span class="ml-3 px-2 py-0.5 text-xs rounded bg-blue-600/70">Repetible</span>';
+        } else if (ch.completed) {
+          badge = '<span class="ml-3 px-2 py-0.5 text-xs rounded bg-emerald-600/70">Completado</span>';
+        }
         btn.innerHTML = `<div><div class=\"font-semibold\">${ch.title}</div><div class=\"text-emerald-200 text-sm\">${ch.description||''}</div></div>${badge}`;
         btn.addEventListener('click', () => selectChallenge(ch));
         list.appendChild(btn);
@@ -148,14 +153,14 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       document.getElementById('requirements-panel').classList.remove('hidden');
       document.getElementById('builder').classList.add('hidden');
       const acceptBtn = document.getElementById('accept-req-btn');
-      if (ch.completed) {
+      if (ch.completed && !ch.repeatable) {
         acceptBtn.setAttribute('disabled','true');
         acceptBtn.classList.add('opacity-50','cursor-not-allowed');
         acceptBtn.textContent = 'Completado';
       } else {
         acceptBtn.removeAttribute('disabled');
         acceptBtn.classList.remove('opacity-50','cursor-not-allowed');
-        acceptBtn.textContent = 'Aceptar';
+        acceptBtn.textContent = ch.repeatable ? 'Repetir Desafío' : 'Aceptar';
       }
 
       document.getElementById('challenge-title').textContent = ch.title;
@@ -316,22 +321,35 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       });
       const data = await res.json();
       if (!data.success) { alert(data.error||'Error'); return; }
-      alert('Desafío completado. Recompensa entregada.');
-      // Mark challenge as completed in the list
-      challenges = challenges.map(ch => ch.id === selectedChallenge.id ? { ...ch, completed: true } : ch);
-      renderChallenges();
+      const isRepeatable = selectedChallenge.repeatable;
+      alert(`Desafío completado. Recompensa entregada.${isRepeatable ? ' Puedes repetir este desafío las veces que quieras.' : ''}`);
+      
+      // Mark challenge as completed only for non-repeatable challenges
+      if (!isRepeatable) {
+        challenges = challenges.map(ch => ch.id === selectedChallenge.id ? { ...ch, completed: true } : ch);
+        renderChallenges();
+      }
+      
       // Remove consumed cards from local list
       userCards = userCards.filter(uc => !selectedIds.has(uc.id));
       selectedIds.clear();
       renderSelected();
       renderCollection(userCards);
-      // Lock builder
+      
+      // For repeatable challenges, reset to requirements panel; for non-repeatable, lock builder
       document.getElementById('requirements-panel').classList.remove('hidden');
       document.getElementById('builder').classList.add('hidden');
       const acceptBtn = document.getElementById('accept-req-btn');
-      acceptBtn.setAttribute('disabled','true');
-      acceptBtn.classList.add('opacity-50','cursor-not-allowed');
-      acceptBtn.textContent = 'Completado';
+      
+      if (isRepeatable) {
+        acceptBtn.removeAttribute('disabled');
+        acceptBtn.classList.remove('opacity-50','cursor-not-allowed');
+        acceptBtn.textContent = 'Repetir Desafío';
+      } else {
+        acceptBtn.setAttribute('disabled','true');
+        acceptBtn.classList.add('opacity-50','cursor-not-allowed');
+        acceptBtn.textContent = 'Completado';
+      }
     }
 
     async function init() {

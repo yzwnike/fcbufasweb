@@ -1,0 +1,35 @@
+---
+// Componente para mostrar monedas con icono
+interface Props {
+  amount: number | string;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+const { amount, size = 'md', className = '' } = Astro.props;
+
+// Tamaños del icono según el prop size
+const iconSizes = {
+  sm: 'w-4 h-4',
+  md: 'w-5 h-5', 
+  lg: 'w-6 h-6'
+};
+
+// Tamaños del texto según el prop size
+const textSizes = {
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg'
+};
+---
+
+<div class={`inline-flex items-center gap-1 ${className}`}>
+  <img 
+    src="/icons/monedaicono.png" 
+    alt="Monedas" 
+    class={`${iconSizes[size]} object-contain`}
+  />
+  <span class={`font-bold text-yellow-400 ${textSizes[size]}`}>
+    {amount}
+  </span>
+</div>

@@ -2,6 +2,7 @@
 import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/bufas-cards/Subheader.astro';
 import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
+import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
 ---
 
 <NikeFCLayout title="Bufas Cards" helpKey="main">
@@ -16,9 +17,11 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
     <section class="relative pt-2 lg:pt-4 pb-6 lg:pb-8 px-4">
       <div class="max-w-7xl mx-auto text-center">
         <div class="flex flex-col sm:flex-row items-center justify-center mb-3 lg:mb-4 px-2">
-          <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white mb-2 sm:mb-0 sm:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-          </svg>
+          <img 
+            src="/icons/monedaicono.png" 
+            alt="Bufas Cards" 
+            class="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-0 sm:mr-3 flex-shrink-0 object-contain"
+          />
           <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
             Bufas Cards Trading Game
           </h1>
@@ -59,7 +62,9 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
                 </div>
                 <div class="text-center sm:text-right">
                   <p class="text-orange-100 text-xs">Monedas</p>
-                  <p id="coins" class="text-lg sm:text-xl font-bold text-yellow-400">0</p>
+                  <div id="coins-display">
+                    <CoinsDisplay amount="0" size="lg" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -71,62 +76,8 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
           </div>
         </div>
 
-      <!-- Game Features -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3 max-w-[1800px] mx-auto px-2">
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-            <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Quiz Diario</h3>
-            <p class="text-xs text-orange-200 break-words leading-tight">5 preguntas diarias. ¡Gana hasta 250 monedas!</p>
-          </div>
-
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 1v6m6-6v6"></path>
-              </svg>
-            </div>
-            <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Sobres de Cartas</h3>
-            <p class="text-xs text-orange-200 break-words leading-tight">1 sobre gratis cada 24h. Compra premium y especiales</p>
-          </div>
-
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-              </svg>
-            </div>
-            <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Mercado</h3>
-            <p class="text-xs text-yellow-300 break-words leading-tight">Vende y compra cartas con otros usuarios</p>
-          </div>
-
-          <!-- SBC Feature -->
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2H7l5 5 5-5h-2v-2c0-1.657-1.343-3-3-3z" />
-              </svg>
-            </div>
-            <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">SBC</h3>
-            <p class="text-xs text-orange-200 break-words leading-tight">Completa retos mensuales y gana sobres o cartas</p>
-          </div>
-
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
-            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-              </svg>
-            </div>
-            <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Fantasy Rush</h3>
-            <p class="text-xs text-orange-200 break-words leading-tight">Elige 3 jugadores cada semana. Puntos x20 monedas</p>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div id="quick-actions" class="hidden mt-4 lg:mt-6">
+        <!-- Quick Actions (Ahora arriba) -->
+        <div id="quick-actions" class="hidden mb-4 lg:mb-6">
           <h2 class="text-lg lg:text-xl font-bold text-white text-center mb-3">Acciones Rápidas</h2>
           
           <!-- Grid único - 2 columnas de 5 en móvil, 5+5 en escritorio -->
@@ -221,6 +172,63 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
               </div>
               <h3 class="font-semibold text-xs lg:text-sm">Ayuda</h3>
             </a>
+          </div>
+        </div>
+
+        <!-- Game Features (Ahora abajo) -->
+        <div class="mt-4 lg:mt-6">
+          <h2 class="text-lg lg:text-xl font-bold text-white text-center mb-3">¿Qué puedes hacer?</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3 max-w-[1800px] mx-auto px-2">
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Quiz Diario</h3>
+              <p class="text-xs text-orange-200 break-words leading-tight">5 preguntas diarias. ¡Gana hasta 250 monedas!</p>
+            </div>
+
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 1v6m6-6v6"></path>
+                </svg>
+              </div>
+              <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Sobres de Cartas</h3>
+              <p class="text-xs text-orange-200 break-words leading-tight">1 sobre gratis cada 24h. Compra premium y especiales</p>
+            </div>
+
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+              </div>
+              <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Mercado</h3>
+              <p class="text-xs text-yellow-300 break-words leading-tight">Vende y compra cartas con otros usuarios</p>
+            </div>
+
+            <!-- SBC Feature -->
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2H7l5 5 5-5h-2v-2c0-1.657-1.343-3-3-3z" />
+                </svg>
+              </div>
+              <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">SBC</h3>
+              <p class="text-xs text-orange-200 break-words leading-tight">Completa retos mensuales y gana sobres o cartas</p>
+            </div>
+
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-2 sm:p-3 text-center hover:bg-white/20 transition-colors group">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2 group-hover:scale-110 transition-transform">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <h3 class="text-sm sm:text-base font-semibold text-white mb-1 break-words">Fantasy Rush</h3>
+              <p class="text-xs text-orange-200 break-words leading-tight">Elige 3 jugadores cada semana. Puntos x20 monedas</p>
+            </div>
           </div>
         </div>
       </div>
@@ -334,10 +342,18 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
 
     if (currentUser) {
       const usernameEl = document.getElementById('username');
-      const coinsEl = document.getElementById('coins');
+      const coinsDisplayEl = document.getElementById('coins-display');
 
       if (usernameEl) usernameEl.textContent = currentUser.username;
-      if (coinsEl) coinsEl.textContent = currentUser.coins;
+      if (coinsDisplayEl) {
+        // Actualizar el contenido del CoinsDisplay
+        coinsDisplayEl.innerHTML = `
+          <div class="inline-flex items-center gap-1">
+            <img src="/icons/monedaicono.png" alt="Monedas" class="w-6 h-6 object-contain" />
+            <span class="font-bold text-yellow-400 text-lg">${currentUser.coins}</span>
+          </div>
+        `;
+      }
     }
   }
 
@@ -397,7 +413,7 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
   async function login(email, password) {
     // Prevenir múltiples solicitudes simultáneas
     if (isLoggingIn) {
-      return { success: false, error: 'Ya se está procesando una solicitud de login' };
+      return { success: false, error: 'Iniciando sesión, por favor espera...' };
     }
     
     isLoggingIn = true;
@@ -436,7 +452,7 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
   async function register(username, email, password) {
     // Prevenir múltiples solicitudes simultáneas
     if (isRegistering) {
-      return { success: false, error: 'Ya se está procesando una solicitud de registro' };
+      return { success: false, error: 'Registrándote, por favor espera...' };
     }
     
     isRegistering = true;
@@ -477,7 +493,18 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
     initializeApp();
   }
   // Ensure initialization on SPA navigations (Astro View Transitions)
-  document.addEventListener('astro:page-load', initializeApp);
+  document.addEventListener('astro:page-load', async () => {
+    await initializeApp();
+    // Refrescar datos del usuario al volver al dashboard
+    if (authToken && checkAuthState()) {
+      try {
+        await fetchMe();
+        console.log('User data refreshed on dashboard load');
+      } catch (error) {
+        console.error('Error refreshing user data:', error);
+      }
+    }
+  });
   document.addEventListener('astro:after-swap', initializeApp);
 
   function doLogout() {
@@ -586,7 +613,7 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
         // Deshabilitar el botón para prevenir doble clic
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.textContent = 'Iniciando...';
+          submitBtn.textContent = 'Iniciando sesión...';
         }
         
         // Limpiar errores previos
@@ -638,7 +665,7 @@ import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
         // Deshabilitar el botón para prevenir doble clic
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.textContent = 'Registrando...';
+          submitBtn.textContent = 'Registrándote...';
         }
         
         // Limpiar errores previos

@@ -66,11 +66,23 @@ async function pgExecute<T = any>(query: string, params?: any[]): Promise<T[]> {
   const text = transformSql(query);
   const { text: pgText } = toPgParams(text);
   
+  // Log de debug para identificar query problemática
+  console.log('Ejecutando query:', { query: query.substring(0, 100), params });
+  
   // Para serverless, usar timeout más corto
   const client = await pool.connect();
   try {
     const res = await client.query(pgText, params || []);
+    console.log('Query exitosa:', { rowCount: res.rowCount });
     return res.rows as T[];
+  } catch (error) {
+    console.error('Query fallida:', { 
+      query: query.substring(0, 100), 
+      params, 
+      error: error.message,
+      pgText: pgText.substring(0, 100)
+    });
+    throw error;
   } finally {
     client.release();
   }
@@ -105,20 +117,35 @@ export async function executeTransaction<T>(
     await client.query('BEGIN');
     const wrapper = {
       async execute(q: string, p?: any[]): Promise<[any, any]> {
-        // Detectar INSERT y devolver insertId al estilo mysql2
-        const isInsert = /^\s*insert\s+into\s+/i.test(q);
-        let text = transformSql(q);
-        if (isInsert && !/returning\s+/i.test(text)) {
-          text = `${text} RETURNING id`;
+        // Log de debug para transacciones
+        console.log('Transaction query:', { query: q.substring(0, 100), params: p });
+        
+        try {
+          // Detectar INSERT y devolver insertId al estilo mysql2
+          const isInsert = /^\s*insert\s+into\s+/i.test(q);
+          let text = transformSql(q);
+          if (isInsert && !/returning\s+/i.test(text)) {
+            text = `${text} RETURNING id`;
+          }
+          const { text: pgText } = toPgParams(text);
+          const res = await client.query(pgText, p || []);
+          
+          console.log('Transaction query exitosa:', { rowCount: res.rowCount });
+          
+          if (isInsert) {
+            const insertId = res.rows?.[0]?.id ?? null;
+            return [{ insertId, rowCount: res.rowCount }, null];
+          }
+          // Imitar mysql2: [rows, fields]
+          return [res.rows, null];
+        } catch (error) {
+          console.error('Transaction query fallida:', {
+            query: q.substring(0, 100),
+            params: p,
+            error: error.message
+          });
+          throw error;
         }
-        const { text: pgText } = toPgParams(text);
-        const res = await client.query(pgText, p || []);
-        if (isInsert) {
-          const insertId = res.rows?.[0]?.id ?? null;
-          return [{ insertId, rowCount: res.rowCount }, null];
-        }
-        // Imitar mysql2: [rows, fields]
-        return [res.rows, null];
       },
     };
     const result = await callback(wrapper);

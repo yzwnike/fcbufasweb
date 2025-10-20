@@ -8,9 +8,18 @@ const { helpKey, customText } = Astro.props;
 ---
 
 <div id="help-button-container" class="fixed bottom-6 right-6 z-50">
+  <!-- Tooltip con muletilla -->
+  <div 
+    id="help-tooltip" 
+    class="absolute bottom-full right-0 mb-2 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg opacity-0 transform translate-y-2 transition-all duration-300 pointer-events-none max-w-xs sm:max-w-none sm:whitespace-nowrap"
+  >
+    <div class="absolute top-full right-4 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-900"></div>
+    <span id="tooltip-text">¡Púlsame si tienes dudas sobre esta sección!</span>
+  </div>
+  
   <button
     id="help-button"
-    class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 group"
+    class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 group help-button-with-tooltip"
     aria-label="Mostrar ayuda"
     title="¿Cómo funciona esta sección?"
   >
@@ -281,6 +290,86 @@ const { helpKey, customText } = Astro.props;
     };
   }
 
+  // Muletillas aleatorias
+  const tooltipMessages = [
+    '¡Púlsame si tienes dudas sobre esta sección!',
+    '¿Necesitas ayuda? ¡Estoy aquí!',
+    '¿Confundido? ¡Haz clic para aclarar tus dudas!',
+    '¡No te quedes con la duda, pregunta!',
+    '¿Cómo funciona esto? ¡Te lo explico!',
+    '¡Consejos y trucos esperando por ti!'
+  ];
+
+  // Sistema de muletilla aleatoria
+  function initRandomTooltip() {
+    const tooltip = document.getElementById('help-tooltip');
+    const tooltipText = document.getElementById('tooltip-text');
+    
+    if (!tooltip || !tooltipText) return;
+    
+    function showRandomTooltip() {
+      // Solo mostrar si no está ya visible
+      if (tooltip.style.opacity !== '1') {
+        const randomMessage = tooltipMessages[Math.floor(Math.random() * tooltipMessages.length)];
+        tooltipText.textContent = randomMessage;
+        
+        // Animar botón para llamar la atención
+        const helpButton = document.getElementById('help-button');
+        if (helpButton) {
+          helpButton.classList.add('has-tooltip');
+          setTimeout(() => {
+            helpButton.classList.remove('has-tooltip');
+          }, 600);
+        }
+        
+        // Mostrar tooltip
+        tooltip.style.opacity = '1';
+        tooltip.style.transform = 'translateY(0)';
+        
+        // Ocultar después de 4 segundos
+        setTimeout(() => {
+          tooltip.style.opacity = '0';
+          tooltip.style.transform = 'translateY(8px)';
+        }, 4000);
+      }
+    }
+    
+    // Programar muletillas aleatorias
+    function scheduleRandomTooltip() {
+      // Tiempo aleatorio entre 30 segundos y 3 minutos
+      const minTime = 30000; // 30 segundos
+      const maxTime = 180000; // 3 minutos
+      const randomTime = Math.random() * (maxTime - minTime) + minTime;
+      
+      setTimeout(() => {
+        // Solo mostrar si la página está visible y el usuario no está interactuando
+        if (!document.hidden) {
+          showRandomTooltip();
+        }
+        
+        // Programar la siguiente muletilla
+        scheduleRandomTooltip();
+      }, randomTime);
+    }
+    
+    // Iniciar el sistema después de 1 minuto
+    setTimeout(scheduleRandomTooltip, 60000);
+    
+    // Ocultar tooltip al hacer hover o click
+    const helpButton = document.getElementById('help-button');
+    if (helpButton) {
+      helpButton.addEventListener('mouseenter', () => {
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(8px)';
+      });
+      
+      helpButton.addEventListener('click', () => {
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(8px)';
+      });
+    }
+  }
+
   // Inicializar el componente
   function initializeHelpButton() {
     const helpButton = document.getElementById('help-button');
@@ -338,6 +427,9 @@ const { helpKey, customText } = Astro.props;
         closeModal();
       }
     });
+    
+    // Inicializar sistema de muletillas aleatorias
+    initRandomTooltip();
   }
 
   // Inicializar cuando el DOM esté listo
@@ -370,6 +462,44 @@ const { helpKey, customText } = Astro.props;
   #help-button:hover {
     animation: none;
     transform: scale(1.1);
+  }
+  
+  /* Estilos del tooltip de muletilla */
+  #help-tooltip {
+    z-index: 60;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    font-weight: 500;
+    letter-spacing: 0.025em;
+    word-wrap: break-word;
+    line-height: 1.4;
+  }
+  
+  /* Responsive para el tooltip */
+  @media (max-width: 640px) {
+    #help-tooltip {
+      right: -0.5rem;
+      left: auto;
+      transform: translateX(0);
+      max-width: calc(100vw - 3rem);
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+    }
+    
+    #help-tooltip .absolute {
+      right: 1rem;
+    }
+  }
+  
+  /* Animación sutil del botón cuando aparece el tooltip */
+  .help-button-with-tooltip.has-tooltip {
+    animation: gentle-bounce 0.6s ease-in-out;
+  }
+  
+  @keyframes gentle-bounce {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.05); }
+    50% { transform: scale(1.1); }
+    75% { transform: scale(1.05); }
   }
 
   /* Mejoras de accesibilidad */

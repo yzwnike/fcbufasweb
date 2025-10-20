@@ -174,16 +174,33 @@ export const POST: APIRoute = async ({ request }) => {
           );
           if (isCorrect) {
             // Update coins + transaction
-            await conn.execute('UPDATE users SET coins = coins + ? WHERE id = ?', [QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, Number(userId)]);
+            console.log(`Quiz: Awarding ${QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER} coins to user ${userId}`);
+            const updateResult = await conn.execute('UPDATE users SET coins = coins + ? WHERE id = ?', [QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, Number(userId)]);
+            console.log('Quiz: Coins update result:', updateResult);
+            
             await conn.execute(
               'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
               [Number(userId), QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, 'DAILY_QUIZ', 'Respuesta correcta en quiz (random)']
             );
+            console.log(`Quiz: Transaction logged for user ${userId}`);
           }
         });
       } catch (error) {
         console.error('Error updating quiz progress and coins:', error);
-        // No retornar error porque la respuesta del quiz sigue siendo válida
+        console.error('Error details:', {
+          userId: userId,
+          isCorrect: isCorrect,
+          coinsToAward: isCorrect ? QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER : 0,
+          error: error.message || error
+        });
+        // Retornar error porque las monedas no se guardaron
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Error al guardar progreso y monedas. Inténtalo de nuevo.' 
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
       }
 
       const coinsEarned = isCorrect ? QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER : 0;

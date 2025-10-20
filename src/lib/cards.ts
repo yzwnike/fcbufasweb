@@ -469,7 +469,7 @@ export async function openCardPack(
     const openedCards: CardWithPlayer[] = [];
 
     // helper: pick a random card id by special group
-    async function pickRandomCardIdByGroup(conn: any, group: 'BASE_OG' | 'LEGEND' | 'RARE'): Promise<Card | null> {
+    async function pickRandomCardIdByGroup(conn: any, group: 'BASE_OG' | 'LEGEND' | 'RARE' | 'ELITE'): Promise<Card | null> {
       async function pick(sql: string): Promise<Card | null> {
         const [rows] = await conn.execute(sql);
         if (Array.isArray(rows) && rows.length > 0) return rows[0] as Card;
@@ -490,9 +490,19 @@ export async function openCardPack(
         const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
         return c3;
       }
+      if (group === 'ELITE') {
+        // Elite: MARKET_MASTER, RATING_RELOAD, COMEBACK_HERO, ASSIST_ENGINE
+        const c = await pick("SELECT * FROM cards WHERE special_type IN ('MARKET_MASTER','RATING_RELOAD','COMEBACK_HERO','ASSIST_ENGINE') ORDER BY RANDOM() LIMIT 1");
+        if (c) return c;
+        // Fallbacks seguros
+        const c2 = await pick("SELECT * FROM cards WHERE special_type = 'TEAM_OF_THE_WEEK' ORDER BY RANDOM() LIMIT 1");
+        if (c2) return c2;
+        const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
+        return c3;
+      }
       if (group === 'RARE') {
-        // Especial no legendaria: todas las especiales excepto BASE/OG y POTM
-        const c = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RANDOM() LIMIT 1");
+        // Especial: TEAM_OF_THE_WEEK principalmente
+        const c = await pick("SELECT * FROM cards WHERE special_type = 'TEAM_OF_THE_WEEK' ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
         // Fallbacks seguros
         const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
@@ -505,24 +515,27 @@ export async function openCardPack(
 
     const runWithConnection = async (connection: any) => {
       for (let i = 0; i < numCards; i++) {
-        let group: 'BASE_OG' | 'LEGEND' | 'RARE';
+        let group: 'BASE_OG' | 'LEGEND' | 'RARE' | 'ELITE';
         const r = Math.random();
         
         // Usar las nuevas odds de economy.ts
         if (packType === 'SPECIAL') {
           const odds = ECONOMY_CONFIG.PACKS.SPECIAL.odds;
           if (r < odds.ESPECIAL) group = 'RARE';
+          else if (r < odds.ESPECIAL + odds.ELITE) group = 'ELITE';
           else group = 'LEGEND';
         } else if (packType === 'PREMIUM') {
           const odds = ECONOMY_CONFIG.PACKS.PREMIUM.odds;
           if (r < odds.NORMAL) group = 'BASE_OG';
           else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
+          else if (r < odds.NORMAL + odds.ESPECIAL + odds.ELITE) group = 'ELITE';
           else group = 'LEGEND';
         } else {
           // FREE_DAILY
           const odds = ECONOMY_CONFIG.PACKS.BASIC.odds;
           if (r < odds.NORMAL) group = 'BASE_OG';
           else if (r < odds.NORMAL + odds.ESPECIAL) group = 'RARE';
+          else if (r < odds.NORMAL + odds.ESPECIAL + odds.ELITE) group = 'ELITE';
           else group = 'LEGEND';
         }
 

@@ -1,6 +1,8 @@
 ---
 import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/bufas-cards/Subheader.astro';
+import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
+import PackIcon from '@/components/bufas-cards/PackIcon.astro';
 ---
 
 <NikeFCLayout title="Sobres - Bufas Cards" helpKey="packs">
@@ -41,7 +43,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
             </div>
             <div class="text-right">
               <p class="text-green-100 text-sm">Monedas</p>
-              <p id="user-coins" class="text-lg font-bold text-yellow-400">0</p>
+              <div id="user-coins-display">
+                <CoinsDisplay amount="0" size="lg" />
+              </div>
             </div>
           </div>
         </div>
@@ -50,8 +54,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         <div class="space-y-3 max-w-4xl mx-auto">
           <!-- Free Pack -->
           <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 flex items-center gap-4 relative">
-            <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span class="text-2xl">🆓</span>
+            <div class="flex items-center justify-center flex-shrink-0">
+              <PackIcon type="gratis" size="xl" />
             </div>
             <div class="flex-1">
               <div class="flex items-center justify-between mb-1">
@@ -67,7 +71,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
               <div id="free-pack-info" class="pack-info-panel hidden bg-black/90 backdrop-blur-md rounded-lg p-2 text-xs mb-2 z-10">
                 <p class="text-green-200">• 1 carta aleatoria</p>
                 <p class="text-green-200">• Cada 24 horas</p>
-                <p class="text-green-200">• 85% Normal, 12% Especial, 3% Legendaria</p>
+                <p class="text-green-200">• 87% Normal, 9% Especial, 3% Elite, 1% Legendaria</p>
               </div>
               
               <div id="free-pack-timer" class="mb-2 hidden">
@@ -94,8 +98,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 
           <!-- Premium Pack -->
           <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 flex items-center gap-4 relative">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span class="text-2xl">💎</span>
+            <div class="flex items-center justify-center flex-shrink-0">
+              <PackIcon type="premium" size="xl" />
             </div>
             <div class="flex-1">
               <div class="flex items-center justify-between mb-1">
@@ -110,7 +114,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
               <!-- Hidden Info Panel -->
               <div id="premium-pack-info" class="pack-info-panel hidden bg-black/90 backdrop-blur-md rounded-lg p-2 text-xs mb-2 z-10">
                 <p class="text-green-200">• 1 carta</p>
-                <p class="text-green-200">• 60% Normal, 30% Especial, 10% Legendaria</p>
+                <p class="text-green-200">• 78% Normal, 14% Especial, 5% Elite, 3% Legendaria</p>
               </div>
               
               <button id="premium-pack-btn" class="w-full py-2 text-sm bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors">
@@ -121,8 +125,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 
           <!-- Special Pack -->
           <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 flex items-center gap-4 relative">
-            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span class="text-2xl">✨</span>
+            <div class="flex items-center justify-center flex-shrink-0">
+              <PackIcon type="especial" size="xl" />
             </div>
             <div class="flex-1">
               <div class="flex items-center justify-between mb-1">
@@ -138,7 +142,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
               <div id="special-pack-info" class="pack-info-panel hidden bg-gradient-to-r from-slate-800/95 to-slate-900/95 backdrop-blur-md rounded-lg p-3 text-xs mb-3 shadow-xl border border-slate-600/30">
                 <div class="space-y-1">
                   <p class="text-purple-300 flex items-center gap-2"><span class="text-purple-400">•</span> 1 carta garantizada</p>
-                  <p class="text-purple-300 flex items-center gap-2"><span class="text-purple-400">•</span> 70% Especial, 30% Legendaria</p>
+                  <p class="text-purple-300 flex items-center gap-2"><span class="text-purple-400">•</span> 80% Especial, 15% Elite, 5% Legendaria</p>
                 </div>
               </div>
               
@@ -236,7 +240,18 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       await fetchMe();
       if (currentUser) {
         document.getElementById('username').textContent = currentUser.username;
-        document.getElementById('user-coins').textContent = currentUser.coins;
+        
+        // Actualizar CoinsDisplay
+        const coinsDisplayEl = document.getElementById('user-coins-display');
+        if (coinsDisplayEl) {
+          coinsDisplayEl.innerHTML = `
+            <div class="inline-flex items-center gap-1">
+              <img src="/icons/monedaicono.png" alt="Monedas" class="w-6 h-6 object-contain" />
+              <span class="font-bold text-yellow-400 text-lg">${currentUser.coins}</span>
+            </div>
+          `;
+        }
+        
         updatePackButtons();
       }
     }

@@ -1,0 +1,38 @@
+---
+// Componente para mostrar iconos de sobres
+interface Props {
+  type: 'gratis' | 'premium' | 'especial';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+}
+
+const { type, size = 'md', className = '' } = Astro.props;
+
+// Mapeo de tipos a archivos
+const iconFiles = {
+  gratis: '/icons/gratissobre.png',
+  premium: '/icons/premiumsobre.png',
+  especial: '/icons/especialsobre.png'
+};
+
+// Tamaños según el prop size
+const sizes = {
+  sm: 'w-8 h-10',
+  md: 'w-12 h-14', 
+  lg: 'w-16 h-20',
+  xl: 'w-20 h-24'
+};
+
+// Nombres para alt text
+const altNames = {
+  gratis: 'Sobre Gratis',
+  premium: 'Sobre Premium',
+  especial: 'Sobre Especial'
+};
+---
+
+<img 
+  src={iconFiles[type]} 
+  alt={altNames[type]}
+  class={`${sizes[size]} object-contain ${className}`}
+/>

@@ -503,9 +503,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 
       showSection('quiz-container');
       
-      // If all questions are answered, show completion
+      // Si all preguntas are answered, show completion
       if (answeredSoFar >= 5) {
-        finishQuiz();
+        await finishQuiz();
         return;
       }
       
@@ -564,8 +564,16 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       // Submit answer to API
       const result = await submitAnswer(currentQuestion.cardId, currentQuestion.stat_name, selectedAnswer);
       
+      console.log('Quiz answer result:', result); // Debug log
+      
       if (!result.success) {
         alert('Error al enviar respuesta: ' + result.error);
+        // Rehabilitar botones en caso de error
+        document.querySelectorAll('.answer-option').forEach(btn => {
+          btn.disabled = false;
+          btn.classList.add('hover:bg-white/30');
+        });
+        answeredLock = false;
         return;
       }
 
@@ -597,6 +605,16 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         corrEl.textContent = String(newCorrect);
         const prevCoins = parseInt(coinsEl.textContent || '0');
         coinsEl.textContent = String(prevCoins + (result.coinsEarned || 0));
+        
+        // Verificar que las monedas se guardaron correctamente
+        setTimeout(async () => {
+          try {
+            await fetchCurrentUser();
+            console.log('User profile refreshed after correct answer');
+          } catch (error) {
+            console.error('Error refreshing user profile:', error);
+          }
+        }, 2000);
       }
       // Persist locally
       saveLocalProgress(newAnswered, newCorrect, newAnswered >= 5);
@@ -629,11 +647,11 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
             const corr = parseInt(document.getElementById('correct-answers').textContent || '0');
             saveLocalProgress(ans, corr, false);
           } else {
-            finishQuiz();
+            await finishQuiz();
             return;
           }
         } catch (_) {
-          finishQuiz();
+          await finishQuiz();
           return;
         }
       }
@@ -648,7 +666,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       displayQuestion(questions[currentQuestionIndex]);
     }
 
-    function finishQuiz() {
+    async function finishQuiz() {
       document.getElementById('final-correct').textContent = correctAnswers;
       document.getElementById('final-coins').textContent = coinsEarned;
       showSection('quiz-completed');
@@ -656,7 +674,13 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       // Persist local completion until 20:00
       saveLocalProgress(5, correctAnswers, true);
 
-      // Coins are already updated in DB by API
+      // Actualizar perfil del usuario para refrescar las monedas
+      try {
+        await fetchCurrentUser();
+        console.log('User profile updated after quiz completion');
+      } catch (error) {
+        console.error('Error updating user profile:', error);
+      }
     }
 
     // Fetch current user info
