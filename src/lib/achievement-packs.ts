@@ -131,11 +131,34 @@ async function buildCardQuery(
   const placeholders = targetTypes.map(() => '?').join(',');
   
   let query = `
-    SELECT c.*, p.fifa_rating 
+    SELECT c.*, p.fifa_rating,
+      LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+        WHEN 'TEAM_OF_THE_WEEK' THEN 2
+        WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+        WHEN 'RATING_RELOAD' THEN 2
+        WHEN 'ASSIST_ENGINE' THEN 2
+        WHEN 'MARKET_MASTER' THEN 2
+        WHEN 'COMEBACK_HERO' THEN 3
+        ELSE 0 END)) AS effective_fifa_rating
     FROM cards c 
     JOIN players p ON c.player_id = p.id 
     WHERE c.special_type IN (${placeholders})
-    AND p.fifa_rating >= ? AND p.fifa_rating <= ?
+    AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+      WHEN 'TEAM_OF_THE_WEEK' THEN 2
+      WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+      WHEN 'RATING_RELOAD' THEN 2
+      WHEN 'ASSIST_ENGINE' THEN 2
+      WHEN 'MARKET_MASTER' THEN 2
+      WHEN 'COMEBACK_HERO' THEN 3
+      ELSE 0 END)) >= ? 
+    AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+      WHEN 'TEAM_OF_THE_WEEK' THEN 2
+      WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+      WHEN 'RATING_RELOAD' THEN 2
+      WHEN 'ASSIST_ENGINE' THEN 2
+      WHEN 'MARKET_MASTER' THEN 2
+      WHEN 'COMEBACK_HERO' THEN 3
+      ELSE 0 END)) <= ?
     ORDER BY RAND() 
     LIMIT 1
   `;
@@ -235,7 +258,22 @@ async function findCardWithIntelligentFallback(
     
     [rows] = await connection.execute(
       `SELECT c.* FROM cards c JOIN players p ON c.player_id = p.id 
-       WHERE p.fifa_rating >= ? AND p.fifa_rating <= ? 
+       WHERE LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+         WHEN 'RATING_RELOAD' THEN 2
+         WHEN 'ASSIST_ENGINE' THEN 2
+         WHEN 'MARKET_MASTER' THEN 2
+         WHEN 'COMEBACK_HERO' THEN 3
+         ELSE 0 END)) >= ? 
+       AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
+         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'PLAYER_OF_THE_MONTH' THEN 4
+         WHEN 'RATING_RELOAD' THEN 2
+         WHEN 'ASSIST_ENGINE' THEN 2
+         WHEN 'MARKET_MASTER' THEN 2
+         WHEN 'COMEBACK_HERO' THEN 3
+         ELSE 0 END)) <= ?
        ORDER BY RAND() LIMIT 1`,
       [ratingRange.min, ratingRange.max]
     );

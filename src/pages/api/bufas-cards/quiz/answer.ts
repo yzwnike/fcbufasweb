@@ -185,6 +185,20 @@ export const POST: APIRoute = async ({ request }) => {
               [Number(userId), QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, 'DAILY_QUIZ', 'Respuesta correcta en quiz (random)']
             );
             console.log(`Quiz: Transaction logged for user ${userId}`);
+            
+            // IMPORTANTE: Insertar también en daily_quiz_answers para que cuente en logros
+            await conn.execute(
+              'INSERT INTO daily_quiz_answers (user_id, question_id, selected_answer, is_correct, coins_earned, answered_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)',
+              [Number(userId), Number(cardId), selectedAnswer, true, QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER]
+            );
+            console.log(`Quiz: Answer logged in daily_quiz_answers for achievements`);
+          } else {
+            // Insertar respuestas incorrectas también (sin monedas)
+            await conn.execute(
+              'INSERT INTO daily_quiz_answers (user_id, question_id, selected_answer, is_correct, coins_earned, answered_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)',
+              [Number(userId), Number(cardId), selectedAnswer, false, 0]
+            );
+            console.log(`Quiz: Incorrect answer logged in daily_quiz_answers for consistency`);
           }
         });
       } catch (error) {

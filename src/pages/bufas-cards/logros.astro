@@ -273,9 +273,11 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
               showCoinsAnimation(result.coins, modalPromiseResolve);
             } else if (result.rewardType === 'CARD') {
               showCardReveal(result.card, modalPromiseResolve);
-          } else if (result.rewardType === 'PACK') {
-            showPackOpening(result.card, result.packType, modalPromiseResolve, result.compensation);
-          } else {
+            } else if (result.rewardType === 'PACK') {
+              showPackOpening(result.card, result.packType, modalPromiseResolve, result.compensation);
+            } else if (result.rewardType === 'CHOICE') {
+              showChoiceSelection(result.cardOptions, result.key, result.threshold, modalPromiseResolve);
+            } else {
               resolve();
             }
           });
@@ -330,11 +332,101 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       }, 200);
     }
     
+    // Selección de carta
+    function showChoiceSelection(cardOptions, key, threshold, onClose) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-[10000] p-4 overflow-y-auto';
+      
+      const cardOptionsHtml = cardOptions.map((cardPath, index) => {
+        // Extraer nombre del jugador desde el path
+        const playerName = cardPath.split('/').pop().split('.')[0];
+        const displayName = playerName.charAt(0).toUpperCase() + playerName.slice(1);
+        
+        return `
+          <button 
+            class="card-choice-btn bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-4 hover:from-slate-600 hover:to-slate-700 transition-all duration-300 transform hover:scale-105 border-2 border-transparent hover:border-yellow-400"
+            data-card-path="${cardPath}"
+          >
+            <img src="${cardPath}" alt="${displayName}" class="w-full h-auto rounded-lg mb-2" />
+            <div class="text-white font-bold text-sm text-center">${displayName}</div>
+          </button>
+        `;
+      }).join('');
+      
+      modal.innerHTML = `
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 max-w-4xl w-full">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-white mb-2">¡Elige tu Recompensa!</h2>
+            <p class="text-slate-300">Selecciona una de las siguientes cartas:</p>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            ${cardOptionsHtml}
+          </div>
+          
+          <div class="text-center">
+            <button id="cancel-choice" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Event listeners para las cartas
+      modal.querySelectorAll('.card-choice-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const selectedPath = btn.dataset.cardPath;
+          
+          // Deshabilitar todos los botones
+          modal.querySelectorAll('button').forEach(b => b.disabled = true);
+          btn.innerHTML = '<div class="text-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div><div class="text-white text-sm">Procesando...</div></div>';
+          
+          try {
+            // Confirmar selección
+            const response = await fetch('/api/bufas-cards/achievements/choose', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                key,
+                threshold,
+                selectedCardPath: selectedPath
+              })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              document.body.removeChild(modal);
+              showCardReveal(result.card, onClose);
+            } else {
+              throw new Error(result.error || 'Error confirmando selección');
+            }
+          } catch (error) {
+            console.error('Error confirming choice:', error);
+            document.body.removeChild(modal);
+            showNotification('Error confirmando selección: ' + error.message, 'error');
+            if (onClose) onClose();
+          }
+        });
+      });
+      
+      // Botón cancelar
+      modal.querySelector('#cancel-choice').addEventListener('click', () => {
+        document.body.removeChild(modal);
+        if (onClose) onClose();
+      });
+    }
+    
     // Apertura de sobre con animación (igual que en packs)
     function showPackOpening(card, packType, onClose, compensation = 0) {
       // Crear modal fullscreen como en packs
       const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black/95 text-white flex items-center justify-center z-50 p-4 overflow-y-auto';
+      modal.className = 'fixed inset-0 bg-black/95 text-white flex items-center justify-center z-[10000] p-4 overflow-y-auto';
       
       const compensationMessage = compensation > 0 
         ? `<div class="bg-yellow-600/20 border border-yellow-500 rounded-lg p-3 mb-4 text-center">
@@ -491,7 +583,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     // Utilidades de modal
     function createModal(content) {
       const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+      modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-[10000] p-4';
       modal.innerHTML = `
         <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 max-w-md w-full relative">
           ${content}

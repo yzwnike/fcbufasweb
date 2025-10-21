@@ -187,6 +187,36 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ success: false, error: 'Error procesando sobre: ' + packError.message }), { status: 500 });
       }
       
+    } else if (rewardType === 'CHOICE') {
+      try {
+        // Manejar recompensa de elección - no dar nada ahora, esperar selección del usuario
+        // Primero, registrar que el logro está "en proceso" de reclamo
+        const pendingDesc = `PENDING_CHOICE:${key}:${threshold}`;
+        
+        await executeTransaction(async (conn) => {
+          // Registrar estado pendiente (sin dar monedas ni cartas aún)
+          await conn.execute(
+            "INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)",
+            [auth.id, 0, 'ACHIEVEMENT_PENDING', pendingDesc]
+          );
+        });
+        
+        // Parsear las opciones de cartas disponibles desde cardImagePath
+        const cardOptions = cardImagePath.split(',').map(path => path.trim());
+        
+        return new Response(JSON.stringify({ 
+          success: true, 
+          rewardType: 'CHOICE',
+          pending: true,
+          cardOptions,
+          key,
+          threshold
+        }), { status: 200 });
+      } catch (choiceError) {
+        console.error('Error procesando recompensa de elección:', choiceError);
+        return new Response(JSON.stringify({ success: false, error: 'Error procesando elección: ' + choiceError.message }), { status: 500 });
+      }
+      
     } else {
       try {
         // Fallback a monedas

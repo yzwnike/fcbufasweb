@@ -132,7 +132,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
     const fetchCount = remaining;
 
-    // Pick random cards
+    // Pick random cards (excluding Nico Vehi)
     const cards = await executeQuery<any>(
       `SELECT c.id AS card_id
             , c.image_path AS card_image_path
@@ -141,6 +141,7 @@ export const GET: APIRoute = async ({ request, url }) => {
        FROM cards c
        JOIN players p ON c.player_id = p.id
        WHERE c.special_type IN ('Regular','OLD_GENERATION')
+       AND p.name NOT LIKE '%Nico Vehi%'
        ORDER BY RANDOM()
        LIMIT ?`,
       [fetchCount]
