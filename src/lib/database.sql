@@ -9,9 +9,9 @@ USE bufas_cards;
 CREATE TABLE IF NOT EXISTS users (
   id INT PRIMARY KEY AUTO_INCREMENT,
   username VARCHAR(50) UNIQUE NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
+  email VARCHAR(100) UNIQUE NULL,
   password_hash VARCHAR(255) NOT NULL,
-  coins INT DEFAULT 1000,
+  coins INT DEFAULT 0,
   last_daily_quiz DATE NULL,
   daily_quiz_streak INT DEFAULT 0,
   total_cards_opened INT DEFAULT 0,

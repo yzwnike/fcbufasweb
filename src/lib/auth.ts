@@ -9,35 +9,27 @@ const SALT_ROUNDS = 12;
 // Interfaces para autenticación
 export interface RegisterData {
   username: string;
-  email: string;
   password: string;
 }
 
 export interface LoginData {
-  email: string;
+  username: string;
   password: string;
 }
 
 export interface AuthUser {
   id: number;
   username: string;
-  email: string;
   coins: number;
 }
 
 export interface AuthToken {
   userId: number;
   username: string;
-  email: string;
   iat?: number;
   exp?: number;
 }
 
-// Validaciones
-export function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
 
 export function validateUsername(username: string): boolean {
   // Debe tener entre 3 y 20 caracteres, solo letras, números y guiones bajos
@@ -65,7 +57,6 @@ export function generateToken(user: AuthUser): string {
   const payload: AuthToken = {
     userId: user.id,
     username: user.username,
-    email: user.email,
   };
 
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
@@ -85,10 +76,6 @@ export function verifyToken(token: string): AuthToken | null {
 export async function registerUser(data: RegisterData): Promise<{ success: boolean; user?: AuthUser; error?: string; token?: string }> {
   try {
     // Validaciones
-    if (!validateEmail(data.email)) {
-      return { success: false, error: 'Email no válido' };
-    }
-
     if (!validateUsername(data.username)) {
       return { success: false, error: 'Username debe tener entre 3-20 caracteres alfanuméricos' };
     }
@@ -104,35 +91,29 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
     const result = await executeTransaction(async (connection) => {
       // Verificar si el usuario ya existe (dentro de la transacción para evitar race conditions)
       const [existingUserRows] = await connection.execute(
-        'SELECT id FROM users WHERE email = ? OR username = ? FOR UPDATE',
-        [data.email, data.username]
+        'SELECT id FROM users WHERE username = ? FOR UPDATE',
+        [data.username]
       );
       
       const existingUsers = Array.isArray(existingUserRows) ? existingUserRows : [];
       if (existingUsers.length > 0) {
-        throw new Error('Usuario o email ya existe');
+        throw new Error('El nombre de usuario ya está en uso');
       }
 
       // Insertar usuario
       const [userResult] = await connection.execute(
-        'INSERT INTO users (username, email, password_hash, coins, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())',
-        [data.username, data.email, passwordHash, 1000] // 1000 monedas iniciales
+        'INSERT INTO users (username, password_hash, coins, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+        [data.username, passwordHash, 0] // Sin monedas iniciales
       );
 
       const userId = (userResult as any).insertId;
-
-      // Registrar transacción de monedas inicial
-      await connection.execute(
-        'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
-        [userId, 1000, 'INITIAL_BONUS', 'Bono inicial de registro']
-      );
 
       return userId;
     });
 
     // Obtener usuario creado
     const newUser = await executeQuerySingle<User>(
-      'SELECT id, username, email, coins FROM users WHERE id = ?',
+      'SELECT id, username, coins FROM users WHERE id = ?',
       [result]
     );
 
@@ -143,7 +124,6 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
     const authUser: AuthUser = {
       id: newUser.id,
       username: newUser.username,
-      email: newUser.email,
       coins: newUser.coins,
     };
 
@@ -156,12 +136,12 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
     
     // Si el error viene de nuestras validaciones o de constraints de DB
     if (error instanceof Error) {
-      if (error.message.includes('Usuario o email ya existe')) {
+      if (error.message.includes('El nombre de usuario ya está en uso')) {
         return { success: false, error: error.message };
       }
       // Manejar errores de constraint de base de datos (unique key violations)
       if (error.message.includes('Duplicate entry') || error.message.includes('UNIQUE constraint')) {
-        return { success: false, error: 'Usuario o email ya existe' };
+        return { success: false, error: 'El nombre de usuario ya está en uso' };
       }
     }
     
@@ -172,15 +152,10 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
 // Iniciar sesión
 export async function loginUser(data: LoginData): Promise<{ success: boolean; user?: AuthUser; error?: string; token?: string }> {
   try {
-    // Validaciones
-    if (!validateEmail(data.email)) {
-      return { success: false, error: 'Email no válido' };
-    }
-
-    // Buscar usuario por email
+    // Buscar usuario por username
     const user = await executeQuerySingle<User>(
-      'SELECT id, username, email, password_hash, coins FROM users WHERE email = ?',
-      [data.email]
+      'SELECT id, username, password_hash, coins FROM users WHERE username = ?',
+      [data.username]
     );
 
     if (!user) {
@@ -197,7 +172,6 @@ export async function loginUser(data: LoginData): Promise<{ success: boolean; us
     const authUser: AuthUser = {
       id: user.id,
       username: user.username,
-      email: user.email,
       coins: user.coins,
     };
 
@@ -215,7 +189,7 @@ export async function loginUser(data: LoginData): Promise<{ success: boolean; us
 export async function getUserById(userId: number): Promise<AuthUser | null> {
   try {
     const user = await executeQuerySingle<User>(
-      'SELECT id, username, email, coins FROM users WHERE id = ?',
+      'SELECT id, username, coins FROM users WHERE id = ?',
       [userId]
     );
 
@@ -226,7 +200,6 @@ export async function getUserById(userId: number): Promise<AuthUser | null> {
     return {
       id: user.id,
       username: user.username,
-      email: user.email,
       coins: user.coins,
     };
   } catch (error) {
@@ -239,14 +212,13 @@ export async function getUserById(userId: number): Promise<AuthUser | null> {
 export async function getUserByUsername(username: string): Promise<AuthUser | null> {
   try {
     const user = await executeQuerySingle<User>(
-      'SELECT id, username, email, coins FROM users WHERE username = ?',
+      'SELECT id, username, coins FROM users WHERE username = ?',
       [username]
     );
     if (!user) return null;
     return {
       id: user.id,
       username: user.username,
-      email: user.email,
       coins: user.coins,
     };
   } catch (error) {
@@ -287,7 +259,6 @@ export function getAuthUserFromRequest(request: Request): AuthUser | null {
     return {
       id: decoded.userId,
       username: decoded.username,
-      email: decoded.email,
       coins: 0, // Las monedas se actualizarán desde la BD cuando sea necesario
     };
   } catch (error) {

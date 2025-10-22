@@ -5,19 +5,19 @@ export const runtime = 'node';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email, password } = await request.json();
+    const { username, password } = await request.json();
 
-    if (!email || !password) {
+    if (!username || !password) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'Email y contraseña son requeridos'
+        error: 'Usuario y contraseña son requeridos'
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    const result = await loginUser({ email, password });
+    const result = await loginUser({ username, password });
 
     return new Response(JSON.stringify(result), {
       status: result.success ? 200 : 401,

@@ -5,9 +5,9 @@ export const runtime = 'node';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { username, email, password } = await request.json();
+    const { username, password } = await request.json();
 
-    if (!username || !email || !password) {
+    if (!username || !password) {
       return new Response(JSON.stringify({
         success: false,
         error: 'Todos los campos son requeridos'
@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const result = await registerUser({ username, email, password });
+    const result = await registerUser({ username, password });
 
     return new Response(JSON.stringify(result), {
       status: result.success ? 201 : 400,

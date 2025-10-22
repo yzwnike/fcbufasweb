@@ -239,7 +239,7 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
         <!-- Version Info -->
         <div class="mt-6 lg:mt-8 text-center">
           <div class="text-xs text-orange-300/70 font-medium">
-            v1.0.6 - made by yazawa
+            v1.0.7 - made by yazawa
           </div>
         </div>
       </div>
@@ -253,8 +253,8 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
       <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Iniciar Sesión</h2>
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-          <input type="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de Usuario</label>
+          <input type="text" name="username" required minlength="3" maxlength="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
@@ -278,12 +278,9 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
       <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Registrarse</h2>
       <form id="register-form" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-          <input type="text" name="username" required minlength="3" maxlength="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-          <input type="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de Usuario</label>
+          <input type="text" name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500">
+          <p class="text-xs text-gray-500 mt-1">3-20 caracteres, solo letras, números o guiones bajos</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
@@ -550,20 +547,20 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
   // Auth API calls
   let isLoggingIn = false;
   
-  async function login(email, password) {
+  async function login(username, password) {
     // Prevenir múltiples solicitudes simultáneas
     if (isLoggingIn) {
       return { success: false, error: 'Iniciando sesión, por favor espera...' };
     }
     
     isLoggingIn = true;
-    console.log('Attempting login for:', email);
+    console.log('Attempting login for:', username);
     
     try {
       const response = await fetch('/api/bufas-cards/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ username, password })
       });
 
       const data = await response.json();
@@ -589,20 +586,20 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
 
   let isRegistering = false;
   
-  async function register(username, email, password) {
+  async function register(username, password) {
     // Prevenir múltiples solicitudes simultáneas
     if (isRegistering) {
       return { success: false, error: 'Registrándote, por favor espera...' };
     }
     
     isRegistering = true;
-    console.log('Attempting registration for:', username, email);
+    console.log('Attempting registration for:', username);
     
     try {
       const response = await fetch('/api/bufas-cards/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ username, password })
       });
 
       const data = await response.json();
@@ -764,10 +761,10 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
         
         try {
           const formData = new FormData(e.target);
-          const email = formData.get('email');
+          const username = formData.get('username');
           const password = formData.get('password');
           
-          if (!email || !password) {
+          if (!username || !password) {
             if (errorEl) {
               errorEl.textContent = 'Por favor complete todos los campos';
               errorEl.classList.remove('hidden');
@@ -775,7 +772,7 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
             return;
           }
           
-          const result = await login(email, password);
+          const result = await login(username, password);
           
           if (!result.success) {
             if (errorEl) {
@@ -817,10 +814,9 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
         try {
           const formData = new FormData(e.target);
           const username = formData.get('username');
-          const email = formData.get('email');
           const password = formData.get('password');
           
-          if (!username || !email || !password) {
+          if (!username || !password) {
             if (errorEl) {
               errorEl.textContent = 'Por favor complete todos los campos';
               errorEl.classList.remove('hidden');
@@ -828,7 +824,7 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
             return;
           }
           
-          const result = await register(username, email, password);
+          const result = await register(username, password);
           
           if (!result.success) {
             if (errorEl) {
