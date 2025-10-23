@@ -438,11 +438,11 @@ const formatTime = (date: Date) => {
             
             <div class="grid grid-cols-2 gap-4">
               <div class="text-center">
-                <div class="text-2xl font-black text-orange-400">0</div>
+<div class="text-2xl font-black text-orange-400">{player.goles || 0}</div>
                 <div class="text-xs text-gray-400 uppercase tracking-wide">Goles</div>
               </div>
               <div class="text-center">
-                <div class="text-2xl font-black text-blue-400">0</div>
+<div class="text-2xl font-black text-blue-400">{player.asistencias || 0}</div>
                 <div class="text-xs text-gray-400 uppercase tracking-wide">Asist.</div>
               </div>
             </div>
