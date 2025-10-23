@@ -31,15 +31,12 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
             <table class="scrollable-table">
               <thead>
                 <tr class="bg-slate-800/80">
-                  <th class="px-2 py-2 text-left">Total</th>
+                  <th class="px-2 py-2 text-left">TOTAL</th>
                   <th class="px-2 py-2">BASE</th>
                   <th class="px-2 py-2">OG</th>
-                  <th class="px-2 py-2">TOTW</th>
-                  <th class="px-2 py-2">RR</th>
-                  <th class="px-2 py-2">MM</th>
-                  <th class="px-2 py-2">AE</th>
-                  <th class="px-2 py-2">CH</th>
-                  <th class="px-2 py-2">POTM</th>
+                  <th class="px-2 py-2">ESPECIAL</th>
+                  <th class="px-2 py-2">ELITE</th>
+                  <th class="px-2 py-2">LEGENDARIO</th>
                 </tr>
               </thead>
               <tbody id="rank-body-scrollable"></tbody>
@@ -99,15 +96,12 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         const trScrollable = document.createElement('tr');
         trScrollable.className = 'hover:bg-slate-800/60 transition-colors text-sm text-slate-100';
         trScrollable.innerHTML = [
-          `<td class="px-2 py-2">${u.totalOwned}/${totals.totalAll}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.BASE}/${totals.byCode.BASE||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.OG}/${totals.byCode.OG||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.TOTW}/${totals.byCode.TOTW||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.RR}/${totals.byCode.RR||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.MM}/${totals.byCode.MM||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.AE}/${totals.byCode.AE||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.CH}/${totals.byCode.CH||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.POTM}/${totals.byCode.POTM||0}</td>`
+          `<td class="px-2 py-2">${u.byCode.TOTAL||0}/${totals.byCode.TOTAL||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.BASE||0}/${totals.byCode.BASE||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.OG||0}/${totals.byCode.OG||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.ESPECIAL||0}/${totals.byCode.ESPECIAL||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.ELITE||0}/${totals.byCode.ELITE||0}</td>`,
+          `<td class="px-2 py-2 text-center">${u.byCode.LEGENDARIO||0}/${totals.byCode.LEGENDARIO||0}</td>`
         ].join('');
         tbodyScrollable.appendChild(trScrollable);
       });

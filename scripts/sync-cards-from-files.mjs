@@ -16,7 +16,8 @@ const CARDS_ROOT = join(process.cwd(), 'public', 'cards');
 const FOLDER_TO_SPECIAL = new Map([
   ['BASE', { special: 'Regular', defaultRarity: 'Silver' }],
   ['OG',   { special: 'OLD_GENERATION', defaultRarity: 'Silver' }],
-  ['TOTW', { special: 'TEAM_OF_THE_WEEK', defaultRarity: 'Elite' }],
+  ['TOTW', { special: 'TEAM_OF_THE_WEEK', defaultRarity: 'Gold' }],
+  ['NOMPOTM', { special: 'NOM_POTM', defaultRarity: 'Gold' }],
   ['POTM', { special: 'PLAYER_OF_THE_MONTH', defaultRarity: 'Legend' }],
   ['RR',   { special: 'RATING_RELOAD', defaultRarity: 'Elite' }],
   ['AE',   { special: 'ASSIST_ENGINE', defaultRarity: 'Elite' }],
@@ -42,14 +43,14 @@ function toTitleCase(s) {
 function extractBaseFromFilename(file) {
   const noExt = file.replace(/\.png$/i, '');
   // remove known suffix tokens and trailing digits, case-insensitive
-  const cleaned = noExt.replace(/(TOTW|POTM|RR|AE|MM|CH|OG)[0-9]*$/i, '');
+  const cleaned = noExt.replace(/(TOTW|NOMPOTM|POTM|RR|AE|MM|CH|OG)[0-9]*$/i, '');
   return cleaned.toLowerCase();
 }
 
 async function ensureSchema(conn) {
   // Expand enum and add columns; ignore errors if already applied
   const alters = [
-    "ALTER TABLE cards MODIFY special_type ENUM('Regular','PLAYER_OF_THE_MONTH','RATING_RELOAD','ASSIST_ENGINE','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK','OLD_GENERATION') NOT NULL DEFAULT 'Regular'",
+    "ALTER TABLE cards MODIFY special_type ENUM('Regular','PLAYER_OF_THE_MONTH','RATING_RELOAD','ASSIST_ENGINE','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK','OLD_GENERATION','NOM_POTM') NOT NULL DEFAULT 'Regular'",
     "ALTER TABLE cards ADD COLUMN image_path VARCHAR(255) NULL AFTER base_price",
     "ALTER TABLE players ADD COLUMN card_asset_basename VARCHAR(100) NULL AFTER image_url",
     "ALTER TABLE players ADD COLUMN eligible_for_quiz TINYINT(1) NOT NULL DEFAULT 1 AFTER card_asset_basename",

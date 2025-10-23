@@ -61,6 +61,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
        COALESCE(c.position2_override, p.position2) AS eff_position2,
        LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 4
          WHEN 'RATING_RELOAD' THEN 2
          WHEN 'ASSIST_ENGINE' THEN 2
@@ -69,6 +70,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
          ELSE 0 END)) AS eff_fifa_rating,
        LEAST(99, COALESCE(c.pace_override, p.pace + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 3
          WHEN 'RATING_RELOAD' THEN 2
          WHEN 'ASSIST_ENGINE' THEN 1
@@ -77,6 +79,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
          ELSE 0 END)) AS eff_pace,
        LEAST(99, COALESCE(c.shooting_override, p.shooting + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 3
          WHEN 'RATING_RELOAD' THEN 3
          WHEN 'ASSIST_ENGINE' THEN 1
@@ -85,6 +88,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
          ELSE 0 END)) AS eff_shooting,
        LEAST(99, COALESCE(c.passing_override, p.passing + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 3
          WHEN 'RATING_RELOAD' THEN 1
          WHEN 'ASSIST_ENGINE' THEN 3
@@ -93,6 +97,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
          ELSE 0 END)) AS eff_passing,
        LEAST(99, COALESCE(c.dribbling_override, p.dribbling + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 3
          WHEN 'RATING_RELOAD' THEN 1
          WHEN 'ASSIST_ENGINE' THEN 2
@@ -101,6 +106,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
          ELSE 0 END)) AS eff_dribbling,
        LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 2
          WHEN 'RATING_RELOAD' THEN 0
          WHEN 'ASSIST_ENGINE' THEN 0
@@ -109,6 +115,7 @@ export async function getCardWithPlayer(cardId: number): Promise<CardWithPlayer 
          ELSE 0 END)) AS eff_defending,
        LEAST(99, COALESCE(c.physical_override, p.physical + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 3
          WHEN 'RATING_RELOAD' THEN 1
          WHEN 'ASSIST_ENGINE' THEN 1
@@ -166,6 +173,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
             COALESCE(c.position2_override, p.position2) AS eff_position2,
             LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 4
               WHEN 'RATING_RELOAD' THEN 2
               WHEN 'ASSIST_ENGINE' THEN 2
@@ -174,6 +182,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
               ELSE 0 END)) AS eff_fifa_rating,
             LEAST(99, COALESCE(c.pace_override, p.pace + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 3
               WHEN 'RATING_RELOAD' THEN 2
               WHEN 'ASSIST_ENGINE' THEN 1
@@ -182,6 +191,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
               ELSE 0 END)) AS eff_pace,
             LEAST(99, COALESCE(c.shooting_override, p.shooting + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 3
               WHEN 'RATING_RELOAD' THEN 3
               WHEN 'ASSIST_ENGINE' THEN 1
@@ -190,6 +200,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
               ELSE 0 END)) AS eff_shooting,
             LEAST(99, COALESCE(c.passing_override, p.passing + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 3
               WHEN 'RATING_RELOAD' THEN 1
               WHEN 'ASSIST_ENGINE' THEN 3
@@ -198,6 +209,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
               ELSE 0 END)) AS eff_passing,
             LEAST(99, COALESCE(c.dribbling_override, p.dribbling + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 3
               WHEN 'RATING_RELOAD' THEN 1
               WHEN 'ASSIST_ENGINE' THEN 2
@@ -206,6 +218,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
               ELSE 0 END)) AS eff_dribbling,
             LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 2
               WHEN 'RATING_RELOAD' THEN 0
               WHEN 'ASSIST_ENGINE' THEN 0
@@ -214,6 +227,7 @@ export async function getUserCards(userId: number): Promise<UserCardWithDetails[
               ELSE 0 END)) AS eff_defending,
             LEAST(99, COALESCE(c.physical_override, p.physical + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 3
               WHEN 'RATING_RELOAD' THEN 1
               WHEN 'ASSIST_ENGINE' THEN 1
@@ -287,6 +301,7 @@ export async function getUserCardsFiltered(
            COALESCE(c.position2_override, p.position2) AS eff_position2,
            LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 4
              WHEN 'RATING_RELOAD' THEN 2
              WHEN 'ASSIST_ENGINE' THEN 2
@@ -295,6 +310,7 @@ export async function getUserCardsFiltered(
              ELSE 0 END)) AS eff_fifa_rating,
            LEAST(99, COALESCE(c.pace_override, p.pace + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
              WHEN 'RATING_RELOAD' THEN 2
              WHEN 'ASSIST_ENGINE' THEN 1
@@ -303,6 +319,7 @@ export async function getUserCardsFiltered(
              ELSE 0 END)) AS eff_pace,
            LEAST(99, COALESCE(c.shooting_override, p.shooting + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
              WHEN 'RATING_RELOAD' THEN 3
              WHEN 'ASSIST_ENGINE' THEN 1
@@ -311,6 +328,7 @@ export async function getUserCardsFiltered(
              ELSE 0 END)) AS eff_shooting,
            LEAST(99, COALESCE(c.passing_override, p.passing + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
              WHEN 'RATING_RELOAD' THEN 1
              WHEN 'ASSIST_ENGINE' THEN 3
@@ -319,6 +337,7 @@ export async function getUserCardsFiltered(
              ELSE 0 END)) AS eff_passing,
            LEAST(99, COALESCE(c.dribbling_override, p.dribbling + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
              WHEN 'RATING_RELOAD' THEN 1
              WHEN 'ASSIST_ENGINE' THEN 2
@@ -327,6 +346,7 @@ export async function getUserCardsFiltered(
              ELSE 0 END)) AS eff_dribbling,
            LEAST(99, COALESCE(c.defending_override, p.defending + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 2
              WHEN 'RATING_RELOAD' THEN 0
              WHEN 'ASSIST_ENGINE' THEN 0
@@ -335,6 +355,7 @@ export async function getUserCardsFiltered(
              ELSE 0 END)) AS eff_defending,
            LEAST(99, COALESCE(c.physical_override, p.physical + CASE c.special_type
              WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
              WHEN 'PLAYER_OF_THE_MONTH' THEN 3
              WHEN 'RATING_RELOAD' THEN 1
              WHEN 'ASSIST_ENGINE' THEN 1
@@ -485,7 +506,7 @@ export async function openCardPack(
         const c = await pick("SELECT * FROM cards WHERE special_type = 'PLAYER_OF_THE_MONTH' ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
         // Fallbacks si no hay POTM en la BD
-        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK') ORDER BY RANDOM() LIMIT 1");
+const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK','NOM_POTM') ORDER BY RANDOM() LIMIT 1");
         if (c2) return c2;
         const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
         return c3;
@@ -495,14 +516,14 @@ export async function openCardPack(
         const c = await pick("SELECT * FROM cards WHERE special_type IN ('MARKET_MASTER','RATING_RELOAD','COMEBACK_HERO','ASSIST_ENGINE') ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
         // Fallbacks seguros
-        const c2 = await pick("SELECT * FROM cards WHERE special_type = 'TEAM_OF_THE_WEEK' ORDER BY RANDOM() LIMIT 1");
+        const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('TEAM_OF_THE_WEEK','NOM_POTM') ORDER BY RANDOM() LIMIT 1");
         if (c2) return c2;
         const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
         return c3;
       }
       if (group === 'RARE') {
-        // Especial: TEAM_OF_THE_WEEK principalmente
-        const c = await pick("SELECT * FROM cards WHERE special_type = 'TEAM_OF_THE_WEEK' ORDER BY RANDOM() LIMIT 1");
+        // Especial: TEAM_OF_THE_WEEK y NOM_POTM (categoría ESPECIAL)
+        const c = await pick("SELECT * FROM cards WHERE special_type IN ('TEAM_OF_THE_WEEK','NOM_POTM') ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
         // Fallbacks seguros
         const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
@@ -525,6 +546,7 @@ export async function openCardPack(
             JOIN players p ON c.player_id = p.id 
             WHERE LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 4
               WHEN 'RATING_RELOAD' THEN 2
               WHEN 'ASSIST_ENGINE' THEN 2

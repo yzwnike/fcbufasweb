@@ -212,8 +212,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
   </div>
 
   <!-- Settle Modal (simple) -->
-  <div id="settle-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-full max-w-md">
+  <div id="settle-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10000]">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
       <h3 class="text-xl font-bold mb-2">Resultados jornada anterior</h3>
       <p class="text-gray-700 mb-4">Tus jugadores sumaron <span id="settle-points" class="font-bold">0</span> puntos. Recibirás <span id="settle-coins" class="font-bold">0</span> monedas (×20).</p>
       <div class="flex gap-3 justify-end">
@@ -894,20 +894,22 @@ function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-48 
         const ptsEl = document.getElementById('settle-points');
         const coinsEl = document.getElementById('settle-coins');
         const btnConfirm = document.getElementById('settle-confirm');
-        if (modal && ptsEl && coinsEl && btnConfirm) {
-          ptsEl.textContent = String(prev.prevPoints || 0);
-          coinsEl.textContent = String(prev.prevCoins || 0);
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
-          btnConfirm.onclick = async () => {
-            try {
-              const res = await fetch('/api/bufas-cards/fantasy/settle', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({}) });
-              const data = await res.json();
-              if (!data.success) alert('No se pudo liquidar: ' + (data.error || ''));
-            } catch (e) {}
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-          };
-        }
+          if (modal && ptsEl && coinsEl && btnConfirm) {
+            ptsEl.textContent = String(prev.prevPoints || 0);
+            coinsEl.textContent = String(prev.prevCoins || 0);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+            btnConfirm.onclick = async () => {
+              try {
+                const res = await fetch('/api/bufas-cards/fantasy/settle', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }, body: JSON.stringify({}) });
+                const data = await res.json();
+                if (!data.success) alert('No se pudo liquidar: ' + (data.error || ''));
+              } catch (e) {}
+              modal.classList.add('hidden'); modal.classList.remove('flex');
+              document.body.classList.remove('overflow-hidden');
+            };
+          }
       }
       currentJornadaNum = selectionResult?.currentJornada || null;
       // If locked and selection exists, directly show summary view and skip selector
@@ -1033,6 +1035,8 @@ function playerImg(src) { return src ? `<img src=\"${src}\" class=\"w-full h-48 
   
 </style>
 <style>
+  /* Asegurar que el modal quede por encima de cualquier capa del selector */
+  #settle-modal { z-index: 10000 !important; }
   .player-card.locked { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
 </style>
 </NikeFCLayout>

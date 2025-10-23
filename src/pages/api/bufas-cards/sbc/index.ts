@@ -14,10 +14,10 @@ export const GET: APIRoute = async ({ request }) => {
     let completedSet = new Set<number>();
     try {
       const rows = await executeQuery<any>(
-        'SELECT sc.id as challenge_id, COALESCE(sc.repeatable, FALSE) as repeatable FROM sbc_challenges sc LEFT JOIN sbc_submissions ss ON sc.id = ss.challenge_id AND ss.user_id = ? WHERE sc.start_at <= NOW() AND sc.end_at >= NOW()',
+        'SELECT sc.id as challenge_id, COALESCE(sc.repeatable, FALSE) as repeatable, ss.id as submission_id FROM sbc_challenges sc LEFT JOIN sbc_submissions ss ON sc.id = ss.challenge_id AND ss.user_id = ? WHERE sc.start_at <= NOW() AND sc.end_at >= NOW()',
         [auth.id]
       );
-      completedSet = new Set(rows.filter((r: any) => r.repeatable === false && r.challenge_id).map((r: any) => r.challenge_id));
+      completedSet = new Set(rows.filter((r: any) => r.repeatable === false && r.submission_id !== null).map((r: any) => r.challenge_id));
     } catch (error: any) {
       // If repeatable column doesn't exist, fall back to old behavior
       if (error.message.includes('repeatable') || error.message.includes('Unknown column')) {

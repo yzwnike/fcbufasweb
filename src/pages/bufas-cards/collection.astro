@@ -420,6 +420,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
           case 'OLD_GENERATION':
             return 'NORMAL';
           case 'TEAM_OF_THE_WEEK':
+          case 'NOM_POTM':
             return 'ESPECIAL';
           case 'MARKET_MASTER':
           case 'RATING_RELOAD':
@@ -557,7 +558,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         ${qtyBadge}
         ${img}
         <div class=\"flex-1 md:mt-4\">
-          <div class=\"text-white font-bold text-sm md:text-xl lg:text-2xl mb-2 md:text-center\">${card.player.name}</div>
+          <div class=\"text-white font-bold text-sm md:text-xl lg:text-2xl md:text-center\">${card.player.name}</div>
+          <div class=\"text-[10px] md:text-xs text-white/70 mb-1 md:text-center\">${getSpecialTypeLabel(card.special_type)}</div>
           <div class=\"text-xs md:text-base lg:text-lg text-white/80 mb-2 md:text-center\">${card.player.position1} - ${displayRarity}</div>
           <div class=\"text-xs md:text-base lg:text-lg text-white/90 mb-3 md:text-center\">FIFA: ${card.player.fifa_rating}</div>
           <div class=\"flex items-center justify-between md:flex-col md:gap-3\">
@@ -633,8 +635,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       return `
         <div class="bg-gradient-to-br ${rarityColor} rounded-xl p-4 text-center transform transition-transform w-full">
           ${img}
-          <div class="text-white font-bold text-lg mb-2">${card.player.name}</div>
-          <div class="text-sm text-white/80 mb-2">${card.player.position1} - ${displayRarity}</div>
+          <div class=\"text-white font-bold text-lg\">${card.player.name}</div>
+          <div class=\"text-xs text-white/70 mb-1\">${getSpecialTypeLabel(card.special_type)}</div>
+          <div class=\"text-sm text-white/80 mb-2\">${card.player.position1} - ${displayRarity}</div>
           <div class="text-sm text-white/90 mb-2">FIFA: ${card.player.fifa_rating}</div>
           <div class="text-sm text-yellow-300 font-bold">${card.base_price} 💰</div>
           ${group.isListing ? `<div class="text-sm text-green-300 mt-2">Precio de venta: ${group.sale_price}</div>` : ''}
@@ -687,6 +690,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         case 'OLD_GENERATION':
           return 'NORMAL';
         case 'TEAM_OF_THE_WEEK':
+        case 'NOM_POTM':
           return 'ESPECIAL';
         case 'MARKET_MASTER':
         case 'RATING_RELOAD':
@@ -697,6 +701,32 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
           return 'LEGENDARIO';
         default:
           return 'NORMAL';
+      }
+    }
+
+    // Mostrar etiqueta legible del tipo especial
+    function getSpecialTypeLabel(specialType) {
+      switch (specialType) {
+        case 'TEAM_OF_THE_WEEK':
+          return 'TOTW';
+        case 'NOM_POTM':
+          return 'NOMINACIÓN POTM';
+        case 'PLAYER_OF_THE_MONTH':
+          return 'POTM';
+        case 'RATING_RELOAD':
+          return 'RATING RELOAD';
+        case 'ASSIST_ENGINE':
+          return 'ASSIST ENGINE';
+        case 'MARKET_MASTER':
+          return 'MARKET MASTER';
+        case 'COMEBACK_HERO':
+          return 'COMEBACK HERO';
+        case 'OLD_GENERATION':
+          return 'OG';
+        case 'Regular':
+          return 'BASE';
+        default:
+          return specialType || 'BASE';
       }
     }
 

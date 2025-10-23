@@ -196,7 +196,7 @@ export interface Card {
   id: number;
   player_id: number;
   rarity: 'Bronze' | 'Silver' | 'Gold' | 'Elite' | 'Legend';
-  special_type: 'Regular' | 'PLAYER_OF_THE_MONTH' | 'RATING_RELOAD' | 'ASSIST_ENGINE' | 'MARKET_MASTER' | 'COMEBACK_HERO' | 'TEAM_OF_THE_WEEK' | 'OLD_GENERATION';
+  special_type: 'Regular' | 'PLAYER_OF_THE_MONTH' | 'RATING_RELOAD' | 'ASSIST_ENGINE' | 'MARKET_MASTER' | 'COMEBACK_HERO' | 'TEAM_OF_THE_WEEK' | 'OLD_GENERATION' | 'NOM_POTM';
   special_month: string | null;
   base_price: number;
   image_path?: string | null;
@@ -317,7 +317,17 @@ export function isValidRarity(rarity: string): rarity is Card['rarity'] {
 }
 
 export function isValidSpecialType(type: string): type is Card['special_type'] {
-  return ['Regular', 'PLAYER_OF_THE_MONTH', 'RATING_RELOAD', 'ASSIST_ENGINE', 'MARKET_MASTER', 'COMEBACK_HERO'].includes(type);
+  return [
+    'Regular',
+    'PLAYER_OF_THE_MONTH',
+    'RATING_RELOAD',
+    'ASSIST_ENGINE',
+    'MARKET_MASTER',
+    'COMEBACK_HERO',
+    'TEAM_OF_THE_WEEK',
+    'OLD_GENERATION',
+    'NOM_POTM',
+  ].includes(type as any);
 }
 
 export function isValidPosition(position: string): boolean {

@@ -90,6 +90,7 @@ export async function getEligiblePlayers(userId: number): Promise<{
              END DESC,
              LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
                WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
                WHEN 'PLAYER_OF_THE_MONTH' THEN 4
                WHEN 'RATING_RELOAD' THEN 2
                WHEN 'ASSIST_ENGINE' THEN 2
@@ -434,6 +435,7 @@ export async function getUserFantasySelection(
             END DESC,
             LEAST(99, COALESCE(c.fifa_rating_override, p1.fifa_rating + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 4
               WHEN 'RATING_RELOAD' THEN 2
               WHEN 'ASSIST_ENGINE' THEN 2
@@ -459,6 +461,7 @@ export async function getUserFantasySelection(
             END DESC,
             LEAST(99, COALESCE(c.fifa_rating_override, p2.fifa_rating + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 4
               WHEN 'RATING_RELOAD' THEN 2
               WHEN 'ASSIST_ENGINE' THEN 2
@@ -484,6 +487,7 @@ export async function getUserFantasySelection(
             END DESC,
             LEAST(99, COALESCE(c.fifa_rating_override, p3.fifa_rating + CASE c.special_type
               WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
               WHEN 'PLAYER_OF_THE_MONTH' THEN 4
               WHEN 'RATING_RELOAD' THEN 2
               WHEN 'ASSIST_ENGINE' THEN 2

@@ -6,22 +6,41 @@
 <div id="loading-screen" class="fixed inset-0 flex items-center justify-center" style="display: none; z-index: 999999999;">
   <!-- Fondo adaptativo -->
   <div class="absolute inset-0">
-    <!-- Imagen de fondo en escritorio (centrada) -->
-    <div 
-      class="hidden md:block absolute inset-0 bg-cover bg-center bg-no-repeat bg-gray-900"
-      style="background-image: url('/fondomes.png')"
-    >
-      <!-- Overlay oscuro completamente opaco -->
-      <div class="absolute inset-0 bg-black/70"></div>
+    <!-- Imagen de fondo en escritorio (fondo completo + imágenes a los lados) -->
+    <div class="hidden md:block absolute inset-0">
+      <!-- Fondo degradado -->
+      <div class="absolute inset-0 bg-gradient-to-br from-orange-900 via-orange-800 to-red-900"></div>
+      
+      <!-- Imagen izquierda -->
+      <div 
+        class="absolute left-0 top-1/2 -translate-y-1/2 w-[700px] h-[900px] bg-contain bg-center bg-no-repeat"
+        style="background-image: url('/fondomes1.jpg');"
+      ></div>
+      
+      <!-- Imagen derecha -->
+      <div 
+        class="absolute right-0 top-1/2 -translate-y-1/2 w-[700px] h-[900px] bg-contain bg-center bg-no-repeat"
+        style="background-image: url('/fondomes2.jpg');"
+      ></div>
+      
+      <!-- Overlay oscuro suave -->
+      <div class="absolute inset-0 bg-black/30"></div>
     </div>
     
-    <!-- Diseño móvil con fondo uniforme completamente opaco -->
+    <!-- Diseño móvil con dos imágenes -->
     <div class="md:hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-orange-800 to-red-900" style="background-color: #7c2d12;">
-      <!-- Imagen centrada más grande -->
-      <div class="absolute inset-0 flex items-center justify-center">
+      <!-- Imagen superior -->
+      <div class="absolute top-0 left-0 right-0 h-1/2 flex items-end justify-center pb-1">
         <div 
-          class="w-[95vw] h-[60vh] bg-contain bg-center bg-no-repeat"
-          style="background-image: url('/fondomes.png');"
+          class="w-[90vw] h-[38vh] bg-contain bg-center bg-no-repeat"
+          style="background-image: url('/fondomes1.jpg');"
+        ></div>
+      </div>
+      <!-- Imagen inferior -->
+      <div class="absolute bottom-0 left-0 right-0 h-1/2 flex items-start justify-center pt-1">
+        <div 
+          class="w-[90vw] h-[38vh] bg-contain bg-center bg-no-repeat"
+          style="background-image: url('/fondomes2.jpg');"
         ></div>
       </div>
       

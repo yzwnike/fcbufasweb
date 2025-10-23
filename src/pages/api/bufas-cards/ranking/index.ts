@@ -3,35 +3,32 @@ import { verifyToken } from '@/lib/auth';
 import { executeQuery } from '@/lib/mysql';
 
 // GET /api/bufas-cards/ranking
-// Devuelve ranking de TODOS los usuarios con progreso por categoría y total BASE
+// Devuelve ranking de TODOS los usuarios con progreso por categoría y total
 export const GET: APIRoute = async ({ request }) => {
   try {
     // Ranking público (no requiere token)
 
-    // Totales por categoría (por player_id único)
+    // Totales por categoría (contando cartas diferentes disponibles en el juego)
     const totals = await executeQuery<any>(
-      `SELECT special_type, COUNT(DISTINCT player_id) AS total
+      `SELECT special_type, COUNT(DISTINCT id) AS total
        FROM cards
        GROUP BY special_type`
     );
-    const totalBaseRow = totals.find((t: any) => t.special_type === 'Regular');
-    const totalBase = Number(totalBaseRow?.total || 0);
 
-    // Propiedad por usuario con recuentos condicionales por categoría
-    const rows = await executeQuery<any>(
+    // Propiedad por usuario: contar cuántas cartas únicas posee cada usuario
+    // (sin duplicados, pero cada carta diferente cuenta una vez)
+  const rows = await executeQuery<any>(
       `SELECT 
          u.id as user_id, u.username,
-         COUNT(DISTINCT CASE WHEN c.special_type='Regular' THEN c.player_id END) AS base_owned,
-         COUNT(DISTINCT CASE WHEN c.special_type='OLD_GENERATION' THEN c.player_id END) AS og_owned,
-         COUNT(DISTINCT CASE WHEN c.special_type='TEAM_OF_THE_WEEK' THEN c.player_id END) AS totw_owned,
-         COUNT(DISTINCT CASE WHEN c.special_type='RATING_RELOAD' THEN c.player_id END) AS rr_owned,
-         COUNT(DISTINCT CASE WHEN c.special_type='MARKET_MASTER' THEN c.player_id END) AS mm_owned,
-         COUNT(DISTINCT CASE WHEN c.special_type='ASSIST_ENGINE' THEN c.player_id END) AS ae_owned,
-         COUNT(DISTINCT CASE WHEN c.special_type='COMEBACK_HERO' THEN c.player_id END) AS ch_owned,
-         COUNT(DISTINCT CASE WHEN c.special_type='PLAYER_OF_THE_MONTH' THEN c.player_id END) AS potm_owned
+         COUNT(DISTINCT CASE WHEN c.special_type='Regular' THEN uc.card_id END) AS base_owned,
+         COUNT(DISTINCT CASE WHEN c.special_type='OLD_GENERATION' THEN uc.card_id END) AS og_owned,
+         COUNT(DISTINCT CASE WHEN c.special_type IN ('TEAM_OF_THE_WEEK','NOM_POTM') THEN uc.card_id END) AS especial_owned,
+         COUNT(DISTINCT CASE WHEN c.special_type IN ('RATING_RELOAD','MARKET_MASTER','ASSIST_ENGINE','COMEBACK_HERO') THEN uc.card_id END) AS elite_owned,
+         COUNT(DISTINCT CASE WHEN c.special_type='PLAYER_OF_THE_MONTH' THEN uc.card_id END) AS legendario_owned
        FROM users u
        LEFT JOIN user_cards uc ON uc.user_id = u.id
        LEFT JOIN cards c ON c.id = uc.card_id
+       WHERE u.username <> 'BANCO_NACIONAL'
        GROUP BY u.id, u.username
        ORDER BY base_owned DESC, u.username ASC`
     );
@@ -41,37 +38,43 @@ export const GET: APIRoute = async ({ request }) => {
       switch (special) {
         case 'Regular': return 'BASE';
         case 'OLD_GENERATION': return 'OG';
-        case 'TEAM_OF_THE_WEEK': return 'TOTW';
-        case 'RATING_RELOAD': return 'RR';
-        case 'MARKET_MASTER': return 'MM';
-        case 'ASSIST_ENGINE': return 'AE';
-        case 'COMEBACK_HERO': return 'CH';
-        case 'PLAYER_OF_THE_MONTH': return 'POTM';
+        case 'TEAM_OF_THE_WEEK':
+        case 'NOM_POTM':  // Nominados a POTM también son especiales
+          return 'ESPECIAL';
+        case 'RATING_RELOAD':
+        case 'MARKET_MASTER':
+        case 'ASSIST_ENGINE':
+        case 'COMEBACK_HERO':
+          return 'ELITE';
+        case 'PLAYER_OF_THE_MONTH': return 'LEGENDARIO';
         default: return special;
       }
     };
-    for (const t of totals) totalsByCode[mapCode(t.special_type)] = Number(t.total || 0);
-    const orderCodes = ['BASE','OG','TOTW','RR','MM','AE','CH','POTM'];
-    const totalAll = orderCodes.reduce((acc, code) => acc + (totalsByCode[code] || 0), 0);
+    
+    // Agrupar totales por categoría
+    for (const t of totals) {
+      const code = mapCode(t.special_type);
+      totalsByCode[code] = (totalsByCode[code] || 0) + Number(t.total || 0);
+    }
+    
+    const orderCodes = ['TOTAL', 'BASE', 'OG', 'ESPECIAL', 'ELITE', 'LEGENDARIO'];
+    const totalAll = Object.values(totalsByCode).reduce((acc, val) => acc + val, 0);
+    totalsByCode['TOTAL'] = totalAll;
 
     let users = rows.map((r: any) => {
       const byCode = {
         BASE: Number(r.base_owned || 0),
         OG: Number(r.og_owned || 0),
-        TOTW: Number(r.totw_owned || 0),
-        RR: Number(r.rr_owned || 0),
-        MM: Number(r.mm_owned || 0),
-        AE: Number(r.ae_owned || 0),
-        CH: Number(r.ch_owned || 0),
-        POTM: Number(r.potm_owned || 0),
+        ESPECIAL: Number(r.especial_owned || 0),
+        ELITE: Number(r.elite_owned || 0),
+        LEGENDARIO: Number(r.legendario_owned || 0),
       };
-      const totalOwned = orderCodes.reduce((acc, code) => acc + (byCode as any)[code], 0);
+      const totalOwned = byCode.BASE + byCode.OG + byCode.ESPECIAL + byCode.ELITE + byCode.LEGENDARIO;
       return {
         userId: r.user_id,
         username: r.username,
-        baseOwned: Number(r.base_owned || 0),
         totalOwned,
-        byCode,
+        byCode: { ...byCode, TOTAL: totalOwned },
       };
     });
 

@@ -134,6 +134,7 @@ async function buildCardQuery(
     SELECT c.*, p.fifa_rating,
       LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
         WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
         WHEN 'PLAYER_OF_THE_MONTH' THEN 4
         WHEN 'RATING_RELOAD' THEN 2
         WHEN 'ASSIST_ENGINE' THEN 2
@@ -145,6 +146,7 @@ async function buildCardQuery(
     WHERE c.special_type IN (${placeholders})
     AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
       WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
       WHEN 'PLAYER_OF_THE_MONTH' THEN 4
       WHEN 'RATING_RELOAD' THEN 2
       WHEN 'ASSIST_ENGINE' THEN 2
@@ -153,6 +155,7 @@ async function buildCardQuery(
       ELSE 0 END)) >= ? 
     AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
       WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
       WHEN 'PLAYER_OF_THE_MONTH' THEN 4
       WHEN 'RATING_RELOAD' THEN 2
       WHEN 'ASSIST_ENGINE' THEN 2
@@ -260,6 +263,7 @@ async function findCardWithIntelligentFallback(
       `SELECT c.* FROM cards c JOIN players p ON c.player_id = p.id 
        WHERE LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 4
          WHEN 'RATING_RELOAD' THEN 2
          WHEN 'ASSIST_ENGINE' THEN 2
@@ -268,6 +272,7 @@ async function findCardWithIntelligentFallback(
          ELSE 0 END)) >= ? 
        AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
          WHEN 'TEAM_OF_THE_WEEK' THEN 2
+         WHEN 'NOM_POTM' THEN 2
          WHEN 'PLAYER_OF_THE_MONTH' THEN 4
          WHEN 'RATING_RELOAD' THEN 2
          WHEN 'ASSIST_ENGINE' THEN 2

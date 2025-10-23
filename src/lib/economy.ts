@@ -225,6 +225,7 @@ export function getCardDisplayRarity(specialType: string): string {
     case 'OLD_GENERATION':
       return 'NORMAL';
     case 'TEAM_OF_THE_WEEK':
+    case 'NOM_POTM':
       return 'ESPECIAL';
     case 'MARKET_MASTER':
     case 'RATING_RELOAD':

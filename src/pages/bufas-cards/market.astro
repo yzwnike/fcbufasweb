@@ -270,6 +270,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         case 'OLD_GENERATION':
           return 'NORMAL';
         case 'TEAM_OF_THE_WEEK':
+        case 'NOM_POTM':
           return 'ESPECIAL';
         case 'MARKET_MASTER':
         case 'RATING_RELOAD':
@@ -280,6 +281,31 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
           return 'LEGENDARIO';
         default:
           return 'NORMAL';
+      }
+    }
+
+    function getSpecialTypeLabel(specialType) {
+      switch (specialType) {
+        case 'TEAM_OF_THE_WEEK':
+          return 'TOTW';
+        case 'NOM_POTM':
+          return 'NOMINACIÓN POTM';
+        case 'PLAYER_OF_THE_MONTH':
+          return 'POTM';
+        case 'RATING_RELOAD':
+          return 'RATING RELOAD';
+        case 'ASSIST_ENGINE':
+          return 'ASSIST ENGINE';
+        case 'MARKET_MASTER':
+          return 'MARKET MASTER';
+        case 'COMEBACK_HERO':
+          return 'COMEBACK HERO';
+        case 'OLD_GENERATION':
+          return 'OG';
+        case 'Regular':
+          return 'BASE';
+        default:
+          return specialType || 'BASE';
       }
     }
 
@@ -447,8 +473,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         ${statusBadge}
         ${img}
         <div class="flex-1 md:mt-4">
-          <div class="text-white font-bold text-sm md:text-xl lg:text-2xl mb-2 md:text-center">${card.player.name}</div>
-          <div class="text-xs md:text-base lg:text-lg text-white/80 mb-2 md:text-center">${card.player.position1} - ${displayRarity}</div>
+          <div class=\"text-white font-bold text-sm md:text-xl lg:text-2xl md:text-center\">${card.player.name}</div>
+          <div class=\"text-[10px] md:text-xs text-white/70 mb-1 md:text-center\">${getSpecialTypeLabel(card.special_type || 'Regular')}</div>
+          <div class=\"text-xs md:text-base lg:text-lg text-white/80 mb-2 md:text-center\">${card.player.position1} - ${displayRarity}</div>
           <div class="text-xs md:text-base lg:text-lg text-white/90 mb-2 md:text-center">FIFA: ${card.player.fifa_rating}</div>
           <div class="text-xs md:text-sm lg:text-base text-yellow-300 mb-2 md:text-center">Vendedor: ${listing.seller_username}</div>
           <div class="text-sm md:text-lg lg:text-xl font-bold text-green-300 md:text-center">${listing.sale_price.toLocaleString()} 💰</div>
