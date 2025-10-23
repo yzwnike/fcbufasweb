@@ -42,6 +42,13 @@ export function validatePassword(password: string): boolean {
   return password.length >= 6;
 }
 
+export function validateEmail(email: string): boolean {
+  if (!email) return false;
+  // Regex simple y robusto para emails comunes
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+  return re.test(email) && email.length <= 254;
+}
+
 // Hash de contraseña
 export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, SALT_ROUNDS);
