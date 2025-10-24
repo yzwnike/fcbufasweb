@@ -87,7 +87,17 @@ export async function validateSubmission(
 ): Promise<{ ok: boolean; reasons: string[]; stats?: { count: number; avg: number; specials: number } } > {
   const challenge = await executeQuerySingle<SbcChallenge>('SELECT * FROM sbc_challenges WHERE id = ?', [challengeId]);
   if (!challenge) return { ok: false, reasons: ['Desafío no encontrado'] };
-  const req = challenge.requirements || {};
+  
+  // Parse requirements JSON if it's a string (PostgreSQL returns JSON as string)
+  let req: any = challenge.requirements || {};
+  if (typeof req === 'string') {
+    try {
+      req = JSON.parse(req);
+    } catch (error) {
+      console.warn('Failed to parse requirements JSON in validateSubmission:', req);
+      req = {};
+    }
+  }
   const min = (req.min_players ?? 1);
   const max = (req.max_players ?? 7);
   const minAvg = (req.min_avg_rating ?? 0);
@@ -98,9 +108,9 @@ export async function validateSubmission(
     return { ok: false, reasons: [`Número de cartas: ${ids.length} (debe ser entre ${min}-${max})`] };
   }
 
-  // Fetch selected cards with player rating and special_type
+  // Fetch selected cards with player rating, special_type, and card_asset_basename
   const rows = await executeQuery<any>(
-    `SELECT uc.id as user_card_id, p.fifa_rating, c.special_type
+    `SELECT uc.id as user_card_id, p.fifa_rating, c.special_type, p.card_asset_basename
        FROM user_cards uc
        JOIN cards c ON uc.card_id = c.id
        JOIN players p ON c.player_id = p.id
@@ -116,6 +126,28 @@ export async function validateSubmission(
   const reasons: string[] = [];
   if (avg < minAvg) reasons.push(`Media ${avg} < mínima ${minAvg}`);
   if (specials < minSpecial) reasons.push(`Especiales ${specials} < mínimo ${minSpecial}`);
+
+  // Check required_players if specified
+  const requiredPlayers = req.required_players || [];
+  if (Array.isArray(requiredPlayers) && requiredPlayers.length > 0) {
+    for (const reqPlayer of requiredPlayers) {
+      const basename = reqPlayer.card_asset_basename;
+      const minCount = reqPlayer.min_count || 1;
+      const requiredSpecialType = reqPlayer.special_type || null;
+      
+      // Count cards matching this player requirement
+      const matchingCards = rows.filter((r: any) => {
+        const basenameMatch = r.card_asset_basename === basename;
+        const specialMatch = !requiredSpecialType || r.special_type === requiredSpecialType;
+        return basenameMatch && specialMatch;
+      });
+      
+      if (matchingCards.length < minCount) {
+        const specialDesc = requiredSpecialType ? ` (${requiredSpecialType})` : '';
+        reasons.push(`Requiere mínimo ${minCount} carta(s) de ${basename}${specialDesc} (tienes ${matchingCards.length})`);
+      }
+    }
+  }
 
   return { ok: reasons.length === 0, reasons, stats: { count, avg, specials } };
 }

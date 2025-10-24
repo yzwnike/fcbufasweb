@@ -23,32 +23,27 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 
       <div id="sbc-container" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Challenges list -->
-        <div class="lg:col-span-1 bg-white/10 backdrop-blur-md rounded-xl p-6">
-          <h3 class="text-xl font-bold text-white mb-4">Desafíos Activos</h3>
-          <div id="challenges-list" class="space-y-3"></div>
+        <div id="challenges-sidebar" class="lg:col-span-1 bg-white/10 backdrop-blur-md rounded-xl p-6">
+          <h3 class="text-xl font-bold text-white mb-4">SBCs de Tiempo Limitado</h3>
+          <div id="challenges-list-limited" class="space-y-3 mb-6"></div>
+          
+          <h3 class="text-xl font-bold text-white mb-4">SBCs Ilimitados</h3>
+          <div id="challenges-list-unlimited" class="space-y-3"></div>
         </div>
 
         <!-- Builder -->
-        <div class="lg:col-span-2 bg-white/10 backdrop-blur-md rounded-xl p-6">
+        <div id="builder-container" class="lg:col-span-2 bg-white/10 backdrop-blur-md rounded-xl p-6">
           <div id="no-challenge" class="text-center text-emerald-100">Selecciona un desafío para comenzar</div>
 
-          <!-- Requirements Gate -->
-          <div id="requirements-panel" class="hidden">
-            <div class="mb-4">
-              <h3 class="text-2xl font-bold text-white" id="challenge-title">-</h3>
-              <p class="text-emerald-100" id="challenge-desc">-</p>
-              <p class="text-emerald-200 text-sm" id="challenge-dates">-</p>
-            </div>
-            <div class="bg-black/20 rounded-lg p-4 mb-4">
-              <div class="text-emerald-100 text-sm mb-1">Requisitos</div>
-              <div class="text-emerald-200 text-sm" id="challenge-req">-</div>
-            </div>
-            <!-- Reward Preview -->
-            <div id="reward-preview" class="mb-6 text-center"></div>
-            <button id="accept-req-btn" class="px-5 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600">Aceptar</button>
-          </div>
-
           <div id="builder" class="hidden">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <button id="back-to-list" class="text-emerald-200 hover:text-white transition-colors flex items-center gap-2 text-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Volver a SBCs
+              </button>
+            </div>
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <div>
                 <h3 class="text-2xl font-bold text-white" id="challenge-title-builder">-</h3>
@@ -109,8 +104,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     let selectedChallenge = null;
     let userCards = [];
     let selectedIds = new Set();
-    let currentReq = { min_players: 1, max_players: 7, min_avg_rating: 0, min_special_cards: 0 };
+    let currentReq = { min_players: 1, max_players: 7, min_avg_rating: 0, min_special_cards: 0, required_players: [] };
     let lastValidation = null;
+    let countdownIntervals = {};
 
     const storage = window.sessionStorage;
     function checkAuthState() { const t = storage.getItem('nike_fc_token'); if (t) { authToken=t; return true; } return false; }
@@ -128,110 +124,422 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       ['not-logged-in','sbc-container'].forEach(x=>document.getElementById(x).classList.toggle('hidden', x!==id));
     }
 
+    function formatRequirements(req) {
+      if (!req) return 'Sin requisitos';
+      const parts = [];
+      if (req.min_players || req.max_players) parts.push(`Jugadores: ${req.min_players||1}-${req.max_players||7}`);
+      if (req.min_avg_rating) parts.push(`Media ≥ ${req.min_avg_rating}`);
+      if (req.min_special_cards) parts.push(`Especiales ≥ ${req.min_special_cards}`);
+      return parts.join(' | ') || 'Sin requisitos';
+    }
+
     function renderChallenges() {
-      const list = document.getElementById('challenges-list');
-      list.innerHTML = '';
-      challenges.forEach(ch => {
-        const btn = document.createElement('button');
-        btn.className = 'w-full text-left p-3 bg-emerald-900/40 hover:bg-emerald-800/50 rounded-lg text-white flex items-center justify-between';
-        let badge = '';
-        if (ch.repeatable) {
-          badge = '<span class="ml-3 px-2 py-0.5 text-xs rounded bg-blue-600/70">Repetible</span>';
-        } else if (ch.completed) {
-          badge = '<span class="ml-3 px-2 py-0.5 text-xs rounded bg-emerald-600/70">Completado</span>';
+      const limitedList = document.getElementById('challenges-list-limited');
+      const unlimitedList = document.getElementById('challenges-list-unlimited');
+      limitedList.innerHTML = '';
+      unlimitedList.innerHTML = '';
+      
+      const limited = challenges.filter(ch => !ch.repeatable);
+      const unlimited = challenges.filter(ch => ch.repeatable);
+      
+      // SBCs LIMITADOS con acordeón
+      limited.forEach((ch, idx) => {
+        const container = document.createElement('div');
+        container.className = 'bg-emerald-900/40 rounded-lg overflow-hidden relative';
+        
+        // Countdown en esquina superior derecha
+        let countdownHTML = '';
+        if (!ch.completed) {
+          countdownHTML = `<div class="absolute top-2 right-2 text-xs bg-yellow-500/80 text-black px-2 py-1 rounded font-bold countdown-badge" data-end="${ch.end_at}">--:--:--</div>`;
         }
-        btn.innerHTML = `<div><div class=\"font-semibold\">${ch.title}</div><div class=\"text-emerald-200 text-sm\">${ch.description||''}</div></div>${badge}`;
-        btn.addEventListener('click', () => selectChallenge(ch));
-        list.appendChild(btn);
+        
+        // Header
+        const header = document.createElement('button');
+        header.className = 'w-full text-left p-4 hover:bg-emerald-800/50 text-white relative transition-all flex items-center gap-4 header-layout';
+        
+        let badge = '';
+        if (ch.completed) {
+          badge = '<span class="absolute top-2 right-2 px-2 py-0.5 text-xs rounded bg-emerald-600/70">Completado</span>';
+        }
+        
+        let rewardPreview = '';
+        if (Array.isArray(ch.rewards) && ch.rewards.length) {
+          const r = ch.rewards[0];
+          if (r.reward_type === 'CARD' && r.card_image_path) {
+            rewardPreview = `
+              <div class="flex-shrink-0">
+                <img src="${r.card_image_path}" alt="Recompensa" class="reward-card-image w-20 h-28 sm:w-24 sm:h-32 object-cover rounded-lg shadow-lg transition-all duration-300" />
+              </div>
+            `;
+          } else if (r.reward_type === 'PACK') {
+            rewardPreview = `
+              <div class="flex-shrink-0 relative">
+                <img src="/icons/logrossobre.png" alt="Sobre" class="reward-card-image w-20 h-28 sm:w-24 sm:h-32 object-cover rounded-lg shadow-lg transition-all duration-300" />
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-2 py-0.5 rounded-full font-bold text-xs">+84</div>
+              </div>
+            `;
+          }
+        }
+        
+        header.innerHTML = `
+          ${badge}
+          ${countdownHTML}
+          ${rewardPreview}
+          <div class="flex-1 min-w-0 reward-text-container">
+            <div class="reward-title font-bold text-base sm:text-lg transition-all duration-300">${ch.title}</div>
+            <div class="reward-desc text-emerald-200 text-xs sm:text-sm mt-1 line-clamp-2 transition-all duration-300">${ch.description||''}</div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 badges-container">
+            <svg class="w-5 h-5 text-emerald-200 transition-transform duration-200 accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        `;
+        
+        // Contenido desplegable
+        const content = document.createElement('div');
+        content.className = 'accordion-content max-h-0 overflow-hidden transition-all duration-300';
+        content.innerHTML = `
+          <div class="p-4 pt-0 border-t border-emerald-700/30">
+            <div class="mt-3">
+              <div class="text-emerald-100 text-sm mb-2">Requisitos:</div>
+              <div class="text-emerald-200 text-xs mb-3">${formatRequirements(ch.requirements)}</div>
+              
+              <div class="text-emerald-100 text-sm mb-2">Fechas:</div>
+              <div class="text-emerald-200 text-xs mb-3">${new Date(ch.start_at).toLocaleDateString()} - ${new Date(ch.end_at).toLocaleDateString()}</div>
+              
+              ${ch.completed && !ch.repeatable ? 
+                '<button class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg opacity-50 cursor-not-allowed" disabled>Completado</button>' :
+                `<button class="sbc-select-btn w-full px-4 py-2 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors">${ch.repeatable ? 'Repetir Desafío' : 'Aceptar Desafío'}</button>`
+              }
+            </div>
+          </div>
+        `;
+        
+        // Toggle accordion
+        header.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+          
+          // Cerrar todos
+          document.querySelectorAll('.accordion-content').forEach(acc => {
+            acc.style.maxHeight = '0px';
+          });
+          document.querySelectorAll('.accordion-icon').forEach(icon => {
+            icon.style.transform = 'rotate(0deg)';
+          });
+          document.querySelectorAll('.header-layout').forEach(header => {
+            header.classList.remove('flex-col', 'items-center');
+            header.classList.add('flex-row', 'items-center');
+          });
+          document.querySelectorAll('.reward-card-image').forEach(img => {
+            img.classList.remove('w-48', 'h-72', 'sm:w-56', 'sm:h-80');
+            img.classList.add('w-20', 'h-28', 'sm:w-24', 'sm:h-32');
+          });
+          document.querySelectorAll('.reward-title').forEach(title => {
+            title.classList.remove('text-xl', 'sm:text-2xl');
+            title.classList.add('text-base', 'sm:text-lg');
+          });
+          document.querySelectorAll('.reward-desc').forEach(desc => {
+            desc.classList.remove('text-sm', 'sm:text-base', 'line-clamp-none');
+            desc.classList.add('text-xs', 'sm:text-sm', 'line-clamp-2');
+          });
+          document.querySelectorAll('.reward-text-container').forEach(container => {
+            container.classList.remove('text-center', 'w-full');
+            container.classList.add('flex-1', 'min-w-0');
+          });
+          document.querySelectorAll('.badges-container').forEach(badges => {
+            badges.style.display = 'flex';
+          });
+          document.querySelectorAll('.countdown-badge').forEach(cd => {
+            cd.style.display = 'block';
+          });
+          
+          // Abrir este
+          if (!isOpen) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+            header.querySelector('.accordion-icon').style.transform = 'rotate(180deg)';
+            
+            // Cambiar a layout vertical
+            header.classList.remove('flex-row', 'items-center');
+            header.classList.add('flex-col', 'items-center');
+            
+            // Ocultar badges al expandir
+            const badgesContainer = header.querySelector('.badges-container');
+            if (badgesContainer) {
+              badgesContainer.style.display = 'none';
+            }
+            
+            // Ocultar countdown al expandir
+            const countdownBadge = header.querySelector('.countdown-badge');
+            if (countdownBadge) {
+              countdownBadge.style.display = 'none';
+            }
+            
+            // Agrandar imagen mucho más
+            const cardImage = header.querySelector('.reward-card-image');
+            if (cardImage) {
+              cardImage.classList.remove('w-20', 'h-28', 'sm:w-24', 'sm:h-32');
+              cardImage.classList.add('w-48', 'h-72', 'sm:w-56', 'sm:h-80');
+            }
+            
+            // Centrar textos y hacerlos más grandes
+            const textContainer = header.querySelector('.reward-text-container');
+            if (textContainer) {
+              textContainer.classList.remove('flex-1', 'min-w-0');
+              textContainer.classList.add('text-center', 'w-full');
+            }
+            
+            const title = header.querySelector('.reward-title');
+            if (title) {
+              title.classList.remove('text-base', 'sm:text-lg');
+              title.classList.add('text-xl', 'sm:text-2xl');
+            }
+            
+            const desc = header.querySelector('.reward-desc');
+            if (desc) {
+              desc.classList.remove('text-xs', 'sm:text-sm', 'line-clamp-2');
+              desc.classList.add('text-sm', 'sm:text-base', 'line-clamp-none');
+            }
+          }
+        });
+        
+        const selectBtn = content.querySelector('.sbc-select-btn');
+        if (selectBtn) {
+          selectBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectChallenge(ch);
+          });
+        }
+        
+        container.appendChild(header);
+        container.appendChild(content);
+        limitedList.appendChild(container);
+        
+        // Iniciar countdown
+        if (!ch.completed) {
+          const countdownEl = container.querySelector('.countdown-badge');
+          if (countdownEl) {
+            updateCountdown(countdownEl, ch.end_at);
+            countdownIntervals[`ch_${idx}`] = setInterval(() => updateCountdown(countdownEl, ch.end_at), 1000);
+          }
+        }
       });
+      
+      // SBCs ILIMITADOS con acordeón
+      unlimited.forEach(ch => {
+        const container = document.createElement('div');
+        container.className = 'bg-emerald-900/40 rounded-lg overflow-hidden';
+        
+        const header = document.createElement('button');
+        header.className = 'w-full text-left p-4 hover:bg-emerald-800/50 text-white transition-all flex items-center gap-4 header-layout';
+        
+        let rewardPreview = '';
+        if (Array.isArray(ch.rewards) && ch.rewards.length) {
+          const r = ch.rewards[0];
+          if (r.reward_type === 'CARD' && r.card_image_path) {
+            rewardPreview = `
+              <div class="flex-shrink-0">
+                <img src="${r.card_image_path}" alt="Recompensa" class="reward-card-image w-20 h-28 sm:w-24 sm:h-32 object-cover rounded-lg shadow-lg transition-all duration-300" />
+              </div>
+            `;
+          } else if (r.reward_type === 'PACK') {
+            rewardPreview = `
+              <div class="flex-shrink-0 relative">
+                <img src="/icons/logrossobre.png" alt="Sobre" class="reward-card-image w-20 h-28 sm:w-24 sm:h-32 object-cover rounded-lg shadow-lg transition-all duration-300" />
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-2 py-0.5 rounded-full font-bold text-xs">+84</div>
+              </div>
+            `;
+          }
+        }
+        
+        header.innerHTML = `
+          ${rewardPreview}
+          <div class="flex-1 min-w-0 reward-text-container">
+            <div class="reward-title font-bold text-base sm:text-lg transition-all duration-300">${ch.title}</div>
+            <div class="reward-desc text-emerald-200 text-xs sm:text-sm mt-1 line-clamp-2 transition-all duration-300">${ch.description||''}</div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 badges-container">
+            <span class="px-2 py-0.5 text-xs rounded bg-blue-600/70">∞</span>
+            <svg class="w-5 h-5 text-emerald-200 transition-transform duration-200 accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        `;
+        
+        const content = document.createElement('div');
+        content.className = 'accordion-content max-h-0 overflow-hidden transition-all duration-300';
+        content.innerHTML = `
+          <div class="p-4 pt-0 border-t border-emerald-700/30">
+            <div class="mt-3">
+              <div class="text-emerald-100 text-sm mb-2">Requisitos:</div>
+              <div class="text-emerald-200 text-xs mb-3">${formatRequirements(ch.requirements)}</div>
+              
+              <button class="sbc-select-btn w-full px-4 py-2 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors">Repetir Desafío</button>
+            </div>
+          </div>
+        `;
+        
+        header.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+          
+          document.querySelectorAll('.accordion-content').forEach(acc => {
+            acc.style.maxHeight = '0px';
+          });
+          document.querySelectorAll('.accordion-icon').forEach(icon => {
+            icon.style.transform = 'rotate(0deg)';
+          });
+          document.querySelectorAll('.header-layout').forEach(header => {
+            header.classList.remove('flex-col', 'items-center');
+            header.classList.add('flex-row', 'items-center');
+          });
+          document.querySelectorAll('.reward-card-image').forEach(img => {
+            img.classList.remove('w-48', 'h-72', 'sm:w-56', 'sm:h-80');
+            img.classList.add('w-20', 'h-28', 'sm:w-24', 'sm:h-32');
+          });
+          document.querySelectorAll('.reward-title').forEach(title => {
+            title.classList.remove('text-xl', 'sm:text-2xl');
+            title.classList.add('text-base', 'sm:text-lg');
+          });
+          document.querySelectorAll('.reward-desc').forEach(desc => {
+            desc.classList.remove('text-sm', 'sm:text-base', 'line-clamp-none');
+            desc.classList.add('text-xs', 'sm:text-sm', 'line-clamp-2');
+          });
+          document.querySelectorAll('.reward-text-container').forEach(container => {
+            container.classList.remove('text-center', 'w-full');
+            container.classList.add('flex-1', 'min-w-0');
+          });
+          document.querySelectorAll('.badges-container').forEach(badges => {
+            badges.style.display = 'flex';
+          });
+          
+          if (!isOpen) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+            header.querySelector('.accordion-icon').style.transform = 'rotate(180deg)';
+            
+            // Cambiar a layout vertical
+            header.classList.remove('flex-row', 'items-center');
+            header.classList.add('flex-col', 'items-center');
+            
+            // Ocultar badges al expandir
+            const badgesContainer = header.querySelector('.badges-container');
+            if (badgesContainer) {
+              badgesContainer.style.display = 'none';
+            }
+            
+            // Agrandar imagen mucho más
+            const cardImage = header.querySelector('.reward-card-image');
+            if (cardImage) {
+              cardImage.classList.remove('w-20', 'h-28', 'sm:w-24', 'sm:h-32');
+              cardImage.classList.add('w-48', 'h-72', 'sm:w-56', 'sm:h-80');
+            }
+            
+            // Centrar textos y hacerlos más grandes
+            const textContainer = header.querySelector('.reward-text-container');
+            if (textContainer) {
+              textContainer.classList.remove('flex-1', 'min-w-0');
+              textContainer.classList.add('text-center', 'w-full');
+            }
+            
+            const title = header.querySelector('.reward-title');
+            if (title) {
+              title.classList.remove('text-base', 'sm:text-lg');
+              title.classList.add('text-xl', 'sm:text-2xl');
+            }
+            
+            const desc = header.querySelector('.reward-desc');
+            if (desc) {
+              desc.classList.remove('text-xs', 'sm:text-sm', 'line-clamp-2');
+              desc.classList.add('text-sm', 'sm:text-base', 'line-clamp-none');
+            }
+          }
+        });
+        
+        const selectBtn = content.querySelector('.sbc-select-btn');
+        if (selectBtn) {
+          selectBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectChallenge(ch);
+          });
+        }
+        
+        container.appendChild(header);
+        container.appendChild(content);
+        unlimitedList.appendChild(container);
+      });
+    }
+    
+    function updateCountdown(el, endDate) {
+      const now = Date.now();
+      const end = new Date(endDate).getTime();
+      const diff = end - now;
+      
+      if (diff <= 0) {
+        el.textContent = 'Expirado';
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (days > 0) {
+        el.textContent = `${days}d ${hours}h ${minutes}m`;
+      } else {
+        el.textContent = `${hours}h ${minutes}m`;
+      }
     }
 
     function selectChallenge(ch) {
       selectedChallenge = ch;
+      
+      document.getElementById('challenges-sidebar').classList.add('hidden');
+      document.getElementById('builder-container').classList.remove('lg:col-span-2');
+      document.getElementById('builder-container').classList.add('col-span-full');
+      
       document.getElementById('no-challenge').classList.add('hidden');
-      // Show requirements gate first
-      document.getElementById('requirements-panel').classList.remove('hidden');
-      document.getElementById('builder').classList.add('hidden');
-      const acceptBtn = document.getElementById('accept-req-btn');
-      if (ch.completed && !ch.repeatable) {
-        acceptBtn.setAttribute('disabled','true');
-        acceptBtn.classList.add('opacity-50','cursor-not-allowed');
-        acceptBtn.textContent = 'Completado';
-      } else {
-        acceptBtn.removeAttribute('disabled');
-        acceptBtn.classList.remove('opacity-50','cursor-not-allowed');
-        acceptBtn.textContent = ch.repeatable ? 'Repetir Desafío' : 'Aceptar';
-      }
-
-      document.getElementById('challenge-title').textContent = ch.title;
-      document.getElementById('challenge-desc').textContent = ch.description || '';
-      document.getElementById('challenge-dates').textContent = new Date(ch.start_at).toLocaleDateString() + ' - ' + new Date(ch.end_at).toLocaleDateString();
+      document.getElementById('builder').classList.remove('hidden');
+      
       const req = ch.requirements || {};
       currentReq = {
         min_players: Number(req.min_players || 1),
         max_players: Number(req.max_players || 7),
         min_avg_rating: Number(req.min_avg_rating || 0),
         min_special_cards: Number(req.min_special_cards || 0),
+        required_players: req.required_players || [],
       };
-      document.getElementById('challenge-req').textContent = `Jugadores: ${req.min_players||2}-${req.max_players||7} | Media ≥ ${req.min_avg_rating||0} | Especiales ≥ ${req.min_special_cards||0}`;
 
-      // Prepare builder texts
       document.getElementById('challenge-title-builder').textContent = ch.title;
       document.getElementById('challenge-desc-builder').textContent = ch.description || '';
       document.getElementById('challenge-req-builder').textContent = `Jugadores: ${req.min_players||2}-${req.max_players||7} | Media ≥ ${req.min_avg_rating||0} | Especiales ≥ ${req.min_special_cards||0}`;
       document.getElementById('req-count').textContent = `${currentReq.min_players}-${currentReq.max_players}`;
       document.getElementById('req-avg').textContent = `Mín ${req.min_avg_rating||0}`;
       document.getElementById('req-specials').textContent = `Mín ${req.min_special_cards||0}`;
-      // Reward preview (big)
-      const rp = document.getElementById('reward-preview');
-      rp.innerHTML = '';
-      if (Array.isArray(ch.rewards) && ch.rewards.length) {
-        const r = ch.rewards[0];
-        if (r.reward_type === 'CARD' && r.card_image_path) {
-          rp.innerHTML = `
-            <div class="inline-block">
-              <div class="text-emerald-100 mb-2">Recompensa</div>
-              <img src="${r.card_image_path}" alt="${r.player_name||'Carta'}" class="w-36 h-56 object-cover rounded-xl mx-auto shadow-lg"/>
-              <div class="text-white mt-2">${r.player_name||''}</div>
-            </div>`;
-        } else if (r.reward_type === 'PACK') {
-          // Personalizar vista para MEDIA_84_PLUS
-          if (r.pack_type === 'MEDIA_84_PLUS') {
-            rp.innerHTML = `
-              <div class="inline-block relative">
-                <div class="text-emerald-100 mb-2">Recompensa</div>
-                <div class="relative inline-block">
-                  <img src="/icons/logrossobre.png" alt="Sobre 84+" class="w-40 h-52 object-contain mx-auto shadow-lg"/>
-                  <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-3 py-1 rounded-full font-bold text-lg shadow-lg">
-                    +84
-                  </div>
-                </div>
-                <div class="text-white mt-2">Sobre Media 84+</div>
-              </div>`;
-          } else {
-            rp.innerHTML = `
-              <div class="inline-block">
-                <div class="text-emerald-100 mb-2">Recompensa</div>
-                <div class="w-40 h-40 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl">
-                  <span class="text-6xl">📦</span>
-                </div>
-                <div class="text-white mt-2">${r.pack_type || 'PACK'} × ${r.amount||1}</div>
-              </div>`;
-          }
-        }
-      }
 
       selectedIds.clear();
       renderSelected();
       renderCollection(userCards);
       document.getElementById('submit-btn').disabled = true;
+      document.getElementById('validate-btn').disabled = true;
+    }
+    
+    function backToList() {
+      document.getElementById('challenges-sidebar').classList.remove('hidden');
+      document.getElementById('builder-container').classList.add('lg:col-span-2');
+      document.getElementById('builder-container').classList.remove('col-span-full');
+      
+      document.getElementById('builder').classList.add('hidden');
+      document.getElementById('no-challenge').classList.remove('hidden');
+      
+      selectedChallenge = null;
+      selectedIds.clear();
     }
 
     function renderSelected() {
       const grid = document.getElementById('selected-grid');
       grid.innerHTML = '';
       const ids = Array.from(selectedIds);
-      // Selected cards first
       ids.forEach(id => {
         const uc = userCards.find(u=>u.id===id);
         if (!uc) return;
@@ -246,7 +554,6 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         el.querySelector('button').addEventListener('click', ()=>{ selectedIds.delete(id); renderSelected(); updateChecklist(); });
         grid.appendChild(el);
       });
-      // Placeholder slots up to max_players
       const maxSlots = Math.min(Math.max(currentReq.max_players || 1, 1), 7);
       const missing = Math.max(0, maxSlots - ids.length);
       for (let i=0;i<missing;i++) {
@@ -318,13 +625,18 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       document.getElementById('sel-count').textContent = count.toString();
       setTileOK('req-tile-count', count >= min && count <= max);
 
-      // avg/specials: use lastValidation if available
       const avg = lastValidation?.stats?.avg || 0;
       const specials = lastValidation?.stats?.specials || 0;
       document.getElementById('sel-avg').textContent = avg.toString();
       document.getElementById('sel-specials').textContent = specials.toString();
       setTileOK('req-tile-avg', avg >= (currentReq.min_avg_rating||0));
       setTileOK('req-tile-specials', specials >= (currentReq.min_special_cards||0));
+      
+      // Habilitar botón de validar solo si hay suficientes cartas
+      const validateBtn = document.getElementById('validate-btn');
+      if (validateBtn) {
+        validateBtn.disabled = count < min;
+      }
     }
 
     async function submitNow() {
@@ -338,280 +650,19 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       if (!data.success) { alert(data.error||'Error'); return; }
       const isRepeatable = selectedChallenge.repeatable;
       
-      // Mostrar alert de éxito primero
       alert(`Desafío completado. Recompensa entregada.${isRepeatable ? ' Puedes repetir este desafío las veces que quieras.' : ''}`);
       
-      // Remove consumed cards from local list
       userCards = userCards.filter(uc => !selectedIds.has(uc.id));
       selectedIds.clear();
       renderSelected();
       renderCollection(userCards);
       
-      // Mark challenge as completed only for non-repeatable challenges
       if (!isRepeatable) {
         challenges = challenges.map(ch => ch.id === selectedChallenge.id ? { ...ch, completed: true } : ch);
         renderChallenges();
       }
       
-      // Auto-open the pack reward después del alert
-      await autoOpenPackReward();
-      
-      // For repeatable challenges, reset to requirements panel; for non-repeatable, lock builder
-      document.getElementById('requirements-panel').classList.remove('hidden');
-      document.getElementById('builder').classList.add('hidden');
-      const acceptBtn = document.getElementById('accept-req-btn');
-      
-      if (isRepeatable) {
-        acceptBtn.removeAttribute('disabled');
-        acceptBtn.classList.remove('opacity-50','cursor-not-allowed');
-        acceptBtn.textContent = 'Repetir Desafío';
-      } else {
-        acceptBtn.setAttribute('disabled','true');
-        acceptBtn.classList.add('opacity-50','cursor-not-allowed');
-        acceptBtn.textContent = 'Completado';
-      }
-    }
-
-    async function autoOpenPackReward() {
-      try {
-        console.log('autoOpenPackReward - Starting');
-        
-        // Buscar el pack más reciente del usuario que no esté abierto usando una query directa
-        const packsRes = await fetch('/api/bufas-cards/sbc/get-recent-pack', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + authToken 
-          },
-          body: JSON.stringify({ pack_type: 'MEDIA_84_PLUS' })
-        });
-        
-        console.log('autoOpenPackReward - Packs response:', packsRes.ok);
-        
-        if (!packsRes.ok) {
-          alert('Desafío completado. Ve a la sección de Sobres para abrir tu recompensa.');
-          return;
-        }
-        
-        const packsData = await packsRes.json();
-        console.log('autoOpenPackReward - Packs data:', packsData);
-        
-        // Verificar si encontró el pack
-        if (!packsData.success || !packsData.pack) {
-          alert('Desafío completado. No se encontró el sobre para abrir.');
-          return;
-        }
-        
-        const packToOpen = packsData.pack;
-        console.log('autoOpenPackReward - Pack to open:', packToOpen);
-        
-        if (!packToOpen) {
-          alert('Desafío completado. No se encontró el sobre para abrir.');
-          return;
-        }
-        
-        // Usar setTimeout para asegurar que el popup aparezca después del alert
-        setTimeout(async () => {
-          await showPackModal(packToOpen);
-        }, 100);
-        
-      } catch (error) {
-        console.error('Error mostrando pack de SBC:', error);
-        alert('Desafío completado. Error mostrando el sobre.');
-      }
-    }
-
-    async function showPackModal(pack) {
-      return new Promise((resolve) => {
-        // Crear modal del sobre como en /packs
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4';
-        modal.innerHTML = `
-          <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 max-w-md w-full text-center">
-            <h2 class="text-2xl font-bold text-white mb-4">¡Recompensa Obtenida!</h2>
-            
-            <!-- Imagen del sobre con badge +84 -->
-            <div class="relative inline-block mb-6">
-              <img src="/icons/logrossobre.png" alt="Sobre 84+" class="w-40 h-52 object-contain mx-auto"/>
-              <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-3 py-1 rounded-full font-bold text-lg shadow-lg">
-                +84
-              </div>
-            </div>
-            
-            <p class="text-lg text-white mb-4">Sobre Media 84+</p>
-            <p class="text-sm text-slate-300 mb-6">Contiene 1 carta con media 84 o superior</p>
-            
-            <div class="flex gap-3">
-              <button id="open-pack-btn" class="flex-1 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors">
-                Abrir Sobre
-              </button>
-              <button id="close-modal-btn" class="flex-1 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors">
-                Cerrar
-              </button>
-            </div>
-          </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        const openBtn = modal.querySelector('#open-pack-btn');
-        const closeBtn = modal.querySelector('#close-modal-btn');
-        
-        openBtn.addEventListener('click', async () => {
-          document.body.removeChild(modal);
-          await openSBCPack(pack);
-          resolve();
-        });
-        
-        closeBtn.addEventListener('click', () => {
-          document.body.removeChild(modal);
-          resolve();
-        });
-        
-        // Cerrar con clic fuera del modal
-        modal.addEventListener('click', (e) => {
-          if (e.target === modal) {
-            document.body.removeChild(modal);
-            resolve();
-          }
-        });
-      });
-    }
-
-    async function openSBCPack(pack) {
-      try {
-        // Simular la apertura del pack
-        const openRes = await fetch('/api/bufas-cards/packs/open', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + authToken
-          },
-          body: JSON.stringify({ pack_id: pack.id })
-        });
-        
-        if (!openRes.ok) {
-          alert('Error abriendo el sobre. Ve a la sección de Sobres para abrirlo manualmente.');
-          return;
-        }
-        
-        const result = await openRes.json();
-        
-        if (result.success && result.cards && result.cards.length > 0) {
-          // Mostrar la animación del pack opening como en /packs
-          await showSBCPackAnimation(result.cards[0]);
-        } else {
-          alert('Desafío completado. Recompensa entregada.');
-        }
-        
-      } catch (error) {
-        console.error('Error en openSBCPack:', error);
-        alert('Desafío completado. Ve a la sección de Sobres para abrir tu recompensa.');
-      }
-    }
-
-    async function showSBCPackAnimation(card) {
-      return new Promise((resolve) => {
-        // Crear overlay fullscreen como en packs
-        const overlay = document.createElement('div');
-        overlay.className = 'fixed inset-0 bg-black/95 text-white flex items-center justify-center z-50 p-4';
-        overlay.innerHTML = `
-          <div class="text-center w-full max-w-lg mx-auto px-4 my-auto">
-            <div id="sbc-loading" class="mt-6 text-green-300 text-lg sm:text-xl animate-pulse">Abriendo sobre…</div>
-            <div id="sbc-pos" class="text-lg sm:text-xl md:text-2xl font-extrabold opacity-0 transition-opacity duration-500 text-center w-full px-2 py-4"></div>
-            <div id="sbc-rating" class="text-3xl sm:text-4xl md:text-5xl text-yellow-400 font-extrabold mt-2 sm:mt-4 opacity-0 transition-opacity duration-500 text-center w-full"></div>
-            <div id="sbc-card" class="mt-4 sm:mt-6 md:mt-8 opacity-0 transform scale-50 transition-all duration-700 w-full flex justify-center"></div>
-            <button id="sbc-confirm" class="mt-4 sm:mt-6 px-6 sm:px-8 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors hidden">Confirmar</button>
-          </div>
-        `;
-        
-        document.body.appendChild(overlay);
-        
-        // Ejecutar secuencia como en packs
-        const loadingEl = overlay.querySelector('#sbc-loading');
-        const posEl = overlay.querySelector('#sbc-pos');
-        const ratingEl = overlay.querySelector('#sbc-rating');
-        const cardEl = overlay.querySelector('#sbc-card');
-        const confirmBtn = overlay.querySelector('#sbc-confirm');
-        
-        loadingEl.classList.add('hidden');
-        
-        // Secuencia de animación
-        posEl.textContent = translatePosition(card?.player?.position1);
-        setTimeout(() => posEl.classList.remove('opacity-0'), 150);
-        setTimeout(() => posEl.classList.add('opacity-0'), 1000);
-        
-        setTimeout(() => {
-          ratingEl.textContent = String(card?.player?.fifa_rating || '');
-          ratingEl.classList.remove('opacity-0');
-        }, 1300);
-        setTimeout(() => ratingEl.classList.add('opacity-0'), 2300);
-        
-        setTimeout(() => {
-          const cardDiv = createSBCCardElement(card);
-          cardDiv.classList.add('mx-auto', 'w-full', 'max-w-xs', 'sm:max-w-sm');
-          cardEl.appendChild(cardDiv);
-          cardEl.classList.remove('opacity-0', 'scale-50');
-          confirmBtn.classList.remove('hidden');
-        }, 2600);
-        
-        confirmBtn.addEventListener('click', () => {
-          document.body.removeChild(overlay);
-          resolve();
-        });
-      });
-    }
-
-    function translatePosition(pos) {
-      const map = {
-        GK: 'PORTERO', CB: 'DEFENSA', LB: 'LATERAL IZQ', RB: 'LATERAL DCH',
-        CDM: 'MCD', CM: 'CENTROCAMPISTA', CAM: 'MCO',
-        LM: 'MI', RM: 'MD', LW: 'EI', RW: 'ED', ST: 'DELANTERO'
-      };
-      return map[pos] || pos || '';
-    }
-
-    function createSBCCardElement(card) {
-      // Similar al de packs pero adaptado
-      function getDisplayRarity(specialType) {
-        switch (specialType) {
-          case 'Regular': case 'OLD_GENERATION': return 'NORMAL';
-          case 'TEAM_OF_THE_WEEK': return 'ESPECIAL';
-          case 'MARKET_MASTER': case 'RATING_RELOAD': case 'COMEBACK_HERO': case 'ASSIST_ENGINE': return 'ELITE';
-          case 'PLAYER_OF_THE_MONTH': return 'LEGENDARIO';
-          default: return 'NORMAL';
-        }
-      }
-      
-      function getRarityColor(displayRarity) {
-        switch (displayRarity) {
-          case 'NORMAL': return 'from-gray-400 to-gray-600';
-          case 'ESPECIAL': return 'from-blue-500 to-blue-700';
-          case 'ELITE': return 'from-purple-500 to-purple-700';
-          case 'LEGENDARIO': return 'from-yellow-400 to-orange-500';
-          default: return 'from-gray-400 to-gray-600';
-        }
-      }
-      
-      const displayRarity = getDisplayRarity(card.special_type || 'Regular');
-      const rarityColor = getRarityColor(displayRarity);
-      
-      const cardDiv = document.createElement('div');
-      cardDiv.className = `bg-gradient-to-br ${rarityColor} rounded-xl p-3 sm:p-4 text-center transform`;
-      const imgSrc = card.image_path || card.player?.image_url;
-      const img = imgSrc ? `<img src="${imgSrc}" alt="${card.player?.name || 'card'}" class="w-full h-auto rounded-lg mb-2 sm:mb-3" />` : `
-        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3">
-          <span class="text-xl sm:text-2xl">⚽</span>
-        </div>`;
-      
-      cardDiv.innerHTML = `
-        ${img}
-        <div class="text-white font-bold text-xs sm:text-sm mb-1">${card.player?.name || 'Jugador'}</div>
-        <div class="text-xs text-white/80 mb-1 sm:mb-2">${translatePosition(card.player?.position1) || ''} - ${displayRarity}</div>
-        <div class="text-xs text-yellow-300 font-bold">${card.base_price || 0} 💰</div>
-        <div class="text-xs text-white/90 mt-1">FIFA: ${card.player?.fifa_rating || ''}</div>
-      `;
-      return cardDiv;
+      backToList();
     }
 
     async function init() {
@@ -627,10 +678,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       document.getElementById('collection-search').addEventListener('input', ()=>renderCollection(userCards));
       document.getElementById('validate-btn').addEventListener('click', validateNow);
       document.getElementById('submit-btn').addEventListener('click', submitNow);
-      document.getElementById('accept-req-btn').addEventListener('click', ()=>{
-        document.getElementById('requirements-panel').classList.add('hidden');
-        document.getElementById('builder').classList.remove('hidden');
-      });
+      document.getElementById('back-to-list').addEventListener('click', backToList);
     }
 
     document.addEventListener('DOMContentLoaded', init);

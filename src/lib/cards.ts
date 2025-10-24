@@ -505,15 +505,16 @@ export async function openCardPack(
         // Solo POTM cuenta como legendaria
         const c = await pick("SELECT * FROM cards WHERE special_type = 'PLAYER_OF_THE_MONTH' ORDER BY RANDOM() LIMIT 1");
         if (c) return c;
-        // Fallbacks si no hay POTM en la BD
-const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK','NOM_POTM') ORDER BY RANDOM() LIMIT 1");
+        // Fallbacks si no hay POTM en la BD (excluir jorgeCH)
+const c2 = await pick(`SELECT c.* FROM cards c JOIN players p ON c.player_id = p.id WHERE c.special_type IN ('ASSIST_ENGINE','RATING_RELOAD','MARKET_MASTER','COMEBACK_HERO','TEAM_OF_THE_WEEK','NOM_POTM') AND NOT (p.card_asset_basename = 'jorge' AND c.special_type = 'COMEBACK_HERO') ORDER BY RANDOM() LIMIT 1`);
         if (c2) return c2;
         const c3 = await pick("SELECT * FROM cards WHERE special_type IN ('Regular','OLD_GENERATION') ORDER BY RANDOM() LIMIT 1");
         return c3;
       }
       if (group === 'ELITE') {
         // Elite: MARKET_MASTER, RATING_RELOAD, COMEBACK_HERO, ASSIST_ENGINE
-        const c = await pick("SELECT * FROM cards WHERE special_type IN ('MARKET_MASTER','RATING_RELOAD','COMEBACK_HERO','ASSIST_ENGINE') ORDER BY RANDOM() LIMIT 1");
+        // Excluir jorgeCH (exclusivo de SBC y sobres EVENTO)
+        const c = await pick(`SELECT c.* FROM cards c JOIN players p ON c.player_id = p.id WHERE c.special_type IN ('MARKET_MASTER','RATING_RELOAD','COMEBACK_HERO','ASSIST_ENGINE') AND NOT (p.card_asset_basename = 'jorge' AND c.special_type = 'COMEBACK_HERO') ORDER BY RANDOM() LIMIT 1`);
         if (c) return c;
         // Fallbacks seguros
         const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('TEAM_OF_THE_WEEK','NOM_POTM') ORDER BY RANDOM() LIMIT 1");

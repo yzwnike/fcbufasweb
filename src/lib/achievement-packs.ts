@@ -130,6 +130,10 @@ async function buildCardQuery(
   
   const placeholders = targetTypes.map(() => '?').join(',');
   
+  // Excluir jorgeCH de sobres normales (solo disponible en sobres EVENTO)
+  const isEventoPack = packType.includes('EVENTO');
+  const excludeJorgeCH = !isEventoPack;
+  
   let query = `
     SELECT c.*, p.fifa_rating,
       LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
@@ -144,6 +148,7 @@ async function buildCardQuery(
     FROM cards c 
     JOIN players p ON c.player_id = p.id 
     WHERE c.special_type IN (${placeholders})
+    ${excludeJorgeCH ? "AND NOT (p.card_asset_basename = 'jorge' AND c.special_type = 'COMEBACK_HERO')" : ''}
     AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
       WHEN 'TEAM_OF_THE_WEEK' THEN 2
          WHEN 'NOM_POTM' THEN 2
