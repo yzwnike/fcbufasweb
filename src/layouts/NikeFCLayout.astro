@@ -3,6 +3,7 @@ import Layout from './Layout.astro';
 import HelpButton from '@/components/bufas-cards/HelpButton.astro';
 import MobileMenu from '@/components/bufas-cards/MobileMenu.astro';
 import CardNotifications from '@/components/bufas-cards/CardNotifications.astro';
+import RealtimeNotifications from '@/components/bufas-cards/RealtimeNotifications.astro';
 import '@/styles/iphone-se-fixes.css';
 
 export interface Props {
@@ -37,6 +38,9 @@ const {
   
   <!-- Notificaciones de cartas en tiempo real -->
   <CardNotifications />
+  
+  <!-- Notificaciones en tiempo real de otros usuarios -->
+  <RealtimeNotifications />
   
   <!-- Solo mostrar el helper en páginas de bufas-cards -->
   <HelpButton 

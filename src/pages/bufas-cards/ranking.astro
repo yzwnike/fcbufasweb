@@ -51,6 +51,20 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       return await res.json();
     }
 
+    function formatPlayerName(fullName) {
+      // Casos especiales
+      if (fullName.toLowerCase().includes('marc permanyer')) return 'Perma';
+      if (fullName.toLowerCase().includes('marc sánchez') || fullName.toLowerCase().includes('marc sanchez')) return 'Mister';
+      
+      // En móvil, solo mostrar el primer nombre
+      if (window.innerWidth < 768) {
+        const parts = fullName.trim().split(' ');
+        return parts[0] || fullName;
+      }
+      
+      return fullName;
+    }
+    
     function renderBoard(board) {
       const tbody = document.getElementById('rank-body');
       const empty = document.getElementById('rank-empty');
@@ -77,16 +91,17 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         for (let i = 0; i < 3; i++) {
           const card = featuredCards[i];
           if (card) {
+            const displayName = formatPlayerName(card.player_name);
             featuredHTML += `
               <div class="w-10 h-14 relative group flex-shrink-0">
                 <img 
                   src="${card.image_path || '/icons/placeholder-card.png'}" 
-                  alt="${card.player_name}" 
+                  alt="${displayName}" 
                   class="w-full h-full object-cover rounded border border-purple-400/50 shadow-sm"
                   onerror="this.src='/icons/placeholder-card.png'"
                 />
                 <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
-                  <span class="text-[7px] text-white text-center px-0.5 leading-tight">${card.player_name}</span>
+                  <span class="text-[7px] text-white text-center px-0.5 leading-tight">${displayName}</span>
                 </div>
               </div>
             `;

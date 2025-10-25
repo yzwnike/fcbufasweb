@@ -230,6 +230,21 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     let selectedCards = [];
     let currentFeaturedCards = [];
     
+    function formatPlayerName(fullName) {
+      if (!fullName) return '';
+      // Casos especiales
+      if (fullName.toLowerCase().includes('marc permanyer')) return 'Perma';
+      if (fullName.toLowerCase().includes('marc sánchez') || fullName.toLowerCase().includes('marc sanchez')) return 'Mister';
+      
+      // En móvil, solo mostrar el primer nombre
+      if (window.innerWidth < 768) {
+        const parts = fullName.trim().split(' ');
+        return parts[0] || fullName;
+      }
+      
+      return fullName;
+    }
+    
     async function loadFeaturedCards() {
       try {
         const res = await fetch('/api/bufas-cards/profile/featured-cards', {
@@ -253,9 +268,10 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         const card = currentFeaturedCards.find(c => c.position === i);
         
         if (card) {
+          const displayName = formatPlayerName(card.player_name);
           slot.innerHTML = `
-            <img src="${card.image_path || '/icons/placeholder-card.png'}" alt="${card.player_name}" class="w-full h-auto rounded-lg mb-2" onerror="this.src='/icons/placeholder-card.png'" />
-            <p class="text-white text-xs font-bold text-center truncate">${card.player_name}</p>
+            <img src="${card.image_path || '/icons/placeholder-card.png'}" alt="${displayName}" class="w-full h-auto rounded-lg mb-2" onerror="this.src='/icons/placeholder-card.png'" />
+            <p class="text-white text-xs font-bold text-center truncate">${displayName}</p>
           `;
           slot.classList.remove('border-dashed');
           slot.classList.add('border-solid', 'border-purple-500');
@@ -324,6 +340,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       
       filtered.forEach(uc => {
         const isSelected = selectedCards.includes(uc.id);
+        const playerName = uc.card?.player?.name || 'Carta';
+        const displayName = formatPlayerName(playerName);
         const card = document.createElement('div');
         card.className = `cursor-pointer rounded-lg p-2 transition-all ${
           isSelected 
@@ -332,8 +350,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         }`;
         
         card.innerHTML = `
-          <img src="${uc.card?.image_path || '/icons/placeholder-card.png'}" alt="${uc.card?.player?.name}" class="w-full h-auto rounded-lg mb-1" onerror="this.src='/icons/placeholder-card.png'" />
-          <p class="text-white text-xs font-semibold truncate text-center">${uc.card?.player?.name || 'Carta'}</p>
+          <img src="${uc.card?.image_path || '/icons/placeholder-card.png'}" alt="${displayName}" class="w-full h-auto rounded-lg mb-1" onerror="this.src='/icons/placeholder-card.png'" />
+          <p class="text-white text-xs font-semibold truncate text-center">${displayName}</p>
           ${isSelected ? '<p class="text-purple-200 text-[10px] text-center mt-1">✓ Seleccionada</p>' : ''}
         `;
         

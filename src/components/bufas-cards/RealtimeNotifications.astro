@@ -1,0 +1,225 @@
+<!-- Contenedor de notificaciones en la esquina inferior izquierda -->
+<div id="realtime-notifications" class="fixed bottom-4 left-4 z-50 space-y-2 max-w-sm pointer-events-none">
+  <!-- Las notificaciones se insertarán aquí dinámicamente -->
+</div>
+
+<script>
+  import { supabase } from '@/lib/supabase-client';
+  
+  interface NotificationData {
+    username: string;
+    player_name: string;
+    image_path: string;
+    rarity: string;
+    special_type: string;
+  }
+  
+  const notificationsContainer = document.getElementById('realtime-notifications');
+  let notificationQueue: NotificationData[] = [];
+  let isShowingNotification = false;
+  
+  function getRarityColor(rarity: string): string {
+    switch (rarity) {
+      case 'Legend': return 'from-yellow-500 to-orange-500';
+      case 'Elite': return 'from-purple-500 to-pink-500';
+      case 'Gold': return 'from-yellow-400 to-yellow-600';
+      case 'Silver': return 'from-gray-300 to-gray-500';
+      case 'Bronze': return 'from-orange-700 to-orange-900';
+      default: return 'from-blue-500 to-blue-700';
+    }
+  }
+  
+  function getSpecialBadge(specialType: string): string {
+    const badges: Record<string, string> = {
+      'PLAYER_OF_THE_MONTH': '🏆 POTM',
+      'RATING_RELOAD': '⚡ RELOAD',
+      'ASSIST_ENGINE': '🎯 ASSIST',
+      'MARKET_MASTER': '💰 MARKET',
+      'COMEBACK_HERO': '💪 HERO',
+      'TEAM_OF_THE_WEEK': '⭐ TOTW',
+      'OLD_GENERATION': '👴 OG',
+      'NOM_POTM': '🎖️ NOM'
+    };
+    return badges[specialType] || '';
+  }
+  
+  function formatPlayerName(fullName: string): string {
+    // Casos especiales
+    if (fullName.toLowerCase().includes('marc permanyer')) return 'Perma';
+    if (fullName.toLowerCase().includes('marc sánchez') || fullName.toLowerCase().includes('marc sanchez')) return 'Mister';
+    
+    // En móvil, solo mostrar el primer nombre
+    if (window.innerWidth < 640) {
+      const parts = fullName.trim().split(' ');
+      return parts[0] || fullName;
+    }
+    
+    return fullName;
+  }
+  
+  function createNotification(data: NotificationData): HTMLElement {
+    const notification = document.createElement('div');
+    const rarityColor = getRarityColor(data.rarity);
+    const specialBadge = getSpecialBadge(data.special_type);
+    const isMobile = window.innerWidth < 640;
+    
+    notification.className = `
+      flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg shadow-2xl
+      bg-gradient-to-r ${rarityColor}
+      backdrop-blur-md border-2 border-white/30
+      transform transition-all duration-500 ease-out
+      pointer-events-auto
+      animate-slide-in-left
+    `;
+    
+    notification.innerHTML = `
+      <div class="flex-1 min-w-0">
+        <p class="text-white font-bold text-xs sm:text-sm truncate">
+          ${data.username}
+        </p>
+        <p class="text-white/90 text-[10px] sm:text-xs">ha conseguido:</p>
+      </div>
+      <div class="flex flex-col items-end gap-1">
+        <div class="${isMobile ? 'w-12 h-16' : 'w-16 h-20'} rounded border-2 border-white/50 shadow-lg overflow-hidden bg-slate-900">
+          <img 
+            src="${data.image_path || '/icons/placeholder-card.png'}" 
+            alt="${data.player_name}"
+            class="w-full h-full object-cover"
+            onerror="this.src='/icons/placeholder-card.png'"
+          />
+        </div>
+        <div class="flex flex-col items-end">
+          <p class="text-white font-semibold text-[10px] leading-tight text-right">${formatPlayerName(data.player_name)}</p>
+          ${specialBadge ? `<span class="text-white/90 text-[8px] font-bold mt-0.5">${specialBadge}</span>` : ''}
+        </div>
+      </div>
+    `;
+    
+    return notification;
+  }
+  
+  async function showNotification(data: NotificationData) {
+    if (!notificationsContainer) return;
+    
+    isShowingNotification = true;
+    const notification = createNotification(data);
+    notificationsContainer.appendChild(notification);
+    
+    // Remover después de 5 segundos con animación
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateX(-100%)';
+      
+      setTimeout(() => {
+        notification.remove();
+        isShowingNotification = false;
+        processQueue();
+      }, 500);
+    }, 5000);
+  }
+  
+  function processQueue() {
+    if (notificationQueue.length > 0 && !isShowingNotification) {
+      const next = notificationQueue.shift();
+      if (next) {
+        showNotification(next);
+      }
+    }
+  }
+  
+  function addToQueue(data: NotificationData) {
+    notificationQueue.push(data);
+    processQueue();
+  }
+  
+  async function subscribeToCardEvents() {
+    // Suscribirse a inserts en user_cards
+    const channel = supabase
+      .channel('card-obtained-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_cards'
+        },
+        async (payload) => {
+          console.log('Nueva carta obtenida:', payload);
+          
+          // Obtener detalles de la carta y usuario
+          const userCardId = payload.new.id;
+          const userId = payload.new.user_id;
+          const cardId = payload.new.card_id;
+          
+          try {
+            // Hacer query para obtener información completa
+            const response = await fetch(`/api/bufas-cards/realtime/card-info?user_card_id=${userCardId}`);
+            const data = await response.json();
+            
+            if (data.success && data.cardInfo) {
+              // Filtrar al propio usuario (opcional)
+              const storage = window.sessionStorage;
+              const token = storage.getItem('nike_fc_token');
+              
+              // Si quieres mostrar también tus propias cartas, elimina este if
+              if (!token || data.cardInfo.user_id !== userId) {
+                addToQueue({
+                  username: data.cardInfo.username,
+                  player_name: data.cardInfo.player_name,
+                  image_path: data.cardInfo.image_path,
+                  rarity: data.cardInfo.rarity,
+                  special_type: data.cardInfo.special_type
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error obteniendo info de carta:', error);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Estado de suscripción realtime:', status);
+      });
+  }
+  
+  // Inicializar al cargar la página
+  function init() {
+    if (notificationsContainer) {
+      subscribeToCardEvents();
+    }
+  }
+  
+  // Ejecutar en diferentes eventos del ciclo de vida de Astro
+  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('astro:page-load', init);
+  
+  // Limpiar suscripciones al cambiar de página
+  document.addEventListener('astro:before-swap', () => {
+    supabase.removeAllChannels();
+  });
+</script>
+
+<style>
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .animate-slide-in-left {
+    animation: slide-in-left 0.5s ease-out;
+  }
+  
+  @media (max-width: 640px) {
+    #realtime-notifications {
+      left: 0.5rem;
+      bottom: 0.5rem;
+      max-width: calc(100vw - 1rem);
+    }
+  }
+</style>
