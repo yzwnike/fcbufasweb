@@ -88,14 +88,20 @@ function extractSpecialType(packType: AchievementPackType): string[] | null {
 }
 
 // Mapea rareza a special_type
-function mapRarityToSpecialType(rarity: 'NORMAL' | 'ESPECIAL' | 'ELITE' | 'LEGENDARIA'): string[] {
+function mapRarityToSpecialType(rarity: 'NORMAL' | 'ESPECIAL' | 'ELITE' | 'LEGENDARIA', packType?: AchievementPackType): string[] {
   switch (rarity) {
     case 'NORMAL':
       return ['Regular', 'OLD_GENERATION'];
     case 'ESPECIAL':
-      return ['TEAM_OF_THE_WEEK'];
+      return ['TEAM_OF_THE_WEEK', 'NOM_POTM'];
     case 'ELITE':
-      return ['MARKET_MASTER', 'RATING_RELOAD', 'COMEBACK_HERO', 'ASSIST_ENGINE'];
+      // Jorge COMEBACK_HERO solo en sobres EVENTO o ELITE específicos
+      const isEventoOrElitePack = packType && (packType.includes('EVENTO') || packType === 'ELITE' || packType === 'ELITE_RANDOM');
+      if (isEventoOrElitePack) {
+        return ['MARKET_MASTER', 'RATING_RELOAD', 'COMEBACK_HERO', 'ASSIST_ENGINE'];
+      }
+      // Sobres de logros normales: NO incluir COMEBACK_HERO
+      return ['MARKET_MASTER', 'RATING_RELOAD', 'ASSIST_ENGINE'];
     case 'LEGENDARIA':
       return ['PLAYER_OF_THE_MONTH'];
     default:
@@ -110,7 +116,7 @@ async function buildCardQuery(
 ): Promise<{ query: string, params: any[] }> {
   const ratingRange = extractRatingRange(packType);
   const specificTypes = extractSpecialType(packType);
-  const rarityTypes = mapRarityToSpecialType(rarity);
+  const rarityTypes = mapRarityToSpecialType(rarity, packType);
   
   // Usar tipos específicos del sobre si están definidos, sino usar los de rareza
   const targetTypes = specificTypes || rarityTypes;
@@ -130,9 +136,9 @@ async function buildCardQuery(
   
   const placeholders = targetTypes.map(() => '?').join(',');
   
-  // Excluir jorgeCH de sobres normales (solo disponible en sobres EVENTO)
-  const isEventoPack = packType.includes('EVENTO');
-  const excludeJorgeCH = !isEventoPack;
+  // Jorge COMEBACK_HERO solo en sobres EVENTO o ELITE específicos
+  const isEventoOrElitePack = packType.includes('EVENTO') || packType === 'ELITE' || packType === 'ELITE_RANDOM';
+  const excludeJorgeCH = !isEventoOrElitePack && !targetTypes.includes('COMEBACK_HERO');
   
   let query = `
     SELECT c.*, p.fifa_rating,

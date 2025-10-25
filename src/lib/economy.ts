@@ -2,16 +2,16 @@
 export const ECONOMY_CONFIG = {
   // Quiz diario
   QUIZ: {
-    COINS_PER_CORRECT_ANSWER: 40,
+    COINS_PER_CORRECT_ANSWER: 80,
     PERFECT_BONUS: 50, // +50 si aciertas 5/5
     STREAK_BONUS: 20, // +20 si ayer también completaste 5/5 (no acumulativo)
-    MAX_DAILY_PAYOUT: 250, // Cap máximo diario
+    MAX_DAILY_PAYOUT: 550, // Cap máximo diario (80*5 + 50 + 20 = 470, redondeado a 550)
     QUESTIONS_PER_DAY: 5
   },
   
   // Fantasy Rush
   FANTASY: {
-    POINTS_MULTIPLIER: 20, // puntos_totales * 20 (sin cap)
+    POINTS_MULTIPLIER: 30, // puntos_totales * 30 (sin cap)
   },
   
   // Rangos de cartas (renombrados)
@@ -59,9 +59,9 @@ export const ECONOMY_CONFIG = {
       type: 'PREMIUM',
       cost: 600,
       odds: {
-        NORMAL: 0.78,    // 78% Normal
-        ESPECIAL: 0.14,  // 14% Especial
-        ELITE: 0.05,     // 5% Elite
+        NORMAL: 0.70,    // 70% Normal
+        ESPECIAL: 0.20,  // 20% Especial
+        ELITE: 0.07,     // 7% Elite
         LEGENDARIA: 0.03 // 3% Legendaria
       }
     },
@@ -130,7 +130,7 @@ export function calculateQuizPayout(
   
   const totalPayout = baseCoins + perfectBonus + streakBonus;
   
-  // Aplicar cap de 250
+  // Aplicar cap de 550
   return Math.min(totalPayout, ECONOMY_CONFIG.QUIZ.MAX_DAILY_PAYOUT);
 }
 

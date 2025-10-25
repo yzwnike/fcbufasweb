@@ -512,9 +512,9 @@ const c2 = await pick(`SELECT c.* FROM cards c JOIN players p ON c.player_id = p
         return c3;
       }
       if (group === 'ELITE') {
-        // Elite: MARKET_MASTER, RATING_RELOAD, COMEBACK_HERO, ASSIST_ENGINE
-        // Excluir jorgeCH (exclusivo de SBC y sobres EVENTO)
-        const c = await pick(`SELECT c.* FROM cards c JOIN players p ON c.player_id = p.id WHERE c.special_type IN ('MARKET_MASTER','RATING_RELOAD','COMEBACK_HERO','ASSIST_ENGINE') AND NOT (p.card_asset_basename = 'jorge' AND c.special_type = 'COMEBACK_HERO') ORDER BY RANDOM() LIMIT 1`);
+        // Elite: MARKET_MASTER, RATING_RELOAD, ASSIST_ENGINE
+        // COMEBACK_HERO (Jorge) NUNCA sale en sobres normales (solo EVENTO/ELITE de logros/SBC)
+        const c = await pick(`SELECT c.* FROM cards c JOIN players p ON c.player_id = p.id WHERE c.special_type IN ('MARKET_MASTER','RATING_RELOAD','ASSIST_ENGINE') AND NOT (p.card_asset_basename = 'jorge' AND c.special_type = 'COMEBACK_HERO') ORDER BY RANDOM() LIMIT 1`);
         if (c) return c;
         // Fallbacks seguros
         const c2 = await pick("SELECT * FROM cards WHERE special_type IN ('TEAM_OF_THE_WEEK','NOM_POTM') ORDER BY RANDOM() LIMIT 1");
