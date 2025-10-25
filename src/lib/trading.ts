@@ -145,7 +145,7 @@ export async function removeCardFromSale(
   try {
     // Verificar que el intercambio existe y pertenece al usuario
     const trade = await executeQuerySingle<CardTrade>(
-      "SELECT * FROM card_trades WHERE id = ? AND seller_id = ? AND status = 'ACTIVE'",
+      'SELECT * FROM card_trades WHERE id = ? AND seller_id = ? AND status = \'ACTIVE\'',
       [tradeId, userId]
     );
 
@@ -160,7 +160,7 @@ export async function removeCardFromSale(
     await executeTransaction(async (connection) => {
       // Actualizar el estado del intercambio
       await connection.execute(
-        "UPDATE card_trades SET status = 'CANCELLED' WHERE id = ?",
+        'UPDATE card_trades SET status = \'CANCELLED\' WHERE id = ?',
         [tradeId]
       );
 

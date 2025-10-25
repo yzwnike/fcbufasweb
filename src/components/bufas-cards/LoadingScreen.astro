@@ -30,16 +30,16 @@
     <!-- Diseño móvil con dos imágenes -->
     <div class="md:hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-orange-800 to-red-900" style="background-color: #7c2d12;">
       <!-- Imagen superior -->
-      <div class="absolute top-0 left-0 right-0 h-1/2 flex items-end justify-center pb-1">
+      <div class="absolute top-0 left-0 right-0 h-1/2 flex items-end justify-center pb-4">
         <div 
-          class="w-[90vw] h-[38vh] bg-contain bg-center bg-no-repeat"
+          class="w-[85vw] h-[32vh] bg-contain bg-center bg-no-repeat"
           style="background-image: url('/fondomes1.jpg');"
         ></div>
       </div>
       <!-- Imagen inferior -->
-      <div class="absolute bottom-0 left-0 right-0 h-1/2 flex items-start justify-center pt-1">
+      <div class="absolute bottom-0 left-0 right-0 h-1/2 flex items-start justify-center pt-4">
         <div 
-          class="w-[90vw] h-[38vh] bg-contain bg-center bg-no-repeat"
+          class="w-[85vw] h-[32vh] bg-contain bg-center bg-no-repeat"
           style="background-image: url('/fondomes2.jpg');"
         ></div>
       </div>
@@ -56,11 +56,11 @@
   <!-- Contenido de la pantalla de carga reorganizado -->
   <div class="relative z-10 text-center text-white px-4 h-full flex flex-col">
     <!-- Título arriba -->
-    <div class="pt-8 md:pt-12 mb-4 md:mb-6">
-      <h1 class="text-3xl md:text-6xl font-bold mb-2 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-600 drop-shadow-lg">
+    <div class="pt-4 sm:pt-8 md:pt-12 mb-2 sm:mb-4 md:mb-6">
+      <h1 class="text-2xl sm:text-3xl md:text-6xl font-bold mb-1 sm:mb-2 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-600 drop-shadow-lg">
         BUFAS CARDS
       </h1>
-      <p class="text-sm md:text-xl text-white/90 drop-shadow-md">
+      <p class="text-xs sm:text-sm md:text-xl text-white/90 drop-shadow-md">
         Cargando tu experiencia de trading...
       </p>
     </div>
@@ -69,16 +69,16 @@
     <div class="flex-1"></div>
     
     <!-- Contenido de carga abajo -->
-    <div class="pb-8 md:pb-12">
+    <div class="pb-4 sm:pb-8 md:pb-12">
       <!-- Contador de porcentaje -->
-      <div class="mb-4 md:mb-6">
-        <div class="text-4xl md:text-7xl font-black text-white drop-shadow-2xl" id="loading-counter">
+      <div class="mb-2 sm:mb-4 md:mb-6">
+        <div class="text-3xl sm:text-4xl md:text-7xl font-black text-white drop-shadow-2xl" id="loading-counter">
           0%
         </div>
       </div>
       
       <!-- Barra de progreso -->
-      <div class="w-72 md:w-96 mx-auto mb-4 md:mb-6">
+      <div class="w-64 sm:w-72 md:w-96 mx-auto mb-2 sm:mb-4 md:mb-6">
         <div class="bg-white/20 rounded-full h-3 md:h-4 backdrop-blur-sm border border-white/30">
           <div 
             id="loading-progress" 
@@ -92,13 +92,13 @@
       </div>
       
       <!-- Texto de estado -->
-      <div class="text-sm md:text-base text-white/80" id="loading-status">
+      <div class="text-xs sm:text-sm md:text-base text-white/80" id="loading-status">
         Iniciando sistema...
       </div>
       
       <!-- Version Info -->
-      <div class="text-xs text-white/60 mt-2">
-        v1.1.1 - made by yazawa
+      <div class="text-[10px] sm:text-xs text-white/60 mt-1 sm:mt-2">
+        v1.1.2 - made by yazawa
       </div>
     </div>
   </div>

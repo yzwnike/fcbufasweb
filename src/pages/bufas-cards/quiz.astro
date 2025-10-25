@@ -78,37 +78,37 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 
         <!-- Question Card - Flexible -->
         <div class="flex-1 flex flex-col min-h-0">
-          <div id="question-card" class="bg-white/10 backdrop-blur-md rounded-xl p-4 flex-1 flex flex-col min-h-0">
-            <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+          <div id="question-card" class="bg-white/10 backdrop-blur-md rounded-xl p-3 sm:p-4 flex-1 flex flex-col min-h-0">
+            <div class="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-4 min-h-0">
               <!-- Card Image Compacta -->
               <div class="flex-shrink-0 flex flex-col items-center lg:items-start">
-                <div class="relative w-32 h-48 sm:w-40 sm:h-60 lg:w-44 lg:h-64 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg overflow-hidden flex items-center justify-center">
+                <div class="relative w-28 h-40 sm:w-32 sm:h-48 md:w-40 md:h-60 lg:w-44 lg:h-64 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg overflow-hidden flex items-center justify-center">
                   <img id="card-image" alt="Carta" class="w-full h-full object-cover select-none" draggable="false" src="" />
                   <!-- Overlays to hide info -->
                   <div class="pointer-events-none absolute top-[17%] left-[4%] w-[28%] h-[16%] bg-black"></div>
                   <div class="pointer-events-none absolute bottom-[1.5%] left-0 right-0 h-[24%] bg-black"></div>
                 </div>
-                <div class="text-center mt-2">
-                  <div class="text-base lg:text-lg font-bold text-white" id="player-name">Cargando...</div>
-                  <div class="text-orange-200 text-sm" id="player-position">FC Bufas</div>
+                <div class="text-center mt-1 sm:mt-2">
+                  <div class="text-sm sm:text-base lg:text-lg font-bold text-white" id="player-name">Cargando...</div>
+                  <div class="text-orange-200 text-xs sm:text-sm" id="player-position">FC Bufas</div>
                 </div>
               </div>
 
               <!-- Question y Opciones -->
               <div class="flex-1 flex flex-col justify-center min-h-0">
-                <div class="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-4 text-center lg:text-left" id="question-text">
+                <div class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white mb-3 sm:mb-4 text-center lg:text-left" id="question-text">
                   ¿Cuál es el valor de <span class="text-orange-400" id="stat-name">Ritmo</span> de esta carta?
                 </div>
 
                 <!-- Answer Options -->
-                <div class="grid grid-cols-1 gap-3 max-w-md mx-auto lg:mx-0" id="answer-options">
-                  <button class="answer-option p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-sm sm:text-base" data-answer="a">
+                <div class="grid grid-cols-1 gap-2 sm:gap-3 max-w-md mx-auto lg:mx-0" id="answer-options">
+                  <button class="answer-option p-2 sm:p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-xs sm:text-sm md:text-base" data-answer="a">
                     A) <span class="option-value">75</span>
                   </button>
-                  <button class="answer-option p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-sm sm:text-base" data-answer="b">
+                  <button class="answer-option p-2 sm:p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-xs sm:text-sm md:text-base" data-answer="b">
                     B) <span class="option-value">80</span>
                   </button>
-                  <button class="answer-option p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-sm sm:text-base" data-answer="c">
+                  <button class="answer-option p-2 sm:p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition-all text-xs sm:text-sm md:text-base" data-answer="c">
                     C) <span class="option-value">85</span>
                   </button>
                 </div>
@@ -212,7 +212,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     // State management
     let currentUser = null;
     let authToken = null;
-    const storage = window.localStorage;
+    const authStorage = window.sessionStorage; // Para el token de auth
+    const quizStorage = window.localStorage; // Para el progreso del quiz
     let questions = [];
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
@@ -238,7 +239,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 
     // Load auth state
     function checkAuthState() {
-      const token = storage.getItem('nike_fc_token');
+      const token = authStorage.getItem('nike_fc_token');
       if (token) { authToken = token; return true; }
       return false;
     }
@@ -260,14 +261,14 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       }
       
       const key = currentWindowKey(userId);
-      const savedKey = storage.getItem(`quiz_window_key_${userId}`);
+      const savedKey = quizStorage.getItem(`quiz_window_key_${userId}`);
       if (savedKey !== key) {
-        storage.removeItem(`quiz_progress_${userId}`);
-        storage.setItem(`quiz_window_key_${userId}`, key);
+        quizStorage.removeItem(`quiz_progress_${userId}`);
+        quizStorage.setItem(`quiz_window_key_${userId}`, key);
         return { answered: 0, correct: 0, completed: false, questionIndex: 0, questions: [] };
       }
       try {
-        const raw = storage.getItem(`quiz_progress_${userId}`);
+        const raw = quizStorage.getItem(`quiz_progress_${userId}`);
         if (!raw) return { answered: 0, correct: 0, completed: false, questionIndex: 0, questions: [] };
         const p = JSON.parse(raw);
         return { 
@@ -293,7 +294,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         questionIndex: questionIndex !== null ? questionIndex : currentQuestionIndex + 1,
         questions: questions // Save current questions to restore same sequence
       };
-      storage.setItem(`quiz_progress_${userId}`, JSON.stringify(progressData));
+      quizStorage.setItem(`quiz_progress_${userId}`, JSON.stringify(progressData));
     }
 
     // API calls

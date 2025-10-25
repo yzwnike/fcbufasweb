@@ -807,20 +807,28 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       const sortBy = document.getElementById('sort-filter')?.value || 'name-asc';
       const sortedCards = sortCards(cards, sortBy);
       
-      totalPages = Math.ceil(sortedCards.length / itemsPerPage);
+      // Separar listings (en venta) y unsold (no vendidas)
+      const listings = sortedCards.filter(g => g.isListing);
+      const unsold = sortedCards.filter(g => !g.isListing);
+      
+      // Paginar SOLO las cartas no vendidas
+      totalPages = Math.ceil(unsold.length / itemsPerPage);
       if (currentPage > totalPages) currentPage = 1;
       
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
-      const currentPageCards = sortedCards.slice(startIndex, endIndex);
+      const currentPageUnsold = unsold.slice(startIndex, endIndex);
       
-      // Update pagination info
-      const showing = `${startIndex + 1}-${Math.min(endIndex, sortedCards.length)}`;
+      // Combinar: TODAS las listings + unsold paginadas
+      const displayGroups = [...listings, ...currentPageUnsold];
+      
+      // Update pagination info (solo contar unsold para la paginación)
+      const showing = unsold.length > 0 ? `${startIndex + 1}-${Math.min(endIndex, unsold.length)}` : '0';
       document.getElementById('cards-showing').textContent = showing;
-      document.getElementById('cards-total').textContent = sortedCards.length;
+      document.getElementById('cards-total').textContent = unsold.length;
       
       // Display cards
-      displayCards(currentPageCards);
+      displayCards(displayGroups);
       
       // Update pagination controls
       updatePaginationControls();

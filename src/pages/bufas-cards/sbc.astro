@@ -139,8 +139,23 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       limitedList.innerHTML = '';
       unlimitedList.innerHTML = '';
       
-      const limited = challenges.filter(ch => !ch.repeatable);
-      const unlimited = challenges.filter(ch => ch.repeatable);
+      // Separar por tiempo restante: >180 días = ilimitado, o si es repeatable
+      const now = Date.now();
+      const sixMonths = 180 * 24 * 60 * 60 * 1000;
+      
+      const limited = challenges.filter(ch => {
+        if (ch.repeatable) return false; // Los repeatable siempre van a ilimitados
+        const endTime = new Date(ch.end_at).getTime();
+        const timeLeft = endTime - now;
+        return timeLeft < sixMonths; // Si quedan menos de 180 días, es limitado
+      });
+      
+      const unlimited = challenges.filter(ch => {
+        if (ch.repeatable) return true; // Los repeatable siempre van a ilimitados
+        const endTime = new Date(ch.end_at).getTime();
+        const timeLeft = endTime - now;
+        return timeLeft >= sixMonths; // Si quedan más de 180 días, es ilimitado
+      });
       
       // SBCs LIMITADOS con acordeón
       limited.forEach((ch, idx) => {
@@ -360,7 +375,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
             <div class="reward-desc text-emerald-200 text-xs sm:text-sm mt-1 line-clamp-2 transition-all duration-300">${ch.description||''}</div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0 badges-container">
-            <span class="px-2 py-0.5 text-xs rounded bg-blue-600/70">∞</span>
+            ${ch.repeatable ? '<span class="px-2 py-0.5 text-xs rounded bg-blue-600/70 font-semibold">REPETIBLE</span>' : ''}
             <svg class="w-5 h-5 text-emerald-200 transition-transform duration-200 accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
@@ -375,7 +390,10 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
               <div class="text-emerald-100 text-sm mb-2">Requisitos:</div>
               <div class="text-emerald-200 text-xs mb-3">${formatRequirements(ch.requirements)}</div>
               
-              <button class="sbc-select-btn w-full px-4 py-2 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors">Repetir Desafío</button>
+              ${ch.completed && !ch.repeatable ? 
+                '<button class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg opacity-50 cursor-not-allowed" disabled>Completado</button>' :
+                `<button class="sbc-select-btn w-full px-4 py-2 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors">${ch.repeatable ? 'Repetir Desafío' : 'Aceptar Desafío'}</button>`
+              }
             </div>
           </div>
         `;
