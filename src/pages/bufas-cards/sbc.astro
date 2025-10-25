@@ -98,6 +98,32 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     </div>
   </div>
 
+  <!-- Pack Reward Popup -->
+  <div id="pack-reward-popup" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[10000] p-4">
+    <div class="bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 rounded-2xl p-6 sm:p-8 max-w-md w-full mx-auto text-center shadow-2xl border-4 border-yellow-400">
+      <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">🎉 ¡Sobre Conseguido! 🎉</h2>
+      <div class="mb-6">
+        <img src="/icons/logrossobre.png" alt="Sobre" class="w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain" />
+      </div>
+      <p class="text-emerald-100 text-lg mb-2 font-semibold" id="pack-reward-title">Sobre 84+</p>
+      <p class="text-emerald-200 text-sm mb-6">Has completado el desafío y conseguido un sobre especial</p>
+      <button id="open-pack-btn" class="w-full px-6 py-3 bg-yellow-500 text-black font-bold text-lg rounded-lg hover:bg-yellow-400 transition-colors shadow-lg">
+        🎰 Abrir Sobre
+      </button>
+    </div>
+  </div>
+
+  <!-- Pack Opening Fullscreen Overlay -->
+  <div id="pack-opening-overlay" class="hidden fixed inset-0 bg-black/95 text-white flex items-center justify-center z-[10000] p-4 overflow-y-auto">
+    <div id="reveal-sequence" class="text-center w-full max-w-lg mx-auto px-4 my-auto">
+      <div id="loading-indicator" class="mt-6 text-green-300 text-lg sm:text-xl animate-pulse">Abriendo sobre…</div>
+      <div id="reveal-pos" class="text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-extrabold opacity-0 transition-opacity duration-500 text-center w-full px-2 py-4 break-words"></div>
+      <div id="reveal-rating" class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-yellow-400 font-extrabold mt-2 sm:mt-4 opacity-0 transition-opacity duration-500 text-center w-full"></div>
+      <div id="card-zoom" class="mt-4 sm:mt-6 md:mt-8 opacity-0 transform scale-50 transition-all duration-700 w-full flex justify-center"></div>
+      <button id="confirm-reveal-btn" class="mt-4 sm:mt-6 px-6 sm:px-8 py-2 sm:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors hidden w-full max-w-xs mx-auto text-sm sm:text-base">Confirmar</button>
+    </div>
+  </div>
+
   <script>
     let authToken = null;
     let challenges = [];
@@ -668,6 +694,47 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       if (!data.success) { alert(data.error||'Error'); return; }
       const isRepeatable = selectedChallenge.repeatable;
       
+      // Buscar recompensas
+      const packReward = selectedChallenge.rewards?.find(r => r.reward_type === 'PACK');
+      const cardReward = selectedChallenge.rewards?.find(r => r.reward_type === 'CARD');
+      
+      // Si hay recompensa de PACK, mostrar animación de sobre
+      if (packReward && packReward.pack_type) {
+        try {
+          const packRes = await fetch('/api/bufas-cards/sbc/get-recent-pack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer '+authToken },
+            body: JSON.stringify({ pack_type: packReward.pack_type })
+          });
+          const packData = await packRes.json();
+          
+          if (packData.success && packData.pack) {
+            const packTypeNames = {
+              'MEDIA_84_PLUS': 'Sobre 84+',
+              'FREE_DAILY': 'Sobre Gratuito',
+              'PREMIUM': 'Sobre Premium',
+              'SPECIAL': 'Sobre Especial'
+            };
+            const packName = packTypeNames[packReward.pack_type] || 'Sobre Especial';
+            await openPackWithAnimation(packData.pack.id, isRepeatable, packName);
+            return;
+          }
+        } catch (err) {
+          console.error('Error obteniendo pack:', err);
+        }
+      }
+      
+      // Si hay recompensa de CARD directa, mostrar animación de carta
+      if (cardReward && cardReward.card_id) {
+        try {
+          await showCardRewardAnimation(cardReward, isRepeatable);
+          return;
+        } catch (err) {
+          console.error('Error mostrando carta:', err);
+        }
+      }
+      
+      // Si no hay pack o hubo error, mostrar alert normal
       alert(`Desafío completado. Recompensa entregada.${isRepeatable ? ' Puedes repetir este desafío las veces que quieras.' : ''}`);
       
       userCards = userCards.filter(uc => !selectedIds.has(uc.id));
@@ -681,6 +748,341 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       }
       
       backToList();
+    }
+
+    function translatePosition(pos) {
+      const map = {
+        GK: 'PORTERO', CB: 'DEFENSA', LB: 'LATERAL IZQ', RB: 'LATERAL DCH',
+        CDM: 'MCD', CM: 'CENTROCAMPISTA', CAM: 'MCO',
+        LM: 'MI', RM: 'MD', LW: 'EI', RW: 'ED', ST: 'DELANTERO'
+      };
+      return map[pos] || pos || '';
+    }
+
+    function getDisplayRarity(specialType) {
+      switch (specialType) {
+        case 'Regular':
+        case 'OLD_GENERATION':
+          return 'NORMAL';
+        case 'TEAM_OF_THE_WEEK':
+        case 'NOM_POTM':
+          return 'ESPECIAL';
+        case 'MARKET_MASTER':
+        case 'RATING_RELOAD':
+        case 'COMEBACK_HERO':
+        case 'ASSIST_ENGINE':
+          return 'ELITE';
+        case 'PLAYER_OF_THE_MONTH':
+          return 'LEGENDARIO';
+        default:
+          return 'NORMAL';
+      }
+    }
+
+    function getRarityColor(displayRarity) {
+      switch (displayRarity) {
+        case 'NORMAL':
+          return 'from-gray-400 to-gray-600';
+        case 'ESPECIAL':
+          return 'from-blue-500 to-blue-700';
+        case 'ELITE':
+          return 'from-purple-500 to-purple-700';
+        case 'LEGENDARIO':
+          return 'from-yellow-400 to-orange-500';
+        default:
+          return 'from-gray-400 to-gray-600';
+      }
+    }
+
+    function getSpecialTypeLabel(specialType) {
+      switch (specialType) {
+        case 'TEAM_OF_THE_WEEK':
+          return 'TOTW';
+        case 'NOM_POTM':
+          return 'NOMINACIÓN POTM';
+        case 'PLAYER_OF_THE_MONTH':
+          return 'POTM';
+        case 'RATING_RELOAD':
+          return 'RATING RELOAD';
+        case 'ASSIST_ENGINE':
+          return 'ASSIST ENGINE';
+        case 'MARKET_MASTER':
+          return 'MARKET MASTER';
+        case 'COMEBACK_HERO':
+          return 'COMEBACK HERO';
+        case 'OLD_GENERATION':
+          return 'OG';
+        case 'Regular':
+          return 'BASE';
+        default:
+          return specialType || 'BASE';
+      }
+    }
+
+    function createCardElement(card) {
+      const displayRarity = getDisplayRarity(card.special_type || 'Regular');
+      const rarityColor = getRarityColor(displayRarity);
+      
+      const cardDiv = document.createElement('div');
+      cardDiv.className = `bg-gradient-to-br ${rarityColor} rounded-xl p-3 sm:p-4 text-center transform hover:scale-105 transition-transform w-full`;
+      const imgSrc = card.image_path || card.card_image_path || card.player?.image_url;
+      const img = imgSrc ? `<img src="${imgSrc}" alt="${card.player?.name || 'card'}" class="w-full h-auto rounded-lg mb-2 sm:mb-3" />` : `
+        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-2 sm:mb-3">
+          <span class="text-xl sm:text-2xl">⚽</span>
+        </div>`;
+      
+      cardDiv.innerHTML = `
+        ${img}
+        <div class=\"text-white font-bold text-xs sm:text-sm\">${card.player?.name || 'Jugador'}</div>
+        <div class=\"text-[10px] sm:text-xs text-white/70 mb-0.5\">${getSpecialTypeLabel(card.special_type || 'Regular')}</div>
+        <div class=\"text-xs text-white/80 mb-1 sm:mb-2\">${translatePosition(card.player?.position1) || ''} - ${displayRarity}</div>
+        <div class="text-xs text-yellow-300 font-bold">${card.base_price || 0} 💰</div>
+        <div class="text-xs text-white/90 mt-1">FIFA: ${card.player?.fifa_rating || ''}</div>
+      `;
+      return cardDiv;
+    }
+
+    async function showCardRewardAnimation(cardReward, isRepeatable) {
+      return new Promise(async (resolve) => {
+        try {
+          // Obtener la carta más reciente del tipo especificado (la que acabamos de dar)
+          const response = await fetch('/api/bufas-cards/collection', {
+            headers: { Authorization: 'Bearer ' + authToken }
+          });
+          const collectionData = await response.json();
+          
+          if (!collectionData.success || !collectionData.cards) {
+            alert('Error al obtener la carta recompensa');
+            resolve();
+            return;
+          }
+          
+          // Buscar la carta por card_id
+          const rewardCard = collectionData.cards.find(c => c.card_id === cardReward.card_id);
+          
+          if (!rewardCard) {
+            alert('Error: No se encontró la carta recompensa');
+            resolve();
+            return;
+          }
+          
+          // Mostrar popup con la imagen de la carta en lugar del sobre
+          const popup = document.getElementById('pack-reward-popup');
+          const titleEl = document.getElementById('pack-reward-title');
+          const openBtn = document.getElementById('open-pack-btn');
+          const packImage = popup.querySelector('img[alt="Sobre"]');
+          
+          // Cambiar imagen del sobre por imagen de la carta
+          if (packImage && rewardCard.card?.image_path) {
+            packImage.src = rewardCard.card.image_path;
+            packImage.alt = 'Carta';
+            packImage.className = 'w-48 h-64 sm:w-56 sm:h-72 mx-auto object-contain';
+          }
+          
+          if (titleEl) titleEl.textContent = `${rewardCard.card?.player?.name || 'Carta Especial'}`;
+          popup.querySelector('h2').textContent = '🏆 ¡Carta Conseguida! 🏆';
+          popup.querySelector('p.text-emerald-200').textContent = 'Has completado el desafío y conseguido esta carta exclusiva';
+          openBtn.textContent = '✨ Ver Carta';
+          
+          popup.classList.remove('hidden');
+          
+          // Handler para ver la carta
+          const handleView = async () => {
+            openBtn.removeEventListener('click', handleView);
+            popup.classList.add('hidden');
+            
+            // Restaurar valores originales del popup para futuros usos
+            if (packImage) {
+              packImage.src = '/icons/logrossobre.png';
+              packImage.alt = 'Sobre';
+              packImage.className = 'w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain';
+            }
+            popup.querySelector('h2').textContent = '🎉 ¡Sobre Conseguido! 🎉';
+            popup.querySelector('p.text-emerald-200').textContent = 'Has completado el desafío y conseguido un sobre especial';
+            openBtn.textContent = '🎰 Abrir Sobre';
+            
+            // Mostrar animación de la carta
+            const overlay = document.getElementById('pack-opening-overlay');
+            overlay.classList.remove('hidden');
+            
+            const posEl = document.getElementById('reveal-pos');
+            const ratingEl = document.getElementById('reveal-rating');
+            const zoom = document.getElementById('card-zoom');
+            const confirmBtn = document.getElementById('confirm-reveal-btn');
+            const loadingEl = document.getElementById('loading-indicator');
+            
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (posEl) posEl.classList.add('opacity-0');
+            if (ratingEl) ratingEl.classList.add('opacity-0');
+            if (zoom) { zoom.classList.add('opacity-0','scale-50'); zoom.innerHTML=''; }
+            if (confirmBtn) confirmBtn.classList.add('hidden');
+            
+            // Mostrar directamente la carta sin secuencia de posición/rating
+            setTimeout(() => {
+              if (zoom) {
+                const el = createCardElement(rewardCard.card);
+                el.classList.add('mx-auto', 'w-full', 'max-w-xs', 'sm:max-w-sm');
+                zoom.appendChild(el);
+                zoom.classList.remove('opacity-0');
+                zoom.classList.remove('scale-50');
+              }
+              if (confirmBtn) confirmBtn.classList.remove('hidden');
+            }, 500);
+            
+            // Handler para confirmar
+            const handleConfirm = () => {
+              confirmBtn.removeEventListener('click', handleConfirm);
+              overlay.classList.add('hidden');
+              
+              userCards = userCards.filter(uc => !selectedIds.has(uc.id));
+              selectedIds.clear();
+              renderSelected();
+              renderCollection(userCards);
+              
+              if (!isRepeatable) {
+                challenges = challenges.map(ch => ch.id === selectedChallenge.id ? { ...ch, completed: true } : ch);
+                renderChallenges();
+              }
+              
+              backToList();
+              resolve();
+            };
+            
+            confirmBtn.addEventListener('click', handleConfirm);
+          };
+          
+          openBtn.addEventListener('click', handleView);
+        } catch (e) {
+          console.error('showCardRewardAnimation error', e);
+          alert('Error al mostrar la carta');
+          resolve();
+        }
+      });
+    }
+
+    async function openPackWithAnimation(packId, isRepeatable, packTypeName = 'Sobre 84+') {
+      return new Promise((resolve) => {
+        // Mostrar popup de sobre conseguido
+        const popup = document.getElementById('pack-reward-popup');
+        const titleEl = document.getElementById('pack-reward-title');
+        const openBtn = document.getElementById('open-pack-btn');
+        
+        if (titleEl) titleEl.textContent = packTypeName;
+        popup.classList.remove('hidden');
+        
+        // Handler para abrir el sobre
+        const handleOpen = async () => {
+          openBtn.removeEventListener('click', handleOpen);
+          popup.classList.add('hidden');
+          
+          try {
+            // Mostrar overlay de apertura
+            const overlay = document.getElementById('pack-opening-overlay');
+            overlay.classList.remove('hidden');
+            
+            // Reset elementos
+            const posEl = document.getElementById('reveal-pos');
+            const ratingEl = document.getElementById('reveal-rating');
+            const zoom = document.getElementById('card-zoom');
+            const confirmBtn = document.getElementById('confirm-reveal-btn');
+            const loadingEl = document.getElementById('loading-indicator');
+            
+            if (posEl) posEl.classList.add('opacity-0');
+            if (ratingEl) ratingEl.classList.add('opacity-0');
+            if (zoom) { zoom.classList.add('opacity-0','scale-50'); zoom.innerHTML=''; }
+            if (confirmBtn) confirmBtn.classList.add('hidden');
+            if (loadingEl) loadingEl.classList.remove('hidden');
+
+            // Abrir el pack
+            const response = await fetch('/api/bufas-cards/packs/open', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}` 
+              },
+              body: JSON.stringify({ pack_id: packId })
+            });
+            
+            const result = await response.json();
+
+            if (!result || !result.success || !result.cards || result.cards.length === 0) {
+              const msg = result?.error || 'Error desconocido';
+              if (loadingEl) loadingEl.classList.add('hidden');
+              alert('Error al abrir sobre: ' + msg);
+              overlay.classList.add('hidden');
+              resolve();
+              return;
+            }
+
+            const card = result.cards[0];
+            if (loadingEl) loadingEl.classList.add('hidden');
+            
+            // Secuencia de revelación
+            await runRevealSequence(card, overlay, isRepeatable);
+            resolve();
+          } catch (e) {
+            console.error('openPackWithAnimation error', e);
+            alert('Error al abrir sobre');
+            document.getElementById('pack-opening-overlay').classList.add('hidden');
+            resolve();
+          }
+        };
+        
+        openBtn.addEventListener('click', handleOpen);
+      });
+    }
+
+    async function runRevealSequence(card, overlay, isRepeatable) {
+      return new Promise((resolve) => {
+        const posEl = document.getElementById('reveal-pos');
+        const ratingEl = document.getElementById('reveal-rating');
+        const zoom = document.getElementById('card-zoom');
+        const confirmBtn = document.getElementById('confirm-reveal-btn');
+
+        if (posEl) {
+          posEl.textContent = translatePosition(card?.player?.position1);
+          setTimeout(()=>posEl.classList.remove('opacity-0'), 150);
+          setTimeout(()=>posEl.classList.add('opacity-0'), 1000);
+        }
+        if (ratingEl) {
+          setTimeout(()=>{ ratingEl.textContent = String(card?.player?.fifa_rating || ''); ratingEl.classList.remove('opacity-0'); }, 1300);
+          setTimeout(()=>ratingEl.classList.add('opacity-0'), 2300);
+        }
+
+        setTimeout(()=>{
+          if (zoom) {
+            const el = createCardElement(card);
+            el.classList.add('mx-auto', 'w-full', 'max-w-xs', 'sm:max-w-sm');
+            zoom.appendChild(el);
+            zoom.classList.remove('opacity-0');
+            zoom.classList.remove('scale-50');
+          }
+          if (confirmBtn) confirmBtn.classList.remove('hidden');
+        }, 2600);
+
+        if (confirmBtn) {
+          const handler = async (e) => {
+            e.preventDefault();
+            confirmBtn.removeEventListener('click', handler);
+            overlay.classList.add('hidden');
+            
+            // Actualizar estado
+            userCards = userCards.filter(uc => !selectedIds.has(uc.id));
+            selectedIds.clear();
+            renderSelected();
+            renderCollection(userCards);
+            
+            if (!isRepeatable) {
+              challenges = challenges.map(ch => ch.id === selectedChallenge.id ? { ...ch, completed: true } : ch);
+              renderChallenges();
+            }
+            
+            backToList();
+            resolve(true);
+          };
+          confirmBtn.addEventListener('click', handler);
+        }
+      });
     }
 
     async function init() {

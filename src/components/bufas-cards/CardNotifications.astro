@@ -1,0 +1,175 @@
+<!-- Container for card notifications in bottom-right corner -->
+<div id="card-notifications-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col-reverse gap-2 pointer-events-none max-w-sm">
+  <!-- Notifications will be dynamically inserted here -->
+</div>
+
+<style>
+  @keyframes slideInRight {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+
+  .notification-enter {
+    animation: slideInRight 0.3s ease-out forwards;
+  }
+
+  .notification-exit {
+    animation: slideOutRight 0.3s ease-in forwards;
+  }
+</style>
+
+<script>
+  let eventSource: EventSource | null = null;
+  const maxNotifications = 3;
+  const notificationDuration = 5000; // 5 seconds
+
+  function getSpecialTypeLabel(specialType: string): string {
+    const labels: Record<string, string> = {
+      'TEAM_OF_THE_WEEK': 'TOTW',
+      'NOM_POTM': 'NOM POTM',
+      'PLAYER_OF_THE_MONTH': 'POTM',
+      'RATING_RELOAD': 'RR',
+      'ASSIST_ENGINE': 'AE',
+      'MARKET_MASTER': 'MM',
+      'COMEBACK_HERO': 'CH',
+      'OLD_GENERATION': 'OG',
+      'Regular': ''
+    };
+    return labels[specialType] || specialType || '';
+  }
+
+  function getRarityColor(specialType: string): string {
+    if (!specialType || specialType === 'Regular' || specialType === 'OLD_GENERATION') {
+      return 'from-gray-600 to-gray-800';
+    }
+    if (specialType === 'TEAM_OF_THE_WEEK' || specialType === 'NOM_POTM') {
+      return 'from-blue-600 to-blue-800';
+    }
+    if (['MARKET_MASTER', 'RATING_RELOAD', 'COMEBACK_HERO', 'ASSIST_ENGINE'].includes(specialType)) {
+      return 'from-purple-600 to-purple-800';
+    }
+    if (specialType === 'PLAYER_OF_THE_MONTH') {
+      return 'from-yellow-500 to-orange-600';
+    }
+    return 'from-gray-600 to-gray-800';
+  }
+
+  function createNotification(data: any) {
+    const container = document.getElementById('card-notifications-container');
+    if (!container) return;
+
+    // Remove oldest notification if we have too many
+    const existing = container.querySelectorAll('.card-notification');
+    if (existing.length >= maxNotifications) {
+      const oldest = existing[existing.length - 1];
+      oldest.classList.add('notification-exit');
+      setTimeout(() => oldest.remove(), 300);
+    }
+
+    const notification = document.createElement('div');
+    notification.className = 'card-notification notification-enter pointer-events-auto';
+    
+    const specialTypeLabel = getSpecialTypeLabel(data.card.special_type);
+    const rarityColor = getRarityColor(data.card.special_type);
+    
+    notification.innerHTML = `
+      <div class="bg-gradient-to-r ${rarityColor} rounded-lg shadow-2xl p-3 flex items-center gap-3 border-2 border-white/20">
+        <div class="flex-1 min-w-0">
+          <p class="text-white font-bold text-sm truncate">${data.username}</p>
+          <p class="text-white/80 text-xs">ha conseguido:</p>
+          <p class="text-white font-semibold text-sm truncate">${data.card.player_name}</p>
+          ${specialTypeLabel ? `<span class="inline-block px-2 py-0.5 bg-white/20 rounded text-white text-[10px] font-bold mt-1">${specialTypeLabel}</span>` : ''}
+        </div>
+        <div class="flex-shrink-0">
+          <img 
+            src="${data.card.image_path || '/icons/placeholder-card.png'}" 
+            alt="${data.card.player_name}"
+            class="w-16 h-24 object-cover rounded shadow-lg"
+            onerror="this.src='/icons/placeholder-card.png'"
+          />
+        </div>
+      </div>
+    `;
+
+    container.insertBefore(notification, container.firstChild);
+
+    // Auto-remove after duration
+    setTimeout(() => {
+      notification.classList.add('notification-exit');
+      setTimeout(() => notification.remove(), 300);
+    }, notificationDuration);
+  }
+
+  function initNotifications() {
+    // Close existing connection if any
+    if (eventSource) {
+      eventSource.close();
+    }
+
+    // Connect to SSE endpoint
+    eventSource = new EventSource('/api/bufas-cards/notifications/stream');
+
+    eventSource.addEventListener('message', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'card_obtained') {
+          createNotification(data);
+        }
+      } catch (e) {
+        console.error('Error parsing notification:', e);
+      }
+    });
+
+    eventSource.addEventListener('error', (error) => {
+      console.error('Notification stream error:', error);
+      // Reconnect after 5 seconds
+      setTimeout(() => {
+        if (eventSource) {
+          eventSource.close();
+        }
+        initNotifications();
+      }, 5000);
+    });
+  }
+
+  // Initialize on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNotifications);
+  } else {
+    initNotifications();
+  }
+
+  // Also initialize on Astro page transitions
+  document.addEventListener('astro:page-load', initNotifications);
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    if (eventSource) {
+      eventSource.close();
+    }
+  });
+  
+  document.addEventListener('astro:before-swap', () => {
+    if (eventSource) {
+      eventSource.close();
+    }
+  });
+</script>

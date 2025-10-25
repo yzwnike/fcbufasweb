@@ -1,0 +1,432 @@
+---
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
+import Subheader from '@/components/bufas-cards/Subheader.astro';
+---
+
+<NikeFCLayout title="Perfil - Bufas Cards" helpKey="perfil">
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
+    <div class="container mx-auto px-4 pt-4 pb-10">
+      <Subheader variant="minimal" />
+      <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-6">💼 Perfil</h1>
+      
+      <!-- Sección de Cartas Destacadas -->
+      <div class="bg-gradient-to-r from-purple-900/40 via-purple-800/40 to-blue-900/40 backdrop-blur-md border border-purple-500/30 rounded-xl p-6 mb-6">
+        <h2 class="text-2xl font-bold text-white mb-2">⭐ Cartas Destacadas</h2>
+        <p class="text-purple-200 mb-4">¡Muestra tus mejores cartas al mundo! Selecciona hasta 3 cartas que aparecerán en el <strong>Ranking público</strong> junto a tu nombre para que todos vean tu colección.</p>
+        
+        <!-- Cartas seleccionadas (slots) -->
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div id="featured-slot-1" class="bg-white/10 rounded-lg p-3 min-h-[180px] flex flex-col items-center justify-center border-2 border-dashed border-white/30 cursor-pointer hover:bg-white/20 transition-colors">
+            <svg class="w-12 h-12 text-white/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <p class="text-white/50 text-xs text-center">Slot 1</p>
+          </div>
+          <div id="featured-slot-2" class="bg-white/10 rounded-lg p-3 min-h-[180px] flex flex-col items-center justify-center border-2 border-dashed border-white/30 cursor-pointer hover:bg-white/20 transition-colors">
+            <svg class="w-12 h-12 text-white/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <p class="text-white/50 text-xs text-center">Slot 2</p>
+          </div>
+          <div id="featured-slot-3" class="bg-white/10 rounded-lg p-3 min-h-[180px] flex flex-col items-center justify-center border-2 border-dashed border-white/30 cursor-pointer hover:bg-white/20 transition-colors">
+            <svg class="w-12 h-12 text-white/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <p class="text-white/50 text-xs text-center">Slot 3</p>
+          </div>
+        </div>
+        
+        <button id="select-featured-btn" class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors">
+          🎴 Seleccionar Cartas de tu Colección
+        </button>
+      </div>
+      
+      <p class="text-slate-200 mb-4">Puedes cambiar tu nombre de usuario y tu correo editando los campos y pulsando <span class="font-semibold">Guardar</span>. Para cambiar la contraseña, introduce la <span class="font-semibold">actual</span> y la <span class="font-semibold">nueva</span> y pulsa <span class="font-semibold">Cambiar contraseña</span>.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Perfil -->
+        <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <h2 class="text-xl font-bold text-white mb-1">Usuario</h2>
+          <p class="text-slate-200 text-sm mb-4">Edita tu nombre de usuario y tu correo y pulsa <span class="font-semibold">Guardar</span>.</p>
+          <form id="profile-form" class="space-y-4">
+            <div>
+              <label class="block text-sm text-slate-200 mb-1">Username</label>
+              <input id="pf-username" type="text" minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" required class="w-full px-3 py-2 rounded bg-white/80 text-slate-900" />
+            </div>
+            <div>
+              <label class="block text-sm text-slate-200 mb-1">Email</label>
+              <input id="pf-email" type="email" required class="w-full px-3 py-2 rounded bg-white/80 text-slate-900" />
+            </div>
+            <div id="pf-error" class="hidden text-red-300 text-sm"></div>
+            <button type="submit" class="px-4 py-2 rounded bg-emerald-600 text-white">Guardar</button>
+          </form>
+        </div>
+
+        <!-- Password -->
+        <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-6">
+          <h2 class="text-xl font-bold text-white mb-1">Contraseña</h2>
+          <p class="text-slate-200 text-sm mb-4">Introduce tu <span class="font-semibold">contraseña actual</span> y la <span class="font-semibold">nueva</span> y pulsa <span class="font-semibold">Cambiar contraseña</span>.</p>
+          <form id="pw-form" class="space-y-4">
+            <div>
+              <label class="block text-sm text-slate-200 mb-1">Actual</label>
+              <input id="pw-current" type="password" class="w-full px-3 py-2 rounded bg-white/80 text-slate-900" />
+            </div>
+            <div>
+              <label class="block text-sm text-slate-200 mb-1">Nueva</label>
+              <input id="pw-new" type="password" minlength="6" class="w-full px-3 py-2 rounded bg-white/80 text-slate-900" />
+            </div>
+            <div id="pw-error" class="hidden text-red-300 text-sm"></div>
+            <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">Cambiar contraseña</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal para seleccionar cartas destacadas -->
+  <div id="select-cards-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[10000] p-4 hidden">
+    <div class="bg-slate-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-bold text-white">Selecciona tus Cartas Destacadas</h3>
+        <button id="close-modal-btn" class="text-white hover:text-red-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <p class="text-slate-300 mb-4">Selecciona hasta 3 cartas de tu colección. Haz clic en una carta para seleccionarla/deseleccionarla.</p>
+      
+      <div class="mb-4">
+        <input 
+          type="text" 
+          id="card-search" 
+          placeholder="Buscar carta..." 
+          class="w-full px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:border-purple-500 focus:outline-none"
+        />
+      </div>
+      
+      <div id="cards-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+        <!-- Cards will be loaded here -->
+      </div>
+      
+      <div class="flex gap-3">
+        <button id="save-featured-btn" class="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg">
+          ✅ Guardar Selección
+        </button>
+        <button id="cancel-modal-btn" class="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const storage = window.sessionStorage;
+    let token = null;
+
+    function requireAuth() {
+      const t = storage.getItem('nike_fc_token');
+      if (!t) { window.location.href = '/bufas-cards'; return false; }
+      token = t; return true;
+    }
+
+    async function loadProfile() {
+      const res = await fetch('/api/bufas-cards/profile', { cache: 'no-store', headers: { Authorization: `Bearer ${token}` }});
+      const data = await res.json();
+      if (data && data.success) {
+        const u = document.getElementById('pf-username');
+        const e = document.getElementById('pf-email');
+        if (u) u.value = data.user.username;
+        if (e) e.value = data.user.email;
+        
+        // Guardar datos originales para comparación
+        originalData.username = data.user.username;
+        originalData.email = data.user.email;
+      }
+    }
+
+    let originalData = { username: '', email: '' };
+    
+    function bindForms() {
+      const pf = document.getElementById('profile-form');
+      if (pf && !pf.dataset.bound) {
+        pf.dataset.bound = '1';
+        pf.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const username = (document.getElementById('pf-username').value || '').trim();
+          const email = (document.getElementById('pf-email').value || '').trim();
+          const err = document.getElementById('pf-error'); err.classList.add('hidden'); err.textContent = '';
+          
+          // Validación local básica
+          if (!username || username.length < 3 || username.length > 20) {
+            err.textContent = 'Username debe tener entre 3 y 20 caracteres'; err.classList.remove('hidden');
+            return;
+          }
+          if (!email || !email.includes('@')) {
+            err.textContent = 'Email no válido'; err.classList.remove('hidden');
+            return;
+          }
+          
+          // Construir objeto solo con campos que han cambiado
+          const updateData = {};
+          if (username !== originalData.username) {
+            updateData.username = username;
+          }
+          if (email !== originalData.email) {
+            updateData.email = email;
+          }
+          
+          // Si no hay cambios, no hacer nada
+          if (Object.keys(updateData).length === 0) {
+            err.textContent = 'No hay cambios que guardar'; err.classList.remove('hidden');
+            return;
+          }
+          
+          try {
+            const res = await fetch('/api/bufas-cards/profile', { 
+              method: 'PUT', 
+              headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` }, 
+              body: JSON.stringify(updateData)
+            });
+            const data = await res.json();
+            if (!data.success) { 
+              err.textContent = data.error || 'No se pudo guardar'; 
+              err.classList.remove('hidden'); 
+            } else { 
+              alert('Actualizado'); 
+              // Actualizar datos originales para futuras comparaciones
+              originalData.username = data.user.username;
+              originalData.email = data.user.email;
+            }
+          } catch {
+            err.textContent = 'Error de conexión'; err.classList.remove('hidden');
+          }
+        });
+      }
+
+      const pwf = document.getElementById('pw-form');
+      if (pwf && !pwf.dataset.bound) {
+        pwf.dataset.bound = '1';
+        pwf.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const currentPassword = document.getElementById('pw-current').value;
+          const newPassword = document.getElementById('pw-new').value;
+          const err = document.getElementById('pw-error'); err.classList.add('hidden'); err.textContent = '';
+          try {
+            const res = await fetch('/api/bufas-cards/profile/password', { method: 'PUT', headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ currentPassword, newPassword })});
+            const data = await res.json();
+            if (!data.success) { err.textContent = data.error || 'No se pudo cambiar'; err.classList.remove('hidden'); }
+            else { alert('Contraseña actualizada'); document.getElementById('pw-current').value=''; document.getElementById('pw-new').value=''; }
+          } catch {
+            err.textContent = 'Error de conexión'; err.classList.remove('hidden');
+          }
+        });
+      }
+    }
+
+    // Featured cards
+    let userCollection = [];
+    let selectedCards = [];
+    let currentFeaturedCards = [];
+    
+    async function loadFeaturedCards() {
+      try {
+        const res = await fetch('/api/bufas-cards/profile/featured-cards', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentFeaturedCards = data.featured || [];
+          renderFeaturedSlots();
+        }
+      } catch (e) {
+        console.error('Error loading featured cards:', e);
+      }
+    }
+    
+    function renderFeaturedSlots() {
+      for (let i = 1; i <= 3; i++) {
+        const slot = document.getElementById(`featured-slot-${i}`);
+        if (!slot) continue;
+        
+        const card = currentFeaturedCards.find(c => c.position === i);
+        
+        if (card) {
+          slot.innerHTML = `
+            <img src="${card.image_path || '/icons/placeholder-card.png'}" alt="${card.player_name}" class="w-full h-auto rounded-lg mb-2" onerror="this.src='/icons/placeholder-card.png'" />
+            <p class="text-white text-xs font-bold text-center truncate">${card.player_name}</p>
+          `;
+          slot.classList.remove('border-dashed');
+          slot.classList.add('border-solid', 'border-purple-500');
+        } else {
+          slot.innerHTML = `
+            <svg class="w-12 h-12 text-white/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <p class="text-white/50 text-xs text-center">Slot ${i}</p>
+          `;
+          slot.classList.add('border-dashed');
+          slot.classList.remove('border-solid', 'border-purple-500');
+        }
+      }
+    }
+    
+    async function loadCollection() {
+      try {
+        const res = await fetch('/api/bufas-cards/collection', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          // Agrupar por card_id para mostrar solo cartas únicas
+          const uniqueCards = [];
+          const seenCardIds = new Set();
+          
+          for (const uc of (data.cards || [])) {
+            if (uc.card_id && !seenCardIds.has(uc.card_id)) {
+              seenCardIds.add(uc.card_id);
+              uniqueCards.push(uc);
+            }
+          }
+          
+          userCollection = uniqueCards;
+        }
+      } catch (e) {
+        console.error('Error loading collection:', e);
+      }
+    }
+    
+    function openCardSelectionModal() {
+      selectedCards = currentFeaturedCards.map(c => c.user_card_id);
+      renderCardsGrid();
+      document.getElementById('select-cards-modal').classList.remove('hidden');
+    }
+    
+    function closeCardSelectionModal() {
+      document.getElementById('select-cards-modal').classList.add('hidden');
+      selectedCards = [];
+    }
+    
+    function renderCardsGrid(searchTerm = '') {
+      const grid = document.getElementById('cards-grid');
+      if (!grid) return;
+      
+      const filtered = userCollection.filter(uc => {
+        if (searchTerm) {
+          const name = uc.card?.player?.name || '';
+          return name.toLowerCase().includes(searchTerm.toLowerCase());
+        }
+        return true;
+      });
+      
+      grid.innerHTML = '';
+      
+      filtered.forEach(uc => {
+        const isSelected = selectedCards.includes(uc.id);
+        const card = document.createElement('div');
+        card.className = `cursor-pointer rounded-lg p-2 transition-all ${
+          isSelected 
+            ? 'bg-purple-600 border-2 border-purple-400 scale-105' 
+            : 'bg-slate-800 border-2 border-slate-700 hover:border-purple-500'
+        }`;
+        
+        card.innerHTML = `
+          <img src="${uc.card?.image_path || '/icons/placeholder-card.png'}" alt="${uc.card?.player?.name}" class="w-full h-auto rounded-lg mb-1" onerror="this.src='/icons/placeholder-card.png'" />
+          <p class="text-white text-xs font-semibold truncate text-center">${uc.card?.player?.name || 'Carta'}</p>
+          ${isSelected ? '<p class="text-purple-200 text-[10px] text-center mt-1">✓ Seleccionada</p>' : ''}
+        `;
+        
+        card.addEventListener('click', () => toggleCardSelection(uc.id));
+        grid.appendChild(card);
+      });
+    }
+    
+    function toggleCardSelection(userCardId) {
+      const index = selectedCards.indexOf(userCardId);
+      
+      if (index > -1) {
+        selectedCards.splice(index, 1);
+      } else {
+        if (selectedCards.length >= 3) {
+          alert('Solo puedes seleccionar hasta 3 cartas');
+          return;
+        }
+        selectedCards.push(userCardId);
+      }
+      
+      renderCardsGrid(document.getElementById('card-search')?.value || '');
+    }
+    
+    async function saveFeaturedCards() {
+      try {
+        const saveBtn = document.getElementById('save-featured-btn');
+        if (saveBtn) saveBtn.disabled = true;
+        
+        const res = await fetch('/api/bufas-cards/profile/featured-cards', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ user_card_ids: selectedCards })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          await loadFeaturedCards();
+          closeCardSelectionModal();
+          alert('✅ Cartas destacadas actualizadas');
+        } else {
+          alert(data.error || 'Error al guardar');
+        }
+      } catch (e) {
+        console.error('Error saving featured cards:', e);
+        alert('Error al guardar');
+      } finally {
+        const saveBtn = document.getElementById('save-featured-btn');
+        if (saveBtn) saveBtn.disabled = false;
+      }
+    }
+    
+    function bindFeaturedCardEvents() {
+      const selectBtn = document.getElementById('select-featured-btn');
+      if (selectBtn) selectBtn.addEventListener('click', openCardSelectionModal);
+      
+      const closeBtn = document.getElementById('close-modal-btn');
+      if (closeBtn) closeBtn.addEventListener('click', closeCardSelectionModal);
+      
+      const cancelBtn = document.getElementById('cancel-modal-btn');
+      if (cancelBtn) cancelBtn.addEventListener('click', closeCardSelectionModal);
+      
+      const saveBtn = document.getElementById('save-featured-btn');
+      if (saveBtn) saveBtn.addEventListener('click', saveFeaturedCards);
+      
+      const searchInput = document.getElementById('card-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          renderCardsGrid(e.target.value);
+        });
+      }
+    }
+
+    async function start() {
+      if (!requireAuth()) return;
+      if (!document.getElementById('profile-form')) return;
+      await loadProfile();
+      await loadCollection();
+      await loadFeaturedCards();
+      bindForms();
+      bindFeaturedCardEvents();
+    }
+
+    const kickoff = () => start();
+    document.addEventListener('DOMContentLoaded', kickoff);
+    document.addEventListener('astro:page-load', kickoff);
+    document.addEventListener('astro:after-swap', kickoff);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') kickoff(); });
+    window.addEventListener('pageshow', kickoff);
+    setTimeout(kickoff, 0);
+  </script>
+</NikeFCLayout>

@@ -8,40 +8,27 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     <div class="container mx-auto px-4 py-2 pt-4 relative z-10">
       <Subheader variant="minimal" />
 
-      <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-4 mb-2">Ranking</h1>
-      <p class="text-slate-300 mb-6">Progreso de tu colección por categoría</p>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-4 mb-2">🏆 Ranking</h1>
+      <p class="text-slate-300 mb-6">Colecciones destacadas y progreso por categoría</p>
 
-      <div class="rounded-xl shadow-lg ring-1 ring-white/10 bg-slate-900/80 backdrop-blur">
-        <div class="ranking-wrapper">
-          <!-- Fixed columns -->
-          <div class="fixed-columns">
-            <table class="fixed-table">
-              <thead>
-                <tr class="bg-slate-800/80">
-                  <th class="px-2 py-2 text-left">#</th>
-                  <th class="px-2 py-2 text-left">Usuario</th>
-                </tr>
-              </thead>
-              <tbody id="rank-body-fixed"></tbody>
-            </table>
-          </div>
-          
-          <!-- Scrollable columns -->
-          <div class="scrollable-columns">
-            <table class="scrollable-table">
-              <thead>
-                <tr class="bg-slate-800/80">
-                  <th class="px-2 py-2 text-left">TOTAL</th>
-                  <th class="px-2 py-2">BASE</th>
-                  <th class="px-2 py-2">OG</th>
-                  <th class="px-2 py-2">ESPECIAL</th>
-                  <th class="px-2 py-2">ELITE</th>
-                  <th class="px-2 py-2">LEGENDARIO</th>
-                </tr>
-              </thead>
-              <tbody id="rank-body-scrollable"></tbody>
-            </table>
-          </div>
+      <div class="rounded-xl shadow-lg ring-1 ring-white/10 bg-slate-900/80 backdrop-blur overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-slate-100 text-sm">
+            <thead>
+              <tr class="bg-slate-800/80 sticky top-0 z-10">
+                <th class="px-2 py-2 text-left">#</th>
+                <th class="px-2 py-2 text-left min-w-[120px]">Usuario</th>
+                <th class="px-2 py-2 text-center">TOTAL</th>
+                <th class="px-2 py-2 text-left min-w-[160px]">⭐ Destacadas</th>
+                <th class="px-2 py-2 text-center">BASE</th>
+                <th class="px-2 py-2 text-center">OG</th>
+                <th class="px-2 py-2 text-center">ESPECIAL</th>
+                <th class="px-2 py-2 text-center">ELITE</th>
+                <th class="px-2 py-2 text-center">LEGENDARIO</th>
+              </tr>
+            </thead>
+            <tbody id="rank-body"></tbody>
+          </table>
         </div>
       </div>
 
@@ -65,12 +52,10 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     }
 
     function renderBoard(board) {
-      const tbodyFixed = document.getElementById('rank-body-fixed');
-      const tbodyScrollable = document.getElementById('rank-body-scrollable');
+      const tbody = document.getElementById('rank-body');
       const empty = document.getElementById('rank-empty');
       
-      tbodyFixed.innerHTML = '';
-      tbodyScrollable.innerHTML = '';
+      tbody.innerHTML = '';
       
       const totals = board.totals || { totalAll: 0, byCode: {} };
       const users = Array.isArray(board.users) ? board.users : [];
@@ -83,27 +68,51 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       empty?.classList.add('hidden');
       
       users.forEach((u, idx) => {
-        // Fixed columns row
-        const trFixed = document.createElement('tr');
-        trFixed.className = 'hover:bg-slate-800/60 transition-colors text-sm text-slate-100';
-        trFixed.innerHTML = [
-          `<td class="px-2 py-2">${idx+1}</td>`,
-          `<td class="px-2 py-2 font-semibold">${u.username}</td>`
-        ].join('');
-        tbodyFixed.appendChild(trFixed);
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/60 transition-colors border-b border-white/5';
         
-        // Scrollable columns row
-        const trScrollable = document.createElement('tr');
-        trScrollable.className = 'hover:bg-slate-800/60 transition-colors text-sm text-slate-100';
-        trScrollable.innerHTML = [
-          `<td class="px-2 py-2">${u.byCode.TOTAL||0}/${totals.byCode.TOTAL||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.BASE||0}/${totals.byCode.BASE||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.OG||0}/${totals.byCode.OG||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.ESPECIAL||0}/${totals.byCode.ESPECIAL||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.ELITE||0}/${totals.byCode.ELITE||0}</td>`,
-          `<td class="px-2 py-2 text-center">${u.byCode.LEGENDARIO||0}/${totals.byCode.LEGENDARIO||0}</td>`
+        // Crear mini-cartas destacadas
+        const featuredCards = u.featuredCards || [];
+        let featuredHTML = '<div class="flex gap-1 justify-start">';
+        for (let i = 0; i < 3; i++) {
+          const card = featuredCards[i];
+          if (card) {
+            featuredHTML += `
+              <div class="w-10 h-14 relative group flex-shrink-0">
+                <img 
+                  src="${card.image_path || '/icons/placeholder-card.png'}" 
+                  alt="${card.player_name}" 
+                  class="w-full h-full object-cover rounded border border-purple-400/50 shadow-sm"
+                  onerror="this.src='/icons/placeholder-card.png'"
+                />
+                <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
+                  <span class="text-[7px] text-white text-center px-0.5 leading-tight">${card.player_name}</span>
+                </div>
+              </div>
+            `;
+          } else {
+            featuredHTML += `
+              <div class="w-10 h-14 bg-slate-700/30 rounded border border-dashed border-slate-600 flex items-center justify-center flex-shrink-0">
+                <span class="text-slate-500 text-xs">-</span>
+              </div>
+            `;
+          }
+        }
+        featuredHTML += '</div>';
+        
+        tr.innerHTML = [
+          `<td class="px-2 py-3">${idx+1}</td>`,
+          `<td class="px-2 py-3 font-semibold">${u.username}</td>`,
+          `<td class="px-2 py-3 text-center font-bold text-purple-300">${u.byCode.TOTAL||0}/${totals.byCode.TOTAL||0}</td>`,
+          `<td class="px-2 py-3">${featuredHTML}</td>`,
+          `<td class="px-2 py-3 text-center">${u.byCode.BASE||0}/${totals.byCode.BASE||0}</td>`,
+          `<td class="px-2 py-3 text-center">${u.byCode.OG||0}/${totals.byCode.OG||0}</td>`,
+          `<td class="px-2 py-3 text-center">${u.byCode.ESPECIAL||0}/${totals.byCode.ESPECIAL||0}</td>`,
+          `<td class="px-2 py-3 text-center">${u.byCode.ELITE||0}/${totals.byCode.ELITE||0}</td>`,
+          `<td class="px-2 py-3 text-center">${u.byCode.LEGENDARIO||0}/${totals.byCode.LEGENDARIO||0}</td>`
         ].join('');
-        tbodyScrollable.appendChild(trScrollable);
+        
+        tbody.appendChild(tr);
       });
     }
 
@@ -118,9 +127,8 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     }
 
   const kickoff = () => {
-    const tbodyFixed = document.getElementById('rank-body-fixed');
-    const tbodyScrollable = document.getElementById('rank-body-scrollable');
-    if (!tbodyFixed || !tbodyScrollable) { requestAnimationFrame(kickoff); return; }
+    const tbody = document.getElementById('rank-body');
+    if (!tbody) { requestAnimationFrame(kickoff); return; }
     start();
   };
 
@@ -134,82 +142,47 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
   </script>
 
   <style>
-    /* Dual table layout for fixed columns */
-    .ranking-wrapper {
-      display: flex;
-      position: relative;
-      width: 100%;
+    /* Tabla responsiva */
+    table {
+      border-collapse: collapse;
     }
-
-    .fixed-columns {
-      flex-shrink: 0;
-      background: rgb(15 23 42 / 0.8);
-      backdrop-filter: blur(8px);
-      z-index: 10;
-      border-right: 1px solid rgba(255,255,255,0.1);
+    
+    thead th {
+      white-space: nowrap;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
     }
-
-    .scrollable-columns {
-      flex: 1;
-      overflow-x: auto;
-      background: rgb(15 23 42 / 0.8);
-      backdrop-filter: blur(8px);
+    
+    tbody td {
+      white-space: nowrap;
     }
-
-    .fixed-table,
-    .scrollable-table {
-      width: 100%;
-      text-align: left;
-      color: rgb(241 245 249); /* text-slate-100 */
-      font-size: 0.875rem; /* text-sm */
-    }
-
-    .fixed-table {
-      width: auto;
-      min-width: 170px;
-    }
-
-    .scrollable-table {
-      min-width: 600px;
-    }
-
-    /* Header styles */
-    .fixed-table thead tr,
-    .scrollable-table thead tr {
-      background: rgb(30 41 59 / 0.8); /* bg-slate-800/80 */
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    }
-
-    .fixed-table th,
-    .scrollable-table th,
-    .fixed-table td,
-    .scrollable-table td {
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    /* Hover effects */
-    .fixed-table tbody tr:hover,
-    .scrollable-table tbody tr:hover {
-      background-color: rgb(30 41 59 / 0.6); /* hover:bg-slate-800/60 */
-    }
-
-    /* Synchronized scrolling would require JS but tables will align naturally */
     
     /* Mobile responsiveness */
     @media (max-width: 768px) {
-      .fixed-table {
-        min-width: 130px;
+      table {
+        font-size: 0.75rem;
       }
       
-      .scrollable-table {
-        min-width: 500px;
+      thead th {
+        font-size: 0.65rem;
+        padding: 0.5rem 0.25rem;
       }
       
-      .fixed-columns,
-      .scrollable-columns {
-        font-size: 0.75rem; /* text-xs */
+      tbody td {
+        padding: 0.5rem 0.25rem !important;
+      }
+      
+      /* Cartas más pequeñas en móvil */
+      tbody td img {
+        width: 32px !important;
+        height: 44px !important;
+      }
+      
+      tbody td .w-10 {
+        width: 32px !important;
+        height: 44px !important;
       }
     }
   </style>

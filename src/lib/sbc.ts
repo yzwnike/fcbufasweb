@@ -207,15 +207,21 @@ export async function submitChallenge(
       await conn.execute('DELETE FROM user_cards WHERE id = ? AND user_id = ?', [ucId, userId]);
     }
 
-    // Rewards
-    const rewards = await executeQuery<SbcReward>('SELECT * FROM sbc_rewards WHERE challenge_id = ?', [challengeId]);
+    // Rewards - MUST use conn.execute to stay within the transaction
+    const [rewardRows] = await conn.execute('SELECT * FROM sbc_rewards WHERE challenge_id = ?', [challengeId]);
+    const rewards = rewardRows as SbcReward[];
+    
+    console.log('SBC Rewards found:', rewards.length, 'for challenge', challengeId);
+    
     for (const r of rewards) {
       if (r.reward_type === 'PACK' && r.pack_type) {
         for (let i = 0; i < (r.amount || 1); i++) {
+          console.log('Inserting pack reward:', { userId, pack_type: r.pack_type });
           await conn.execute('INSERT INTO packs (user_id, type, cost, opened) VALUES (?, ?, 0, FALSE)', [userId, r.pack_type]);
         }
       } else if (r.reward_type === 'CARD' && r.card_id) {
         for (let i = 0; i < (r.amount || 1); i++) {
+          console.log('Inserting card reward:', { userId, card_id: r.card_id });
           await conn.execute('INSERT INTO user_cards (user_id, card_id) VALUES (?, ?)', [userId, r.card_id]);
         }
       }

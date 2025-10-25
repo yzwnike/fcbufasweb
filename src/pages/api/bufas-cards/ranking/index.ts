@@ -80,6 +80,45 @@ export const GET: APIRoute = async ({ request }) => {
 
     // Ordenar por totalOwned desc, luego username
     users.sort((a: any, b: any) => (b.totalOwned - a.totalOwned) || a.username.localeCompare(b.username));
+    
+    // Obtener cartas destacadas de todos los usuarios
+    const userIds = users.map(u => u.userId);
+    let featuredCardsMap: Record<number, any[]> = {};
+    
+    if (userIds.length > 0) {
+      const featuredCards = await executeQuery<any>(
+        `SELECT 
+          ufc.user_id,
+          ufc.position,
+          c.image_path,
+          p.name as player_name
+        FROM user_featured_cards ufc
+        JOIN user_cards uc ON ufc.user_card_id = uc.id
+        JOIN cards c ON uc.card_id = c.id
+        JOIN players p ON c.player_id = p.id
+        WHERE ufc.user_id IN (${userIds.map(() => '?').join(',')})
+        ORDER BY ufc.user_id, ufc.position ASC`,
+        userIds as any
+      );
+      
+      // Agrupar por user_id
+      for (const fc of featuredCards) {
+        if (!featuredCardsMap[fc.user_id]) {
+          featuredCardsMap[fc.user_id] = [];
+        }
+        featuredCardsMap[fc.user_id].push({
+          position: fc.position,
+          image_path: fc.image_path,
+          player_name: fc.player_name
+        });
+      }
+    }
+    
+    // Agregar cartas destacadas a cada usuario
+    users = users.map(u => ({
+      ...u,
+      featuredCards: featuredCardsMap[u.userId] || []
+    }));
 
     return new Response(JSON.stringify({ success: true, totals: { totalAll, byCode: totalsByCode }, users }), { status: 200 });
   } catch (e) {

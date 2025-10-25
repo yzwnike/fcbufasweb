@@ -460,6 +460,56 @@ import PackIcon from '@/components/bufas-cards/PackIcon.astro';
       pendingPackType = null;
     }
 
+    async function openPackById(packId) {
+      try {
+        showSection('pack-opening');
+        // Reset overlay elements
+        const posEl = document.getElementById('reveal-pos');
+        const ratingEl = document.getElementById('reveal-rating');
+        const zoom = document.getElementById('card-zoom');
+        const confirmBtn = document.getElementById('confirm-reveal-btn');
+        const loadingEl = document.getElementById('loading-indicator');
+        if (posEl) posEl.classList.add('opacity-0');
+        if (ratingEl) ratingEl.classList.add('opacity-0');
+        if (zoom) { zoom.classList.add('opacity-0','scale-50'); zoom.innerHTML=''; }
+        if (confirmBtn) confirmBtn.classList.add('hidden');
+        if (loadingEl) loadingEl.classList.remove('hidden');
+
+        // Call the open pack API with the specific pack ID
+        const response = await fetch('/api/bufas-cards/packs/open', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}` 
+          },
+          body: JSON.stringify({ pack_id: packId })
+        });
+        
+        const result = await response.json();
+
+        if (!result || !result.success || !result.cards || result.cards.length === 0) {
+          const msg = result?.error || 'Error desconocido';
+          if (loadingEl) loadingEl.classList.add('hidden');
+          alert('Error al abrir sobre: ' + msg);
+          showSection('pack-selection');
+          return;
+        }
+
+        lastRevealedCard = result.cards[0];
+        if (loadingEl) loadingEl.classList.add('hidden');
+        await updateUserDisplay();
+        await refreshPackStatus();
+        
+        await runRevealSequence(lastRevealedCard);
+      } catch (e) {
+        const loadingEl = document.getElementById('loading-indicator');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        console.error('openPackById fatal error', e);
+        alert('Error al abrir sobre');
+        showSection('pack-selection');
+      }
+    }
+
     async function openPack(packType) {
       try {
         showSection('pack-opening');
@@ -798,6 +848,23 @@ import PackIcon from '@/components/bufas-cards/PackIcon.astro';
 
       // Load pack status
       await refreshPackStatus();
+      
+      // Check if we should auto-open a pack from compensation
+      const urlParams = new URLSearchParams(window.location.search);
+      const packIdToOpen = urlParams.get('open');
+      
+      if (packIdToOpen) {
+        // Clear URL param to avoid re-opening on refresh
+        window.history.replaceState({}, '', window.location.pathname);
+        
+        // Open the pack directly
+        try {
+          await openPackById(parseInt(packIdToOpen));
+        } catch (err) {
+          console.error('Error opening pack from URL:', err);
+          alert('Error al abrir el sobre');
+        }
+      }
 
       // Pack buttons (bind once to avoid duplicates)
       bindOnce(document.getElementById('free-pack-btn'), 'click', (e) => {

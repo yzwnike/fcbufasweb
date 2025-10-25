@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import jwt from 'jsonwebtoken';
 import { executeQuery, executeQuerySingle, executeTransaction } from '@/lib/mysql';
 import { openCardPack } from '@/lib/cards';
+import { broadcastCardNotification } from '../notifications/stream';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -63,6 +64,12 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Obtener username para notificación
+    const user = await executeQuerySingle<any>(
+      'SELECT username FROM users WHERE id = ?',
+      [userId]
+    );
+    
     // Abrir el pack usando una transacción
     const result = await executeTransaction(async (connection) => {
       // Marcar el pack como abierto
@@ -80,6 +87,23 @@ export const POST: APIRoute = async ({ request }) => {
 
       return packResult.cards;
     });
+    
+    // Broadcast notification for each card obtained (only for Elite+ rarities)
+    if (result && result.length > 0 && user) {
+      for (const card of result) {
+        // Solo notificar cartas Elite o superiores
+        const specialType = card.special_type || card.card?.special_type;
+        const isSpecial = specialType && !['Regular', 'OLD_GENERATION'].includes(specialType);
+        
+        if (isSpecial) {
+          try {
+            broadcastCardNotification(user.username, card);
+          } catch (e) {
+            console.error('Error broadcasting notification:', e);
+          }
+        }
+      }
+    }
 
     return new Response(JSON.stringify({
       success: true,
