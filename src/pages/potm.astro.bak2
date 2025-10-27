@@ -1,0 +1,412 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { gsap } from 'gsap';
+
+const title = 'Player Of The Month - FC Bufas';
+const description = 'Vota por el mejor jugador del mes de FC Bufas';
+
+export const prerender = false;
+
+// Jugadores nominados
+const players = [
+  {
+    id: 'marcos',
+    name: 'Marcos',
+    image: '/cards/NOMPOTM/marcosNOMPOTMoct.png'
+  },
+  {
+    id: 'mario',
+    name: 'Mario',
+    image: '/cards/NOMPOTM/marioNOMPOTMoct.png'
+  },
+  {
+    id: 'mister',
+    name: 'Míster',
+    image: '/cards/NOMPOTM/misterNOMPOTMoct.png'
+  },
+  {
+    id: 'nicou',
+    name: 'Nico Uriburu',
+    image: '/cards/NOMPOTM/nicouNOMPOTMoct.png'
+  }
+];
+---
+
+<Layout title={title} description={description}>
+  <!-- Fondo animado -->
+  <div class="fixed inset-0 potm-bg overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-orange-900 to-black"></div>
+    <div class="stars-container absolute inset-0"></div>
+  </div>
+
+  <main class="relative z-10 min-h-screen pt-24 pb-8 px-4">
+    <div class="container mx-auto max-w-md">
+      <!-- Header -->
+      <div class="text-center mb-6 fade-in">
+        <h1 class="text-3xl font-black text-white mb-2">
+          ⚽ Player Of The Month
+        </h1>
+        <p class="text-sm text-orange-300 mb-1">
+          Selecciona del mejor al peor
+        </p>
+        <p class="text-xs text-gray-400">
+          Toca las cartas en orden de preferencia
+        </p>
+      </div>
+
+      <!-- Indicador de estado -->
+      <div id="vote-status" class="text-center mb-4 hidden">
+        <div class="inline-block bg-orange-500/20 border border-orange-400 rounded-full px-4 py-2 text-white text-sm">
+          <span id="status-text"></span>
+        </div>
+      </div>
+
+      <!-- Ranking actual -->
+      <div class="mb-6">
+        <div class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <h3 class="text-sm font-bold text-white mb-3 text-center">Tu Ranking</h3>
+          <div id="current-ranking" class="space-y-2">
+            {[1, 2, 3, 4].map((position) => (
+              <div class="ranking-slot flex items-center gap-3 bg-white/5 rounded-lg p-2" data-position={position}>
+                <div class="position-badge flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                  <span class="text-sm font-black text-white">{position}</span>
+                </div>
+                <div class="flex-grow min-h-[50px] flex items-center justify-center text-gray-500 text-xs slot-content">
+                  <span class="empty-text">Toca un jugador</span>
+                </div>
+                <button class="remove-btn hidden text-red-400 hover:text-red-300 text-xl p-1" type="button">×</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Jugadores disponibles -->
+      <div class="mb-6">
+        <h3 class="text-sm font-bold text-white mb-3 text-center">Jugadores Nominados</h3>
+        <div id="players-grid" class="grid grid-cols-2 gap-3">
+          {players.map((player) => (
+            <button
+              type="button"
+              class="player-card bg-white/10 backdrop-blur-sm rounded-lg p-3 border-2 border-white/20 transition-all duration-200 active:scale-95"
+              data-player-id={player.id}
+              data-player-name={player.name}
+              data-player-image={player.image}
+            >
+              <img 
+                src={player.image} 
+                alt={player.name}
+                class="w-full h-auto rounded-md shadow-md mb-2"
+              />
+              <h3 class="text-sm font-bold text-white text-center">{player.name}</h3>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Botón de enviar voto -->
+      <div class="text-center">
+        <button 
+          id="submit-vote-btn"
+          disabled
+          class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full font-bold text-base shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          🗳️ Enviar Votación
+        </button>
+        <p class="text-gray-400 text-xs mt-2">
+          Completa los 4 rankings para enviar
+        </p>
+      </div>
+
+      <!-- Botón para ver resultados -->
+      <div class="text-center mt-4">
+        <a 
+          href="/potm/resultados"
+          class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-5 py-2 rounded-full font-semibold hover:bg-white/20 transition-all duration-300 text-xs"
+        >
+          📊 Ver Resultados
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  .potm-wrapper {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+  }
+
+  .potm-bg {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(-45deg, #000000, #1a0d00, #ff4500, #ff6b35, #2d1810);
+    background-size: 400% 400%;
+    animation: gradientFlow 30s ease infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .potm-content {
+    position: relative;
+    z-index: 1;
+    padding: 6rem 1rem 2rem;
+    max-width: 28rem;
+    margin: 0 auto;
+  }
+
+  @keyframes gradientFlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .player-card.selected {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .player-card.selected-highlight {
+    border-color: rgb(251, 146, 60);
+    background: rgba(251, 146, 60, 0.1);
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import confetti from 'canvas-confetti';
+
+  interface PlayerSelection {
+    playerId: string;
+    playerName: string;
+    playerImage: string;
+    position: number;
+  }
+
+  let selections: PlayerSelection[] = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initSelectionSystem();
+    checkVoteStatus();
+  });
+
+  function initSelectionSystem() {
+    const playerCards = document.querySelectorAll('.player-card');
+    
+    playerCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const playerId = (card as HTMLElement).dataset.playerId!;
+        const playerName = (card as HTMLElement).dataset.playerName!;
+        const playerImage = (card as HTMLElement).dataset.playerImage!;
+        
+        // Si ya está seleccionado, no hacer nada
+        if (selections.find(s => s.playerId === playerId)) {
+          return;
+        }
+        
+        // Encontrar el siguiente slot vacío
+        const emptySlot = findNextEmptySlot();
+        if (!emptySlot) return;
+        
+        const position = parseInt(emptySlot.dataset.position!);
+        
+        // Agregar selección
+        selections.push({ playerId, playerName, playerImage, position });
+        
+        // Actualizar UI
+        updateSlot(emptySlot, playerName, playerImage);
+        markCardAsSelected(card as HTMLElement);
+        
+        // Animar
+        gsap.from(emptySlot.querySelector('.slot-content'), {
+          scale: 0,
+          duration: 0.3,
+          ease: 'back.out(1.7)'
+        });
+        
+        updateSubmitButton();
+      });
+    });
+  }
+
+  function findNextEmptySlot() {
+    const slots = document.querySelectorAll('.ranking-slot');
+    for (const slot of slots) {
+      if (slot.querySelector('.empty-text')) {
+        return slot as HTMLElement;
+      }
+    }
+    return null;
+  }
+
+  function updateSlot(slot: HTMLElement, playerName: string, playerImage: string) {
+    const slotContent = slot.querySelector('.slot-content')!;
+    slotContent.innerHTML = `
+      <img src="${playerImage}" alt="${playerName}" class="w-10 h-14 object-contain rounded mr-2" />
+      <span class="text-white font-semibold text-sm flex-grow text-left">${playerName}</span>
+    `;
+    slotContent.classList.remove('justify-center', 'text-gray-500');
+    slotContent.classList.add('justify-start');
+    
+    const removeBtn = slot.querySelector('.remove-btn')!;
+    removeBtn.classList.remove('hidden');
+    
+    removeBtn.addEventListener('click', () => {
+      const position = parseInt(slot.dataset.position!);
+      removeSelection(position);
+    });
+  }
+
+  function markCardAsSelected(card: HTMLElement) {
+    card.classList.add('selected');
+  }
+
+  function removeSelection(position: number) {
+    const selection = selections.find(s => s.position === position);
+    if (!selection) return;
+    
+    // Remover de la lista
+    selections = selections.filter(s => s.position !== position);
+    
+    // Actualizar UI del slot
+    const slot = document.querySelector(`.ranking-slot[data-position="${position}"]`)!;
+    const slotContent = slot.querySelector('.slot-content')!;
+    slotContent.innerHTML = '<span class="empty-text">Toca un jugador</span>';
+    slotContent.classList.add('justify-center', 'text-gray-500');
+    slotContent.classList.remove('justify-start');
+    
+    const removeBtn = slot.querySelector('.remove-btn')!;
+    removeBtn.classList.add('hidden');
+    
+    // Marcar carta como disponible
+    const card = document.querySelector(`.player-card[data-player-id="${selection.playerId}"]`)!;
+    card.classList.remove('selected');
+    
+    updateSubmitButton();
+  }
+
+  function updateSubmitButton() {
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    submitBtn.disabled = selections.length !== 4;
+  }
+
+  async function checkVoteStatus() {
+    try {
+      const response = await fetch('/api/potm/check-vote');
+      const data = await response.json();
+      
+      if (data.hasVoted) {
+        showVoteStatus('Ya has votado este mes. ¡Gracias!', 'warning');
+        disableVoting();
+      }
+    } catch (error) {
+      console.error('Error checking vote status:', error);
+    }
+  }
+
+  function showVoteStatus(message: string, type: 'success' | 'error' | 'warning') {
+    const statusEl = document.getElementById('vote-status');
+    const textEl = document.getElementById('status-text');
+    
+    if (statusEl && textEl) {
+      textEl.textContent = message;
+      statusEl.classList.remove('hidden');
+      
+      gsap.fromTo(statusEl, 
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }
+      );
+    }
+  }
+
+  function disableVoting() {
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Ya has votado';
+    }
+
+    document.querySelectorAll('.player-card').forEach(card => {
+      (card as HTMLElement).style.pointerEvents = 'none';
+      (card as HTMLElement).style.opacity = '0.5';
+    });
+  }
+
+  // Enviar votación
+  document.getElementById('submit-vote-btn')?.addEventListener('click', async () => {
+    if (selections.length !== 4) return;
+
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    // Preparar votos en formato API
+    const votes = selections.map(s => ({
+      playerId: s.playerId,
+      playerName: s.playerName,
+      position: s.position
+    }));
+
+    try {
+      const response = await fetch('/api/potm/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ votes })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showVoteStatus('¡Voto registrado! 🎉', 'success');
+        launchConfetti();
+        
+        setTimeout(() => {
+          window.location.href = '/potm/resultados';
+        }, 2000);
+      } else {
+        showVoteStatus(data.message || 'Error al votar', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🗳️ Enviar Votación';
+      }
+    } catch (error) {
+      console.error('Error submitting vote:', error);
+      showVoteStatus('Error al enviar. Intenta de nuevo.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '🗳️ Enviar Votación';
+    }
+  });
+
+  function launchConfetti() {
+    const duration = 2000;
+    const animationEnd = Date.now() + duration;
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return clearInterval(interval);
+
+      confetti({
+        particleCount: 50,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#ff6b35', '#ff4500', '#ffa500']
+      });
+      confetti({
+        particleCount: 50,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#ff6b35', '#ff4500', '#ffa500']
+      });
+    }, 250);
+  }
+</script>

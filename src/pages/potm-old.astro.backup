@@ -1,0 +1,516 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { gsap } from 'gsap';
+
+const title = 'Player Of The Month - FC Bufas';
+const description = 'Vota por el mejor jugador del mes de FC Bufas';
+
+export const prerender = false;
+
+// Jugadores nominados
+const players = [
+  {
+    id: 'marcos',
+    name: 'Marcos',
+    image: '/cards/NOMPOTM/marcosNOMPOTMoct.png'
+  },
+  {
+    id: 'mario',
+    name: 'Mario',
+    image: '/cards/NOMPOTM/marioNOMPOTMoct.png'
+  },
+  {
+    id: 'mister',
+    name: 'Míster',
+    image: '/cards/NOMPOTM/misterNOMPOTMoct.png'
+  },
+  {
+    id: 'nicou',
+    name: 'Nico Uriburu',
+    image: '/cards/NOMPOTM/nicouNOMPOTMoct.png'
+  }
+];
+---
+
+<Layout title={title} description={description}>
+  <!-- Fondo animado -->
+  <div class="fixed inset-0 potm-bg overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-orange-900 to-black"></div>
+    <div class="stars-container absolute inset-0"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/5 to-transparent"></div>
+  </div>
+
+  <main class="relative z-10 min-h-screen pt-24 pb-8 px-4">
+    <div class="container mx-auto max-w-2xl">
+      <!-- Header -->
+      <div class="text-center mb-8 fade-in">
+        <h1 class="text-3xl sm:text-4xl font-black text-white mb-3">
+          ⚽ Player Of The Month
+        </h1>
+        <p class="text-base sm:text-lg text-orange-300 mb-2">
+          Selecciona del mejor al peor
+        </p>
+        <p class="text-sm text-gray-400">
+          Toca las cartas para ordenarlas de 1º a 4º lugar
+        </p>
+      </div>
+
+      <!-- Indicador de estado -->
+      <div id="vote-status" class="text-center mb-6 hidden">
+        <div class="inline-block bg-orange-500/20 border border-orange-400 rounded-full px-4 py-2 text-white text-sm">
+          <span id="status-text"></span>
+        </div>
+      </div>
+
+      <!-- Ranking actual -->
+      <div class="mb-8">
+        <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+          <h3 class="text-lg font-bold text-white mb-4 text-center">Tu Ranking Actual</h3>
+          <div id="current-ranking" class="space-y-2">
+            {[1, 2, 3, 4].map((position) => (
+              <div class="ranking-display flex items-center gap-3 bg-white/5 rounded-lg p-3" data-position={position}>
+                <div class="position-badge flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                  <span class="text-lg font-black text-white">{position}</span>
+                </div>
+                <div class="flex-grow min-h-[60px] flex items-center justify-center text-gray-500 text-sm">
+                  <span class="empty-slot">Selecciona un jugador</span>
+                  <div class="selected-player hidden flex items-center gap-3 w-full">
+                    <img class="player-img w-12 h-16 object-contain rounded" src="" alt="" />
+                    <span class="player-name text-white font-semibold"></span>
+                  </div>
+                </div>
+                <button class="remove-btn hidden text-red-400 hover:text-red-300 text-xl" type="button">×</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Jugadores disponibles -->
+      <div class="mb-8">
+        <h3 class="text-lg font-bold text-white mb-4 text-center">Jugadores Nominados</h3>
+        <div id="players-grid" class="grid grid-cols-2 gap-4">
+          {players.map((player) => (
+            <button
+              type="button"
+              class="player-card bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-white/20 hover:border-orange-400 transition-all duration-300 active:scale-95"
+              data-player-id={player.id}
+              data-player-name={player.name}
+              data-player-image={player.image}
+            >
+              <img 
+                src={player.image} 
+                alt={player.name}
+                class="w-full h-auto rounded-lg shadow-lg mb-3"
+              />
+              <h3 class="text-base font-bold text-white text-center">{player.name}</h3>
+              <div class="selected-indicator hidden mt-2 text-orange-400 text-sm font-semibold text-center">
+                ✓ Seleccionado
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Botón de enviar voto -->
+      <div class="text-center">
+        <button 
+          id="submit-vote-btn"
+          disabled
+          class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+        >
+          🗳️ Enviar Votación
+        </button>
+        <p class="text-gray-400 text-xs mt-3">
+          Completa los 4 rankings para enviar tu voto
+        </p>
+      </div>
+
+      <!-- Botón para ver resultados -->
+      <div class="text-center mt-6">
+        <a 
+          href="/potm/resultados"
+          class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/20 transition-all duration-300 text-sm"
+        >
+          <span>📊 Ver Resultados Actuales</span>
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .potm-bg {
+    background: linear-gradient(-45deg, #000000, #1a0d00, #ff4500, #ff6b35, #2d1810);
+    background-size: 400% 400%;
+    animation: gradientFlow 30s ease infinite;
+  }
+
+  @keyframes gradientFlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .stars-container {
+    background-image: radial-gradient(2px 2px at 20% 30%, white, transparent),
+                      radial-gradient(2px 2px at 60% 70%, white, transparent),
+                      radial-gradient(1px 1px at 50% 50%, white, transparent),
+                      radial-gradient(1px 1px at 80% 10%, white, transparent),
+                      radial-gradient(2px 2px at 90% 60%, white, transparent);
+    background-size: 200px 200px;
+    animation: stars 60s linear infinite;
+  }
+
+  @keyframes stars {
+    from { transform: translateY(0); }
+    to { transform: translateY(-200px); }
+  }
+
+  .fade-in {
+    animation: fadeIn 1s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .player-card {
+    transition: transform 0.3s ease;
+  }
+
+  .player-card:hover .card-stack .card-layer {
+    transform: translateY(0) translateX(0) rotate(0) !important;
+  }
+
+  .ranking-slot.drag-over {
+    background: rgba(255, 107, 53, 0.2);
+    border-color: rgba(255, 107, 53, 0.8);
+    border-style: solid;
+    transform: scale(1.02);
+  }
+
+  .ranking-slot.filled {
+    background: rgba(255, 107, 53, 0.15);
+    border-color: rgba(255, 107, 53, 0.6);
+    border-style: solid;
+  }
+
+  .player-card.placed {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .card-stack {
+      height: 200px;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import confetti from 'canvas-confetti';
+
+  interface PlayerSelection {
+    playerId: string;
+    playerName: string;
+    playerImage: string;
+    position: number;
+  }
+
+  let selections: PlayerSelection[] = [];
+  let nextPosition = 1;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initSelectionSystem();
+    checkVoteStatus();
+  });
+
+  // Verificar si el usuario ya votó
+  async function checkVoteStatus() {
+    try {
+      const response = await fetch('/api/potm/check-vote');
+      const data = await response.json();
+      
+      if (data.hasVoted) {
+        showVoteStatus('Ya has votado este mes. ¡Gracias por participar!', 'warning');
+        disableVoting();
+      }
+    } catch (error) {
+      console.error('Error checking vote status:', error);
+    }
+  }
+
+  function showVoteStatus(message: string, type: 'success' | 'error' | 'warning') {
+    const statusEl = document.getElementById('vote-status');
+    const textEl = document.getElementById('status-text');
+    
+    if (statusEl && textEl) {
+      textEl.textContent = message;
+      statusEl.classList.remove('hidden');
+      
+      gsap.fromTo(statusEl, 
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }
+      );
+    }
+  }
+
+  function disableVoting() {
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Ya has votado';
+    }
+
+    // Deshabilitar drag
+    document.querySelectorAll('.player-card').forEach(card => {
+      (card as HTMLElement).style.pointerEvents = 'none';
+      (card as HTMLElement).style.opacity = '0.5';
+    });
+  }
+
+  function initDraggable() {
+    const playerCards = document.querySelectorAll('.player-card');
+    const rankingSlots = document.querySelectorAll('.ranking-slot');
+
+    playerCards.forEach(card => {
+      const draggable = Draggable.create(card, {
+        type: 'x,y',
+        bounds: 'body',
+        inertia: true,
+        onPress: function() {
+          gsap.to(card, { scale: 1.1, zIndex: 1000, duration: 0.2 });
+        },
+        onDrag: function() {
+          checkSlotOverlap(card as HTMLElement, rankingSlots);
+        },
+        onRelease: function() {
+          const playerId = (card as HTMLElement).dataset.playerId!;
+          const playerName = (card as HTMLElement).dataset.playerName!;
+          
+          let dropped = false;
+          
+          rankingSlots.forEach(slot => {
+            if (isOverlapping(card as HTMLElement, slot as HTMLElement)) {
+              const position = parseInt((slot as HTMLElement).dataset.position!);
+              
+              // Verificar si el slot está vacío o reemplazar
+              const existingVote = votes.find(v => v.position === position);
+              if (existingVote) {
+                // Devolver la carta anterior a la galería
+                returnCardToGallery(existingVote.playerId);
+              }
+              
+              // Colocar nueva carta
+              placeCardInSlot(card as HTMLElement, slot as HTMLElement, playerId, playerName, position);
+              dropped = true;
+            }
+          });
+
+          if (!dropped) {
+            // Volver a posición original
+            gsap.to(card, { 
+              x: 0, 
+              y: 0, 
+              scale: 1, 
+              duration: 0.5, 
+              ease: 'back.out(1.7)' 
+            });
+          }
+
+          updateSubmitButton();
+        }
+      })[0];
+    });
+  }
+
+  function checkSlotOverlap(card: HTMLElement, slots: NodeListOf<Element>) {
+    slots.forEach(slot => {
+      if (isOverlapping(card, slot as HTMLElement)) {
+        (slot as HTMLElement).classList.add('drag-over');
+      } else {
+        (slot as HTMLElement).classList.remove('drag-over');
+      }
+    });
+  }
+
+  function isOverlapping(el1: HTMLElement, el2: HTMLElement): boolean {
+    const rect1 = el1.getBoundingClientRect();
+    const rect2 = el2.getBoundingClientRect();
+
+    return !(
+      rect1.right < rect2.left ||
+      rect1.left > rect2.right ||
+      rect1.bottom < rect2.top ||
+      rect1.top > rect2.bottom
+    );
+  }
+
+  function placeCardInSlot(
+    card: HTMLElement, 
+    slot: HTMLElement, 
+    playerId: string, 
+    playerName: string, 
+    position: number
+  ) {
+    const slotRect = slot.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    
+    // Animar a la posición del slot
+    gsap.to(card, {
+      x: slotRect.left - cardRect.left + window.scrollX,
+      y: slotRect.top - cardRect.top + window.scrollY,
+      scale: 0.8,
+      duration: 0.5,
+      ease: 'power2.out',
+      onComplete: () => {
+        // Clonar y agregar al slot
+        const clone = card.cloneNode(true) as HTMLElement;
+        clone.style.transform = 'none';
+        clone.style.position = 'relative';
+        clone.style.width = 'auto';
+        clone.style.height = 'auto';
+        
+        // Limpiar slot anterior si existe
+        const existingCard = slot.querySelector('.player-card');
+        if (existingCard) {
+          existingCard.remove();
+        }
+        
+        slot.appendChild(clone);
+        slot.classList.add('filled');
+        slot.classList.remove('drag-over');
+        
+        // Ocultar carta original
+        card.classList.add('placed');
+        placedCards.add(playerId);
+        
+        // Guardar voto
+        votes = votes.filter(v => v.position !== position && v.playerId !== playerId);
+        votes.push({ playerId, playerName, position });
+        
+        // Animación de éxito
+        gsap.fromTo(clone, 
+          { scale: 0 }, 
+          { scale: 1, duration: 0.5, ease: 'back.out(1.7)' }
+        );
+      }
+    });
+  }
+
+  function returnCardToGallery(playerId: string) {
+    const originalCard = document.querySelector(`[data-player-id="${playerId}"]`) as HTMLElement;
+    if (originalCard) {
+      originalCard.classList.remove('placed');
+      placedCards.delete(playerId);
+      gsap.to(originalCard, { x: 0, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.7)' });
+    }
+    
+    votes = votes.filter(v => v.playerId !== playerId);
+  }
+
+  function updateSubmitButton() {
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    
+    if (votes.length === 4) {
+      submitBtn.disabled = false;
+      gsap.to(submitBtn, { scale: 1.05, duration: 0.3, yoyo: true, repeat: 2 });
+    } else {
+      submitBtn.disabled = true;
+    }
+  }
+
+  // Enviar votación
+  document.getElementById('submit-vote-btn')?.addEventListener('click', async () => {
+    if (votes.length !== 4) return;
+
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    try {
+      const response = await fetch('/api/potm/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ votes })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showVoteStatus('¡Voto registrado exitosamente! 🎉', 'success');
+        launchConfetti();
+        
+        setTimeout(() => {
+          window.location.href = '/potm/resultados';
+        }, 3000);
+      } else {
+        showVoteStatus(data.message || 'Error al registrar el voto', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🗳️ Enviar Votación';
+      }
+    } catch (error) {
+      console.error('Error submitting vote:', error);
+      showVoteStatus('Error al enviar el voto. Intenta de nuevo.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '🗳️ Enviar Votación';
+    }
+  });
+
+  function launchConfetti() {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+    function randomInRange(min: number, max: number) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: ['#ff6b35', '#ff4500', '#ff8c00', '#ffa500', '#ffd700']
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: ['#ff6b35', '#ff4500', '#ff8c00', '#ffa500', '#ffd700']
+      });
+    }, 250);
+  }
+
+  function animateEntrance() {
+    gsap.from('.player-card', {
+      scale: 0,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: 'back.out(1.7)',
+      scrollTrigger: {
+        trigger: '#players-gallery',
+        start: 'top 80%'
+      }
+    });
+
+    gsap.from('.ranking-slot', {
+      x: -50,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: 'power2.out'
+    });
+  }
+</script>

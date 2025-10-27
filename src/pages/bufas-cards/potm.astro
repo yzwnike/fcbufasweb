@@ -1,0 +1,951 @@
+---
+import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
+import Subheader from '@/components/bufas-cards/Subheader.astro';
+import { gsap } from 'gsap';
+import { FIGHTERS } from '@/consts/fighters';
+
+const title = 'Player Of The Month - FC Bufas';
+const description = 'Vota por el mejor jugador del mes de FC Bufas';
+
+export const prerender = false;
+
+// Jugadores nominados con datos completos
+const nominatedPlayers = [
+  { ...FIGHTERS.find(f => f.id === 'marcos'), potmCard: '/cards/NOMPOTM/marcosNOMPOTMoct.png' },
+  { ...FIGHTERS.find(f => f.id === 'mario'), potmCard: '/cards/NOMPOTM/marioNOMPOTMoct.png' },
+  { ...FIGHTERS.find(f => f.id === 'mister'), potmCard: '/cards/NOMPOTM/misterNOMPOTMoct.png' },
+  { ...FIGHTERS.find(f => f.id === 'nicou'), potmCard: '/cards/NOMPOTM/nicouNOMPOTMoct.png' },
+];
+
+// Jugadores para la votación
+const players = [
+  {
+    id: 'marcos',
+    name: 'Marcos',
+    image: '/cards/NOMPOTM/marcosNOMPOTMoct.png'
+  },
+  {
+    id: 'mario',
+    name: 'Mario',
+    image: '/cards/NOMPOTM/marioNOMPOTMoct.png'
+  },
+  {
+    id: 'mister',
+    name: 'Míster',
+    image: '/cards/NOMPOTM/misterNOMPOTMoct.png'
+  },
+  {
+    id: 'nicou',
+    name: 'Nico Uriburu',
+    image: '/cards/NOMPOTM/nicouNOMPOTMoct.png'
+  }
+];
+---
+
+<NikeFCLayout title={title} helpKey="potm">
+  <!-- Fondo animado -->
+  <div class="fixed inset-0 potm-bg overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-orange-900 to-black"></div>
+    <div class="stars-container absolute inset-0"></div>
+  </div>
+
+  <main class="relative z-10">
+    <!-- Sección Hero con scroll horizontal -->
+    <div class="scroll-container" id="scroll-container">
+      <!-- Hero Principal -->
+      <section class="scroll-section hero-section">
+        <div class="absolute inset-0 bg-black">
+          <div class="absolute inset-0 bg-gradient-radial from-orange-500/10 via-transparent to-black"></div>
+        </div>
+        <div class="relative z-10 flex flex-col items-center justify-center h-screen text-center px-4">
+          <h1 class="text-6xl sm:text-8xl lg:text-9xl font-black text-white mb-4 tracking-tight" style="text-shadow: 0 0 30px rgba(255, 136, 0, 0.8), 0 0 60px rgba(255, 68, 0, 0.5);">
+            PLAYER OF<br/>THE MONTH
+          </h1>
+          <div class="h-1 w-64 bg-gradient-to-r from-transparent via-orange-500 to-transparent mb-8"></div>
+          <p class="text-2xl text-orange-400 font-bold tracking-wider uppercase">Nominados Octubre 2025</p>
+        </div>
+      </section>
+
+      <!-- Secciones de Jugadores -->
+      {nominatedPlayers.map((player, index) => (
+        <section class="scroll-section player-section" data-player={player.id} data-index={index}>
+          <div class="absolute inset-0 bg-black">
+            <img 
+              src={`/images/fighters/big/${player.id === 'marcos' ? 'marco' : player.id}.webp`}
+              alt=""
+              class="w-full h-full object-cover opacity-20"
+              style="filter: blur(8px);"
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+          </div>
+          
+          <div class="relative z-10 h-screen flex items-center px-4 lg:px-20">
+            <!-- Layout Desktop -->
+            <div class="hidden lg:grid lg:grid-cols-2 gap-8 items-center w-full max-w-7xl mx-auto">
+              <!-- Imagen principal -->
+              <div class="relative player-image-wrapper">
+                <div class="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl blur-2xl opacity-50 animate-pulse"></div>
+                <div class="relative glow-border rounded-3xl overflow-hidden">
+                  <img 
+                    src={`/images/${player.id === 'nicou' ? 'uriburu' : player.id}26.JPG`}
+                    alt={player.name}
+                    class="w-full h-full object-cover relative z-10"
+                    style="aspect-ratio: 3/4; max-height: 600px;"
+                  />
+                </div>
+              </div>
+
+              <!-- Info del jugador -->
+              <div class="space-y-6">
+                <div>
+                  <div class="text-sm font-bold text-orange-500 tracking-widest uppercase mb-2">#{player.dorsal} • {player.position}</div>
+                  <h2 class="text-6xl lg:text-7xl font-black text-white mb-4 tracking-tight" style="text-shadow: 0 0 20px rgba(255, 136, 0, 0.6);">
+                    {player.name?.toUpperCase()}
+                  </h2>
+                  <p class="text-gray-400 text-base leading-relaxed">{player.bio}</p>
+                </div>
+
+                <!-- Estadísticas compactas -->
+                <div class="grid grid-cols-4 gap-3">
+                  <div class="stat-box">
+                    <div class="text-3xl font-black text-orange-500">{player.goles}</div>
+                    <div class="text-xs text-gray-400 uppercase">Goles</div>
+                  </div>
+                  <div class="stat-box">
+                    <div class="text-3xl font-black text-orange-500">{player.asistencias}</div>
+                    <div class="text-xs text-gray-400 uppercase">Asist.</div>
+                  </div>
+                  <div class="stat-box">
+                    <div class="text-3xl font-black text-orange-500">{player.puntosTotales}</div>
+                    <div class="text-xs text-gray-400 uppercase">Puntos</div>
+                  </div>
+                  <div class="stat-box">
+                    <div class="text-2xl font-black text-green-400">€{(player.valorTotal / 1000000).toFixed(0)}M</div>
+                    <div class="text-xs text-gray-400 uppercase">Valor</div>
+                  </div>
+                </div>
+
+                <!-- Cartas mini -->
+                <div class="flex gap-3">
+                  <div class="card-mini glow-border-sm">
+                    <img 
+                      src={`/images/fighters/cards/${player.id === 'marcos' ? 'marco' : player.id}.webp`}
+                      alt={`Carta ${player.name}`}
+                      class="w-full h-auto object-contain"
+                    />
+                  </div>
+                  <div class="card-mini glow-border-sm">
+                    <img 
+                      src={player.potmCard}
+                      alt={`POTM ${player.name}`}
+                      class="w-full h-auto object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Layout Móvil -->
+            <div class="lg:hidden w-full h-full flex items-center relative">
+              <!-- PNG Flotante -->
+              <div class="absolute top-4 right-4 z-20 floating-png">
+                <img 
+                  src={`/images/fighters/cards/${player.id === 'marcos' ? 'marco' : player.id}.webp`}
+                  alt=""
+                  class="w-24 h-auto opacity-60"
+                  style="filter: drop-shadow(0 0 20px rgba(255, 136, 0, 0.6));"
+                />
+              </div>
+
+              <div class="flex gap-4 w-full items-center px-4">
+                <!-- Imagen izquierda (más pequeña) -->
+                <div class="flex-shrink-0 w-32 mobile-player-image">
+                  <div class="relative glow-border-mobile rounded-2xl overflow-hidden">
+                    <img 
+                      src={`/images/${player.id === 'nicou' ? 'uriburu' : player.id}26.JPG`}
+                      alt={player.name}
+                      class="w-full h-auto object-cover"
+                      style="aspect-ratio: 3/4;"
+                    />
+                  </div>
+                </div>
+
+                <!-- Info derecha -->
+                <div class="flex-1 space-y-3">
+                  <div>
+                    <div class="text-xs font-bold text-orange-500 tracking-wider uppercase">#{player.dorsal} • {player.position}</div>
+                    <h2 class="text-3xl font-black text-white mb-1 tracking-tight" style="text-shadow: 0 0 15px rgba(255, 136, 0, 0.6);">
+                      {player.name?.toUpperCase()}
+                    </h2>
+                    <p class="text-gray-400 text-xs leading-relaxed line-clamp-3">{player.bio}</p>
+                  </div>
+
+                  <!-- Stats compactas -->
+                  <div class="grid grid-cols-3 gap-2">
+                    <div class="stat-box-mobile">
+                      <div class="text-xl font-black text-orange-500">{player.goles}</div>
+                      <div class="text-[10px] text-gray-400 uppercase">Goles</div>
+                    </div>
+                    <div class="stat-box-mobile">
+                      <div class="text-xl font-black text-orange-500">{player.asistencias}</div>
+                      <div class="text-[10px] text-gray-400 uppercase">Asist.</div>
+                    </div>
+                    <div class="stat-box-mobile">
+                      <div class="text-xl font-black text-orange-500">{player.puntosTotales}</div>
+                      <div class="text-[10px] text-gray-400 uppercase">Puntos</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ))}
+
+      <!-- Sección de Votación -->
+      <section class="scroll-section voting-section" id="voting-section">
+        <div class="absolute inset-0 bg-black"></div>
+        <div class="relative z-10 container mx-auto max-w-md px-4 h-screen flex flex-col justify-center">
+      <!-- Subheader -->
+      <div class="mb-4">
+        <Subheader variant="minimal" />
+      </div>
+      <!-- Header -->
+      <div class="text-center mb-6 fade-in">
+        <h1 class="text-3xl font-black text-white mb-2">
+          ⚽ Player Of The Month
+        </h1>
+        <p class="text-sm text-orange-300 mb-1">
+          Selecciona del mejor al peor
+        </p>
+        <p class="text-xs text-gray-400">
+          Toca las cartas en orden de preferencia
+        </p>
+      </div>
+
+      <!-- Indicador de estado -->
+      <div id="vote-status" class="text-center mb-4 hidden">
+        <div class="inline-block bg-orange-500/20 border border-orange-400 rounded-full px-4 py-2 text-white text-sm">
+          <span id="status-text"></span>
+        </div>
+      </div>
+
+      <!-- Ranking actual -->
+      <div class="mb-6">
+        <div class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <h3 class="text-sm font-bold text-white mb-3 text-center">Tu Ranking</h3>
+          <div id="current-ranking" class="space-y-2">
+            {[1, 2, 3, 4].map((position) => (
+              <div class="ranking-slot flex items-center gap-3 bg-white/5 rounded-lg p-2" data-position={position}>
+                <div class="position-badge flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                  <span class="text-sm font-black text-white">{position}</span>
+                </div>
+                <div class="flex-grow min-h-[50px] flex items-center justify-center text-gray-500 text-xs slot-content">
+                  <span class="empty-text">Toca un jugador</span>
+                </div>
+                <button class="remove-btn hidden text-red-400 hover:text-red-300 text-xl p-1" type="button">×</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Jugadores disponibles -->
+      <div class="mb-6">
+        <h3 class="text-sm font-bold text-white mb-3 text-center">Jugadores Nominados</h3>
+        <div id="players-grid" class="grid grid-cols-2 gap-3">
+          {players.map((player) => (
+            <button
+              type="button"
+              class="player-card bg-white/10 backdrop-blur-sm rounded-lg p-3 border-2 border-white/20 transition-all duration-200 active:scale-95"
+              data-player-id={player.id}
+              data-player-name={player.name}
+              data-player-image={player.image}
+            >
+              <img 
+                src={player.image} 
+                alt={player.name}
+                class="w-full h-auto rounded-md shadow-md mb-2"
+              />
+              <h3 class="text-sm font-bold text-white text-center">{player.name}</h3>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Botón de enviar voto -->
+      <div class="text-center">
+        <button 
+          id="submit-vote-btn"
+          disabled
+          class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full font-bold text-base shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          🗳️ Enviar Votación
+        </button>
+        <p class="text-gray-400 text-xs mt-2">
+          Completa los 4 rankings para enviar
+        </p>
+      </div>
+
+        <!-- Botón para ver resultados -->
+        <div class="text-center mt-4">
+          <a 
+            href="/bufas-cards/potm/resultados"
+            class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-orange-500/50 text-white px-5 py-2 rounded-full font-semibold hover:bg-orange-500/20 hover:border-orange-500 transition-all duration-300 text-xs"
+          >
+            📊 Ver Resultados
+          </a>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+</NikeFCLayout>
+
+<style is:global>
+  html, body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background: #000;
+  }
+
+  .potm-bg {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Sistema de scroll horizontal */
+  .scroll-container {
+    display: flex;
+    width: fit-content;
+    height: 100vh;
+    will-change: transform;
+    transition: transform 0.1s ease-out;
+  }
+
+  .scroll-section {
+    width: 100vw;
+    height: 100vh;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Bordes luminosos naranjas - Estilo GTA */
+  .glow-border {
+    position: relative;
+    border: 3px solid transparent;
+    background: linear-gradient(#000, #000) padding-box,
+                linear-gradient(135deg, #ff8800, #ff4400, #ff8800) border-box;
+    box-shadow: 
+      0 0 20px rgba(255, 136, 0, 0.5),
+      inset 0 0 20px rgba(255, 136, 0, 0.1),
+      0 0 40px rgba(255, 68, 0, 0.3);
+    animation: glowPulse 3s ease-in-out infinite;
+  }
+
+  .glow-border-sm {
+    border: 2px solid transparent;
+    background: linear-gradient(#000, #000) padding-box,
+                linear-gradient(135deg, #ff8800, #ff4400) border-box;
+    box-shadow: 0 0 15px rgba(255, 136, 0, 0.4);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { 
+      box-shadow: 
+        0 0 20px rgba(255, 136, 0, 0.5),
+        inset 0 0 20px rgba(255, 136, 0, 0.1),
+        0 0 40px rgba(255, 68, 0, 0.3);
+    }
+    50% { 
+      box-shadow: 
+        0 0 30px rgba(255, 136, 0, 0.7),
+        inset 0 0 30px rgba(255, 136, 0, 0.2),
+        0 0 60px rgba(255, 68, 0, 0.5);
+    }
+  }
+
+  /* Stat boxes */
+  .stat-box {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 136, 0, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(255, 136, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .stat-box:hover {
+    border-color: rgba(255, 136, 0, 0.6);
+    box-shadow: 0 0 25px rgba(255, 136, 0, 0.4);
+    transform: scale(1.05);
+  }
+
+  /* Stat boxes móvil */
+  .stat-box-mobile {
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 136, 0, 0.4);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.25rem;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(255, 136, 0, 0.2);
+  }
+
+  /* Card mini */
+  .card-mini {
+    width: 100px;
+    height: 140px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-mini img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .card-mini:hover {
+    transform: scale(1.1) rotate(2deg);
+    box-shadow: 0 0 30px rgba(255, 136, 0, 0.6);
+  }
+
+  /* Gradiente radial */
+  .bg-gradient-radial {
+    background: radial-gradient(circle at center, var(--tw-gradient-stops));
+  }
+
+  /* Animación de entrada para jugadores */
+  .player-image-wrapper {
+    animation: slideInLeft 1s ease-out;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .player-image-wrapper .glow-border {
+    aspect-ratio: 3/4;
+    max-height: 600px;
+  }
+
+  /* Bordes para móvil */
+  .glow-border-mobile {
+    border: 2px solid transparent;
+    background: linear-gradient(#000, #000) padding-box,
+                linear-gradient(135deg, #ff8800, #ff4400) border-box;
+    box-shadow: 0 0 15px rgba(255, 136, 0, 0.5);
+  }
+
+  /* PNG flotante */
+  .floating-png {
+    animation: floatPNG 3s ease-in-out infinite;
+  }
+
+  @keyframes floatPNG {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-15px) rotate(5deg);
+    }
+  }
+
+  /* Animación para imagen móvil */
+  .mobile-player-image {
+    animation: mobileImageIn 0.8s ease-out;
+  }
+
+  @keyframes mobileImageIn {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-100px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Voting section */
+  .voting-section .player-card {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid rgba(255, 136, 0, 0.3);
+    box-shadow: 0 0 15px rgba(255, 136, 0, 0.2);
+  }
+
+  .voting-section .player-card:hover {
+    border-color: rgba(255, 136, 0, 0.6);
+    box-shadow: 0 0 25px rgba(255, 136, 0, 0.4);
+  }
+
+  .player-card.selected {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .voting-section .ranking-slot {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid rgba(255, 136, 0, 0.3);
+  }
+
+  /* Responsive - Móvil con scroll snap */
+  @media (max-width: 1024px) {
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      overflow-y: scroll;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .scroll-container {
+      flex-direction: column;
+      width: 100vw;
+      height: auto;
+    }
+
+    .scroll-section {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+      will-change: opacity, transform;
+    }
+
+    /* Ajustes para móvil */
+    .player-section .grid {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+
+    .player-image-wrapper {
+      max-width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    /* Truncar texto en móvil */
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  interface PlayerSelection {
+    playerId: string;
+    playerName: string;
+    playerImage: string;
+    position: number;
+  }
+
+  let selections: PlayerSelection[] = [];
+  const storage = window.sessionStorage;
+  let token: string | null = null;
+
+  function requireAuth() {
+    const t = storage.getItem('nike_fc_token');
+    if (!t) { 
+      window.location.href = '/bufas-cards'; 
+      return false; 
+    }
+    token = t; 
+    return true;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!requireAuth()) return;
+    initHorizontalScroll();
+    initSelectionSystem();
+    checkVoteStatus();
+  });
+
+  function initHorizontalScroll() {
+    const container = document.getElementById('scroll-container');
+    if (!container) return;
+
+    let currentScroll = 0;
+    const sections = document.querySelectorAll('.scroll-section');
+    const totalSections = sections.length;
+    const scrollSpeed = 1.5;
+
+    // Scroll horizontal en desktop
+    if (window.innerWidth > 1024) {
+      window.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        
+        currentScroll += e.deltaY * scrollSpeed;
+        const maxScroll = (totalSections - 1) * window.innerWidth;
+        currentScroll = Math.max(0, Math.min(currentScroll, maxScroll));
+        
+        container.style.transform = `translateX(-${currentScroll}px)`;
+      }, { passive: false });
+
+      // Navegación con teclado
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          currentScroll += window.innerWidth;
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          currentScroll -= window.innerWidth;
+        }
+        
+        const maxScroll = (totalSections - 1) * window.innerWidth;
+        currentScroll = Math.max(0, Math.min(currentScroll, maxScroll));
+        container.style.transform = `translateX(-${currentScroll}px)`;
+      });
+    } else {
+      // En móvil, scroll animado con snap y efectos
+      let ticking = false;
+      let lastScrollTop = 0;
+      
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const scrollTop = window.scrollY;
+            const direction = scrollTop > lastScrollTop ? 'down' : 'up';
+            lastScrollTop = scrollTop;
+            
+            // Animar secciones según visibilidad
+            document.querySelectorAll('.scroll-section').forEach((section) => {
+              const rect = section.getBoundingClientRect();
+              const isVisible = rect.top < window.innerHeight * 0.75 && rect.bottom > window.innerHeight * 0.25;
+              
+              if (isVisible) {
+                (section as HTMLElement).style.opacity = '1';
+                (section as HTMLElement).style.transform = 'scale(1)';
+              } else {
+                const distance = rect.top > 0 ? rect.top / window.innerHeight : Math.abs(rect.bottom) / window.innerHeight;
+                const scale = Math.max(0.85, 1 - distance * 0.15);
+                (section as HTMLElement).style.opacity = `${Math.max(0.3, 1 - distance * 0.7)}`;
+                (section as HTMLElement).style.transform = `scale(${scale})`;
+              }
+              
+              // Parallax en imágenes de fondo
+              const bgImage = section.querySelector('.player-section img[style*="blur"]');
+              if (bgImage) {
+                const offset = (rect.top / window.innerHeight) * 30;
+                (bgImage as HTMLElement).style.transform = `translateY(${offset}px) scale(1.1)`;
+              }
+            });
+            
+            ticking = false;
+          });
+          
+          ticking = true;
+        }
+      }, { passive: true });
+    }
+
+    // Animaciones de entrada para secciones
+    const observerOptions = {
+      threshold: 0.3,
+      rootMargin: '0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const target = entry.target as HTMLElement;
+          
+          // Animar imagen del jugador
+          const imageWrapper = target.querySelector('.player-image-wrapper');
+          if (imageWrapper) {
+            gsap.from(imageWrapper, {
+              x: -100,
+              opacity: 0,
+              duration: 1,
+              ease: 'power3.out'
+            });
+          }
+          
+          // Animar stats
+          const stats = target.querySelectorAll('.stat-box');
+          if (stats.length) {
+            gsap.from(stats, {
+              scale: 0,
+              opacity: 0,
+              duration: 0.5,
+              stagger: 0.1,
+              ease: 'back.out(1.7)',
+              delay: 0.5
+            });
+          }
+          
+          // Animar cartas
+          const cards = target.querySelectorAll('.card-mini');
+          if (cards.length) {
+            gsap.from(cards, {
+              y: 50,
+              opacity: 0,
+              rotation: -10,
+              duration: 0.6,
+              stagger: 0.2,
+              ease: 'power3.out',
+              delay: 0.8
+            });
+          }
+          
+          observer.unobserve(target);
+        }
+      });
+    }, observerOptions);
+    
+    document.querySelectorAll('.player-section').forEach(section => {
+      observer.observe(section);
+    });
+  }
+
+  function initSelectionSystem() {
+    const playerCards = document.querySelectorAll('.player-card');
+    
+    playerCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const playerId = (card as HTMLElement).dataset.playerId!;
+        const playerName = (card as HTMLElement).dataset.playerName!;
+        const playerImage = (card as HTMLElement).dataset.playerImage!;
+        
+        // Si ya está seleccionado, no hacer nada
+        if (selections.find(s => s.playerId === playerId)) {
+          return;
+        }
+        
+        // Encontrar el siguiente slot vacío
+        const emptySlot = findNextEmptySlot();
+        if (!emptySlot) return;
+        
+        const position = parseInt(emptySlot.dataset.position!);
+        
+        // Agregar selección
+        selections.push({ playerId, playerName, playerImage, position });
+        
+        // Actualizar UI
+        updateSlot(emptySlot, playerName, playerImage);
+        markCardAsSelected(card as HTMLElement);
+        
+        // Animar
+        gsap.from(emptySlot.querySelector('.slot-content'), {
+          scale: 0,
+          duration: 0.3,
+          ease: 'back.out(1.7)'
+        });
+        
+        updateSubmitButton();
+      });
+    });
+  }
+
+  function findNextEmptySlot() {
+    const slots = document.querySelectorAll('.ranking-slot');
+    for (const slot of slots) {
+      if (slot.querySelector('.empty-text')) {
+        return slot as HTMLElement;
+      }
+    }
+    return null;
+  }
+
+  function updateSlot(slot: HTMLElement, playerName: string, playerImage: string) {
+    const slotContent = slot.querySelector('.slot-content')!;
+    slotContent.innerHTML = `
+      <img src="${playerImage}" alt="${playerName}" class="w-10 h-14 object-contain rounded mr-2" />
+      <span class="text-white font-semibold text-sm flex-grow text-left">${playerName}</span>
+    `;
+    slotContent.classList.remove('justify-center', 'text-gray-500');
+    slotContent.classList.add('justify-start');
+    
+    const removeBtn = slot.querySelector('.remove-btn')!;
+    removeBtn.classList.remove('hidden');
+    
+    removeBtn.addEventListener('click', () => {
+      const position = parseInt(slot.dataset.position!);
+      removeSelection(position);
+    });
+  }
+
+  function markCardAsSelected(card: HTMLElement) {
+    card.classList.add('selected');
+  }
+
+  function removeSelection(position: number) {
+    const selection = selections.find(s => s.position === position);
+    if (!selection) return;
+    
+    // Remover de la lista
+    selections = selections.filter(s => s.position !== position);
+    
+    // Actualizar UI del slot
+    const slot = document.querySelector(`.ranking-slot[data-position="${position}"]`)!;
+    const slotContent = slot.querySelector('.slot-content')!;
+    slotContent.innerHTML = '<span class="empty-text">Toca un jugador</span>';
+    slotContent.classList.add('justify-center', 'text-gray-500');
+    slotContent.classList.remove('justify-start');
+    
+    const removeBtn = slot.querySelector('.remove-btn')!;
+    removeBtn.classList.add('hidden');
+    
+    // Marcar carta como disponible
+    const card = document.querySelector(`.player-card[data-player-id="${selection.playerId}"]`)!;
+    card.classList.remove('selected');
+    
+    updateSubmitButton();
+  }
+
+  function updateSubmitButton() {
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    submitBtn.disabled = selections.length !== 4;
+  }
+
+  async function checkVoteStatus() {
+    try {
+      const response = await fetch('/api/potm/check-vote', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      
+      if (data.hasVoted) {
+        showVoteStatus('Ya has votado este mes. ¡Gracias!', 'warning');
+        disableVoting();
+      }
+    } catch (error) {
+      console.error('Error checking vote status:', error);
+    }
+  }
+
+  function showVoteStatus(message: string, type: 'success' | 'error' | 'warning') {
+    const statusEl = document.getElementById('vote-status');
+    const textEl = document.getElementById('status-text');
+    
+    if (statusEl && textEl) {
+      textEl.textContent = message;
+      statusEl.classList.remove('hidden');
+      
+      gsap.fromTo(statusEl, 
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }
+      );
+    }
+  }
+
+  function disableVoting() {
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Ya has votado';
+    }
+
+    document.querySelectorAll('.player-card').forEach(card => {
+      (card as HTMLElement).style.pointerEvents = 'none';
+      (card as HTMLElement).style.opacity = '0.5';
+    });
+  }
+
+  // Enviar votación
+  document.getElementById('submit-vote-btn')?.addEventListener('click', async () => {
+    if (selections.length !== 4) return;
+
+    const submitBtn = document.getElementById('submit-vote-btn') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    // Preparar votos en formato API
+    const votes = selections.map(s => ({
+      playerId: s.playerId,
+      playerName: s.playerName,
+      position: s.position
+    }));
+
+    try {
+      const response = await fetch('/api/potm/vote', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ votes })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showVoteStatus('¡Voto registrado! 🎉', 'success');
+        showSuccessAnimation();
+        
+        setTimeout(() => {
+          window.location.href = '/bufas-cards/potm/resultados';
+        }, 2000);
+      } else {
+        showVoteStatus(data.message || 'Error al votar', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🗳️ Enviar Votación';
+      }
+    } catch (error) {
+      console.error('Error submitting vote:', error);
+      showVoteStatus('Error al enviar. Intenta de nuevo.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '🗳️ Enviar Votación';
+    }
+  });
+
+  function showSuccessAnimation() {
+    // Crear overlay de éxito
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-center;
+      z-index: 9999;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="text-align: center; color: white;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem;">¡Voto Registrado!</div>
+        <div style="font-size: 1rem; color: #ffa500;">Redirigiendo a resultados...</div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    gsap.from(overlay.firstElementChild, {
+      scale: 0,
+      opacity: 0,
+      duration: 0.5,
+      ease: 'back.out(1.7)'
+    });
+    
+    setTimeout(() => overlay.remove(), 2000);
+  }
+</script>
