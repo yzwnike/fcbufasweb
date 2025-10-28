@@ -73,7 +73,7 @@ const players = [
             <img 
               src={`/images/fighters/big/${player.id === 'marcos' ? 'marco' : player.id}.webp`}
               alt=""
-              class="w-full h-full object-cover opacity-20"
+              class="w-full h-full object-cover opacity-30"
               style="filter: blur(8px);"
             />
             <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
@@ -147,19 +147,11 @@ const players = [
 
             <!-- Layout Móvil -->
             <div class="lg:hidden w-full h-full flex items-center relative">
-              <!-- PNG Flotante -->
-              <div class="absolute top-4 right-4 z-20 floating-png">
-                <img 
-                  src={`/images/fighters/cards/${player.id === 'marcos' ? 'marco' : player.id}.webp`}
-                  alt=""
-                  class="w-24 h-auto opacity-60"
-                  style="filter: drop-shadow(0 0 20px rgba(255, 136, 0, 0.6));"
-                />
-              </div>
-
-              <div class="flex gap-4 w-full items-center px-4">
-                <!-- Imagen izquierda (más pequeña) -->
-                <div class="flex-shrink-0 w-32 mobile-player-image">
+              <div class="flex flex-col gap-3 w-full items-start px-4">
+                <!-- Contenedor superior con imagen y nombre -->
+                <div class="flex gap-3 w-full items-start">
+                  <!-- Imagen izquierda (más pequeña) -->
+                  <div class="flex-shrink-0 w-28 mobile-player-image">
                   <div class="relative glow-border-mobile rounded-2xl overflow-hidden">
                     <img 
                       src={`/images/${player.id === 'nicou' ? 'uriburu' : player.id}26.JPG`}
@@ -170,29 +162,78 @@ const players = [
                   </div>
                 </div>
 
-                <!-- Info derecha -->
-                <div class="flex-1 space-y-3">
-                  <div>
-                    <div class="text-xs font-bold text-orange-500 tracking-wider uppercase">#{player.dorsal} • {player.position}</div>
-                    <h2 class="text-3xl font-black text-white mb-1 tracking-tight" style="text-shadow: 0 0 15px rgba(255, 136, 0, 0.6);">
-                      {player.name?.toUpperCase()}
-                    </h2>
-                    <p class="text-gray-400 text-xs leading-relaxed line-clamp-3">{player.bio}</p>
+                  <!-- Info derecha -->
+                  <div class="flex-1">
+                    <!-- PNG Flotante encima del nombre -->
+                    <div class="flex items-start gap-2">
+                    <div class="flex-shrink-0 floating-png">
+                      <img 
+                        src={`/images/fighters/cards/${player.id === 'marcos' ? 'marco' : player.id}.webp`}
+                        alt=""
+                        class="w-16 h-auto opacity-70"
+                        style="filter: drop-shadow(0 0 15px rgba(255, 136, 0, 0.6));"
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-xs font-bold text-orange-500 tracking-wider uppercase">#{player.dorsal} • {player.position}</div>
+                      <h2 class="text-2xl font-black text-white tracking-tight" style="text-shadow: 0 0 15px rgba(255, 136, 0, 0.6);">
+                        {player.name?.toUpperCase()}
+                      </h2>
+                    </div>
                   </div>
+                </div>
+                </div>
 
-                  <!-- Stats compactas -->
-                  <div class="grid grid-cols-3 gap-2">
-                    <div class="stat-box-mobile">
-                      <div class="text-xl font-black text-orange-500">{player.goles}</div>
-                      <div class="text-[10px] text-gray-400 uppercase">Goles</div>
+                <!-- Grid inferior: Jornadas izquierda, Stats derecha (sin padding) -->
+                <div class="flex gap-2 w-full px-2">
+                    <!-- Puntos por jornada (izquierda) -->
+                    <div class="flex-1 flex flex-col justify-between gap-1">
+                      <div class="jornada-box">
+                        <span class="text-xs text-gray-400">J1</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                      </div>
+                      <div class="jornada-box">
+                        <span class="text-xs text-gray-400">J2</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                      </div>
+                      <div class="jornada-box">
+                        <span class="text-xs text-gray-400">J3</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                      </div>
+                      <div class="jornada-box">
+                        <span class="text-xs text-gray-400">J4</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                      </div>
+                      <div class="jornada-box">
+                        <span class="text-xs text-gray-400">J5</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                      </div>
+                      <div class="jornada-box">
+                        <span class="text-xs text-gray-400">J6</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                      </div>
                     </div>
-                    <div class="stat-box-mobile">
-                      <div class="text-xl font-black text-orange-500">{player.asistencias}</div>
-                      <div class="text-[10px] text-gray-400 uppercase">Asist.</div>
-                    </div>
-                    <div class="stat-box-mobile">
-                      <div class="text-xl font-black text-orange-500">{player.puntosTotales}</div>
-                      <div class="text-[10px] text-gray-400 uppercase">Puntos</div>
+
+                    <!-- Stats (derecha) -->
+                    <div class="flex-1 flex flex-col justify-between gap-1">
+                      <div class="stat-box-mobile">
+                        <div class="text-xl font-black text-orange-500">{player.goles}</div>
+                        <div class="text-[10px] text-gray-400 uppercase">Goles</div>
+                      </div>
+                      <div class="stat-box-mobile">
+                        <div class="text-xl font-black text-orange-500">{player.asistencias}</div>
+                        <div class="text-[10px] text-gray-400 uppercase">Asist.</div>
+                      </div>
+                      <div class="stat-box-mobile">
+                        <div class="text-xl font-black text-orange-500">{player.puntosTotales}</div>
+                        <div class="text-[10px] text-gray-400 uppercase">Puntos</div>
+                      </div>
+                      <div class="stat-box-mobile">
+                        <div class="text-xl font-black text-yellow-400">
+                          {player.id === 'mario' ? '2' : player.id === 'mister' ? '3' : '1'}
+                        </div>
+                        <div class="text-[10px] text-gray-400 uppercase">MVPs</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -205,7 +246,7 @@ const players = [
       <!-- Sección de Votación -->
       <section class="scroll-section voting-section" id="voting-section">
         <div class="absolute inset-0 bg-black"></div>
-        <div class="relative z-10 container mx-auto max-w-md px-4 h-screen flex flex-col justify-center">
+        <div class="relative z-10 container mx-auto max-w-md px-4 py-8 lg:h-screen lg:flex lg:flex-col lg:justify-center voting-content">
       <!-- Subheader -->
       <div class="mb-4">
         <Subheader variant="minimal" />
@@ -397,6 +438,21 @@ const players = [
     padding: 0.5rem 0.25rem;
     text-align: center;
     box-shadow: 0 0 10px rgba(255, 136, 0, 0.2);
+    flex: 1;
+  }
+
+  /* Cajas de jornadas */
+  .jornada-box {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 136, 0, 0.3);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    width: 100%;
+    flex: 1;
   }
 
   /* Card mini */
@@ -509,10 +565,10 @@ const players = [
     border: 2px solid rgba(255, 136, 0, 0.3);
   }
 
-  /* Responsive - Móvil con scroll snap */
+    /* Responsive - Móvil con scroll snap */
   @media (max-width: 1024px) {
     html {
-      scroll-snap-type: y mandatory;
+      scroll-snap-type: y proximity;
       scroll-behavior: smooth;
     }
 
@@ -530,12 +586,31 @@ const players = [
 
     .scroll-section {
       width: 100vw;
-      height: 100vh;
-      min-height: 100vh;
+      min-height: 80vh;
       scroll-snap-align: start;
-      scroll-snap-stop: always;
       transition: opacity 0.3s ease-out, transform 0.3s ease-out;
       will-change: opacity, transform;
+    }
+
+    /* Secciones de jugador más compactas */
+    .player-section {
+      min-height: 70vh;
+      padding: 1rem 0;
+    }
+
+    /* Sección de votación en móvil con altura automática */
+    .voting-section {
+      height: auto;
+      min-height: 100vh;
+    }
+
+    .voting-content {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding-top: 6rem;
+      padding-bottom: 4rem;
     }
 
     /* Ajustes para móvil */
