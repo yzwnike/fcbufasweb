@@ -97,24 +97,22 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Ruta 2: compatibilidad con flujo random (cardId + statName)
     if (cardId && statName) {
-      const { executeQuerySingle: q1, executeQuery: q } = await import('@/lib/mysql');
-      const { getQuizWindowBoundsStrings } = await import('@/lib/quiz');
+      const { executeQuerySingle: q1, executeQuery: q, executeTransaction } = await import('@/lib/mysql');
+      const { getQuizWindowBoundsStrings, QUIZ_CONFIG } = await import('@/lib/quiz');
       const { start } = getQuizWindowBoundsStrings();
 
-      // Asegurar tabla en Postgres (idempotente)
+      // Asegurar tabla (idempotente y compatible)
       await q(`
         CREATE TABLE IF NOT EXISTS daily_quiz_progress (
           user_id BIGINT NOT NULL,
-          window_start timestamptz NOT NULL,
+          window_start timestamp NOT NULL,
           answered_count INT NOT NULL DEFAULT 0,
           correct_count INT NOT NULL DEFAULT 0,
           completed BOOLEAN NOT NULL DEFAULT FALSE,
-          created_at timestamptz DEFAULT NOW(),
+          created_at timestamp DEFAULT NOW(),
           PRIMARY KEY (user_id, window_start)
         )
       `);
-      // Garantizar índice único si la tabla existe con esquema antiguo
-      await q(`CREATE UNIQUE INDEX IF NOT EXISTS dqp_uniq ON daily_quiz_progress(user_id, window_start)`);
       // Asegurar columna completed en esquemas antiguos
       await q(`ALTER TABLE daily_quiz_progress ADD COLUMN IF NOT EXISTS completed BOOLEAN NOT NULL DEFAULT FALSE`);
 
@@ -156,78 +154,43 @@ export const POST: APIRoute = async ({ request }) => {
       const correctAnswer = clamp(val);
       const isCorrect = Number(selectedAnswer) === correctAnswer;
 
-      // Persistencia mínima para random: sumar progreso y monedas en ventana diaria (20:00)
+      // Persistencia: SELECT FOR UPDATE y luego INSERT/UPDATE manual para compatibilidad
       try {
-        const { executeTransaction, executeQuery } = await import('@/lib/mysql');
-        const { QUIZ_CONFIG, getQuizWindowBoundsStrings } = await import('@/lib/quiz');
-        const { start } = getQuizWindowBoundsStrings();
-        // Intento 1: transacción atómica
-        try {
-          await executeTransaction(async (conn: any) => {
-            // UPSERT progreso
-            await conn.execute(
-              `INSERT INTO daily_quiz_progress (user_id, window_start, answered_count, correct_count, completed)
-               VALUES (?, ?, 1, ?, false)
-               ON CONFLICT (user_id, window_start)
-               DO UPDATE SET 
-                 answered_count = daily_quiz_progress.answered_count + 1,
-                 correct_count  = daily_quiz_progress.correct_count + EXCLUDED.correct_count,
-                 completed      = daily_quiz_progress.completed OR (daily_quiz_progress.answered_count + EXCLUDED.answered_count) >= 5
-               RETURNING user_id AS id`,
-              [Number(userId), start, isCorrect ? 1 : 0]
-            );
-            if (isCorrect) {
-              // Monedas y transacción (tolerante a fallos)
-              try {
-                await conn.execute('UPDATE users SET coins = coins + ? WHERE id = ?', [QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, Number(userId)]);
-                await conn.execute(
-                  'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
-                  [Number(userId), QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, 'DAILY_QUIZ', 'Respuesta correcta en quiz (random)']
-                );
-              } catch (coinErr) {
-                console.error('Coin award failed (TX path), continuing without coins:', coinErr);
-              }
-            }
-          });
-        } catch (txErr) {
-          console.error('TX failed, retrying non-transactional path:', txErr);
-          // Intento 2: sin transacción, de forma secuencial
-          await executeQuery(
-            `INSERT INTO daily_quiz_progress (user_id, window_start, answered_count, correct_count, completed)
-             VALUES (?, ?, 1, ?, false)
-             ON CONFLICT (user_id, window_start)
-             DO UPDATE SET 
-               answered_count = daily_quiz_progress.answered_count + 1,
-               correct_count  = daily_quiz_progress.correct_count + EXCLUDED.correct_count,
-               completed      = daily_quiz_progress.completed OR (daily_quiz_progress.answered_count + EXCLUDED.answered_count) >= 5`,
-            [Number(userId), start, isCorrect ? 1 : 0]
+        await executeTransaction(async (conn: any) => {
+          // Lock row if exists
+          const [rows] = await conn.execute(
+            'SELECT answered_count, correct_count, completed FROM daily_quiz_progress WHERE user_id = ? AND window_start = ? FOR UPDATE',
+            [Number(userId), start]
           );
+          const hasRow = Array.isArray(rows) && rows.length > 0;
+          if (hasRow) {
+            await conn.execute(
+              'UPDATE daily_quiz_progress SET answered_count = answered_count + 1, correct_count = correct_count + ?, completed = (answered_count + 1) >= 5 OR completed WHERE user_id = ? AND window_start = ?'
+              , [isCorrect ? 1 : 0, Number(userId), start]
+            );
+          } else {
+            await conn.execute(
+              'INSERT INTO daily_quiz_progress (user_id, window_start, answered_count, correct_count, completed) VALUES (?, ?, 1, ?, FALSE)'
+              , [Number(userId), start, isCorrect ? 1 : 0]
+            );
+          }
+
           if (isCorrect) {
+            await conn.execute('UPDATE users SET coins = coins + ? WHERE id = ?', [QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, Number(userId)]);
             try {
-              await executeQuery('UPDATE users SET coins = coins + ? WHERE id = ?', [QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, Number(userId)]);
-              await executeQuery(
+              await conn.execute(
                 'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
                 [Number(userId), QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER, 'DAILY_QUIZ', 'Respuesta correcta en quiz (random)']
               );
-            } catch (coinErr2) {
-              console.error('Coin award failed (non-TX path), continuing without coins:', coinErr2);
+            } catch (e) {
+              console.warn('coin_transactions insert failed (random flow), continuing:', (e as any)?.message);
             }
           }
-        }
-      } catch (error) {
-        console.error('Error updating quiz progress and coins (final):', error);
-        // No bloquear el flujo: devolver respuesta correcta/incorrecta sin monedas
-        const coinsEarned = isCorrect ? 0 : 0;
-        return new Response(JSON.stringify({ 
-          success: true,
-          isCorrect,
-          correctAnswer,
-          coinsEarned,
-          warning: 'persist_failed'
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
         });
+      } catch (error) {
+        console.error('Error updating quiz progress and coins (compat path):', error);
+        const coinsEarned = 0;
+        return new Response(JSON.stringify({ success: true, isCorrect, correctAnswer, coinsEarned, warning: 'persist_failed' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
 
       const coinsEarned = isCorrect ? QUIZ_CONFIG.COINS_PER_CORRECT_ANSWER : 0;

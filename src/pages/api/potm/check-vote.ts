@@ -22,11 +22,18 @@ export const GET: APIRoute = async ({ request }) => {
       );
     }
     
-    // Verificar si ya votó este mes
+    // Asegurar columna user_id y restricción única
+    try {
+      await pool.query(`ALTER TABLE potm_votes ADD COLUMN IF NOT EXISTS user_id BIGINT`);
+      await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS potm_votes_user_id_uniq ON potm_votes(user_id)`);
+    } catch (e) {
+      // ignore if fails
+    }
+
+    // Verificar si ya votó alguna vez (una sola vez para siempre)
     const result = await pool.query(
       `SELECT id FROM potm_votes 
        WHERE user_id = $1 
-       AND voted_at >= DATE_TRUNC('month', CURRENT_TIMESTAMP)
        LIMIT 1`,
       [authUser.id]
     );

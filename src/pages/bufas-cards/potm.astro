@@ -40,6 +40,19 @@ const players = [
     image: '/cards/NOMPOTM/nicouNOMPOTMoct.png'
   }
 ];
+
+// Puntos por jornada (J2-J6) para nominaciones TOTW
+const JPOINTS: Record<string, { J2: number; J3: number; J4: number; J5: number; J6: number }> = {
+  mario:  { J2: 5,  J3: 21, J4: 16, J5: 3, J6: 9 },
+  marcos: { J2: 14, J3: 13, J4: 7,  J5: 3, J6: 8 },
+  nicou:  { J2: 8,  J3: 11, J4: 7,  J5: 5, J6: 10 },
+  mister: { J2: 14, J3: 15, J4: 11, J5: 2, J6: 0 },
+};
+const totalPoints = (id: string) => {
+  const j = (JPOINTS as any)[id];
+  if (!j) return 0;
+  return j.J2 + j.J3 + j.J4 + j.J5 + j.J6;
+};
 ---
 
 <NikeFCLayout title={title} helpKey="potm">
@@ -52,6 +65,19 @@ const players = [
   <main class="relative z-10">
     <!-- Sección Hero con scroll horizontal -->
     <div class="scroll-container" id="scroll-container">
+      <!-- Hints de scroll en móvil -->
+      <div id="scroll-hints" class="lg:hidden pointer-events-none">
+        <div class="scroll-arrow left text-white/80">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </div>
+        <div class="scroll-arrow right text-white/80">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
       <!-- Hero Principal -->
       <section class="scroll-section hero-section">
         <div class="absolute inset-0 bg-black">
@@ -115,10 +141,10 @@ const players = [
                     <div class="text-3xl font-black text-orange-500">{player.asistencias}</div>
                     <div class="text-xs text-gray-400 uppercase">Asist.</div>
                   </div>
-                  <div class="stat-box">
-                    <div class="text-3xl font-black text-orange-500">{player.puntosTotales}</div>
-                    <div class="text-xs text-gray-400 uppercase">Puntos</div>
-                  </div>
+                    <div class="stat-box">
+                      <div class="text-3xl font-black text-orange-500">{totalPoints(player.id) || player.puntosTotales}</div>
+                      <div class="text-xs text-gray-400 uppercase">Puntos</div>
+                    </div>
                   <div class="stat-box">
                     <div class="text-2xl font-black text-green-400">€{(player.valorTotal / 1000000).toFixed(0)}M</div>
                     <div class="text-xs text-gray-400 uppercase">Valor</div>
@@ -190,27 +216,27 @@ const players = [
                     <div class="flex-1 flex flex-col justify-between gap-1">
                       <div class="jornada-box">
                         <span class="text-xs text-gray-400">J1</span>
-                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">—</span>
                       </div>
                       <div class="jornada-box">
                         <span class="text-xs text-gray-400">J2</span>
-                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">{(JPOINTS[player.id]?.J2) ?? '—'}</span>
                       </div>
                       <div class="jornada-box">
                         <span class="text-xs text-gray-400">J3</span>
-                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">{(JPOINTS[player.id]?.J3) ?? '—'}</span>
                       </div>
                       <div class="jornada-box">
                         <span class="text-xs text-gray-400">J4</span>
-                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">{(JPOINTS[player.id]?.J4) ?? '—'}</span>
                       </div>
                       <div class="jornada-box">
                         <span class="text-xs text-gray-400">J5</span>
-                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">{(JPOINTS[player.id]?.J5) ?? '—'}</span>
                       </div>
                       <div class="jornada-box">
                         <span class="text-xs text-gray-400">J6</span>
-                        <span class="text-sm font-bold text-orange-400 ml-1">10</span>
+                        <span class="text-sm font-bold text-orange-400 ml-1">{(JPOINTS[player.id]?.J6) ?? '—'}</span>
                       </div>
                     </div>
 
@@ -225,12 +251,12 @@ const players = [
                         <div class="text-[10px] text-gray-400 uppercase">Asist.</div>
                       </div>
                       <div class="stat-box-mobile">
-                        <div class="text-xl font-black text-orange-500">{player.puntosTotales}</div>
+                        <div class="text-xl font-black text-orange-500">{totalPoints(player.id) || player.puntosTotales}</div>
                         <div class="text-[10px] text-gray-400 uppercase">Puntos</div>
                       </div>
                       <div class="stat-box-mobile">
-                        <div class="text-xl font-black text-yellow-400">
-                          {player.id === 'mario' ? '2' : player.id === 'mister' ? '3' : '1'}
+<div class="text-xl font-black text-yellow-400">
+                          {player.id === 'mario' ? '2' : player.id === 'mister' ? '3' : player.id === 'nicou' ? '2' : '1'}
                         </div>
                         <div class="text-[10px] text-gray-400 uppercase">MVPs</div>
                       </div>
@@ -340,7 +366,35 @@ const players = [
       </div>
     </section>
     </div>
-  </main>
+  </script>
+
+  <style>
+    /* Flechas de scroll (solo esta página) */
+    #scroll-hints { position: fixed; inset: 0; z-index: 30; }
+    #scroll-hints .scroll-arrow { position: fixed; top: 50%; transform: translateY(-50%); filter: drop-shadow(0 0 8px rgba(0,0,0,0.5)); }
+    #scroll-hints .scroll-arrow.left { left: 10px; animation: scroll-left 1s ease-in-out infinite; }
+    #scroll-hints .scroll-arrow.right { right: 10px; animation: scroll-right 1s ease-in-out infinite; }
+    @keyframes scroll-left { 0%,100% { transform: translate(-0px, -50%); opacity: 0.9 } 50% { transform: translate(-6px, -50%); opacity: 0.6 } }
+    @keyframes scroll-right { 0%,100% { transform: translate(0px, -50%); opacity: 0.9 } 50% { transform: translate(6px, -50%); opacity: 0.6 } }
+  </style>
+
+  <script>
+    // Ocultar flechas al hacer scroll o tras unos segundos
+    const hideScrollHints = () => {
+      const el = document.getElementById('scroll-hints');
+      if (el) el.classList.add('hidden');
+    };
+    const sc = document.getElementById('scroll-container');
+    if (sc) {
+      let hidden = false;
+      const hideOnce = () => { if (!hidden) { hideScrollHints(); hidden = true; } };
+      sc.addEventListener('scroll', hideOnce, { passive: true });
+      sc.addEventListener('touchstart', hideOnce, { passive: true });
+      setTimeout(hideOnce, 5000);
+    } else {
+      setTimeout(hideScrollHints, 5000);
+    }
+  </script>
 </NikeFCLayout>
 
 <style is:global>
@@ -910,6 +964,8 @@ const players = [
       if (data.hasVoted) {
         showVoteStatus('Ya has votado este mes. ¡Gracias!', 'warning');
         disableVoting();
+        const vr = document.getElementById('view-results-btn') as HTMLButtonElement;
+        if (vr) vr.disabled = false;
       }
     } catch (error) {
       console.error('Error checking vote status:', error);
@@ -944,6 +1000,15 @@ const players = [
     });
   }
 
+  // Botón Ver Resultados (bloqueado hasta votar)
+  const viewResultsBtn = document.createElement('button');
+  viewResultsBtn.id = 'view-results-btn';
+  viewResultsBtn.className = 'mt-3 w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-40 hover:bg-white/20 transition-colors';
+  viewResultsBtn.textContent = 'Ver Resultados';
+  viewResultsBtn.disabled = true;
+  document.querySelector('#voting-section .voting-content')?.appendChild(viewResultsBtn);
+  viewResultsBtn.addEventListener('click', () => { if (!viewResultsBtn.disabled) window.location.href = '/bufas-cards/potm/resultados'; });
+
   // Enviar votación
   document.getElementById('submit-vote-btn')?.addEventListener('click', async () => {
     if (selections.length !== 4) return;
@@ -974,6 +1039,8 @@ const players = [
       if (data.success) {
         showVoteStatus('¡Voto registrado! 🎉', 'success');
         showSuccessAnimation();
+        const vr = document.getElementById('view-results-btn') as HTMLButtonElement;
+        if (vr) vr.disabled = false;
         
         setTimeout(() => {
           window.location.href = '/bufas-cards/potm/resultados';

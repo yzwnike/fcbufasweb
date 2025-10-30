@@ -3,6 +3,9 @@ import NikeFCLayout from '@/layouts/NikeFCLayout.astro';
 import Subheader from '@/components/bufas-cards/Subheader.astro';
 import LoadingScreen from '@/components/bufas-cards/LoadingScreen.astro';
 import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
+
+// Mostrar botón de votaciones POTM por tiempo limitado
+const POTM_VOTING_ACTIVE = true;
 ---
 
 <NikeFCLayout title="Bufas Cards" helpKey="main">
@@ -15,6 +18,12 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
     </div>
     <!-- Hero Section -->
     <section class="relative pt-2 lg:pt-4 pb-6 lg:pb-8 px-4">
+      <!-- Flecha scroll (móvil) -->
+      <div id="mobile-hero-arrow" class="lg:hidden pointer-events-none fixed bottom-4 left-0 right-0 flex justify-center z-40">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-white/90 animate-down-arrow">
+          <path fill-rule="evenodd" d="M12 4.5a.75.75 0 01.75.75v10.19l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V5.25A.75.75 0 0112 4.5z" clip-rule="evenodd" />
+        </svg>
+      </div>
       <div class="max-w-7xl mx-auto text-center">
         <div class="flex flex-col sm:flex-row items-center justify-center mb-3 lg:mb-4 px-2">
           <img 
@@ -82,7 +91,17 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
           
           <!-- Grid único - 2 columnas de 5 en móvil, 5+5 en escritorio -->
           <div class="grid grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3 mb-2 max-w-5xl mx-auto">
-<a href="/bufas-cards/quiz" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
+{POTM_VOTING_ACTIVE && (
+            <a href="/bufas-cards/potm" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
+              <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 713.138-3.138z"/>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-xs lg:text-sm">VOTACIONES POTM</h3>
+            </a>
+)}
+            <a href="/bufas-cards/quiz" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
               <div class="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
                 <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -791,6 +810,17 @@ let quizCountdownInterval = null;
   });
   document.addEventListener('astro:after-swap', initializeApp);
 
+  // Ocultar flecha de scroll móvil al desplazarse o tras 5s
+  (function(){
+    const arrow = document.getElementById('mobile-hero-arrow');
+    if (!arrow) return;
+    let hidden = false;
+    const hide = () => { if (!hidden) { arrow.classList.add('hidden'); hidden = true; } };
+    window.addEventListener('scroll', () => { if (window.scrollY > 20) hide(); }, { passive: true });
+    window.addEventListener('touchstart', hide, { passive: true });
+    setTimeout(hide, 5000);
+  })();
+
   function doLogout() {
     try {
       storage.removeItem('nike_fc_token');
@@ -811,6 +841,7 @@ let quizCountdownInterval = null;
       return data;
     } catch (e) { return { success:false, error:'Error de conexión' }; }
   }
+
 
   function initializeApp() {
     console.log('Initializing Bufas Cards app...');
@@ -1024,3 +1055,11 @@ let quizCountdownInterval = null;
     console.log('Bufas Cards app initialized successfully');
   }
 </script>
+
+<style>
+  @keyframes downFloat {
+    0%, 100% { transform: translateY(0); opacity: 0.95; }
+    50% { transform: translateY(8px); opacity: 0.6; }
+  }
+  .animate-down-arrow { animation: downFloat 1.2s ease-in-out infinite; }
+</style>

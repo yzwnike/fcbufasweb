@@ -44,11 +44,16 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Verificar si ya votó este mes
+    // Asegurar columna user_id y restricción única para impedir votos duplicados
+    try {
+      await pool.query(`ALTER TABLE potm_votes ADD COLUMN IF NOT EXISTS user_id BIGINT`);
+      await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS potm_votes_user_id_uniq ON potm_votes(user_id)`);
+    } catch {}
+
+    // Verificar si ya votó alguna vez (nunca más)
     const checkVote = await pool.query(
       `SELECT id FROM potm_votes 
        WHERE user_id = $1 
-       AND voted_at >= DATE_TRUNC('month', CURRENT_TIMESTAMP)
        LIMIT 1`,
       [authUser.id]
     );
@@ -57,7 +62,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Ya has votado este mes' 
+          message: 'Ya has votado' 
         }),
         { 
           status: 400, 
@@ -91,7 +96,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     });
 
-    // Insertar voto
+    // Insertar voto (protegido por índice único de user_id)
     await pool.query(
       `INSERT INTO potm_votes (user_id, first_place, second_place, third_place, fourth_place, voted_at) 
        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,

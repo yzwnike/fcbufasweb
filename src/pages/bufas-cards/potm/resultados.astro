@@ -51,6 +51,19 @@ const playerInfo: Record<string, { name: string; color: string; image: string }>
         <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4">
           🏆 Resultados POTM
         </h1>
+        <script>
+          // Guard: solo permitir ver resultados si has votado este mes
+          (function(){
+            try {
+              const token = window.sessionStorage.getItem('nike_fc_token');
+              if (!token) { window.location.href = '/bufas-cards/potm'; return; }
+              fetch('/api/potm/check-vote', { headers: { Authorization: 'Bearer ' + token } })
+                .then(r => r.json())
+                .then(d => { if (!d?.hasVoted) window.location.href = '/bufas-cards/potm'; })
+                .catch(() => { window.location.href = '/bufas-cards/potm'; });
+            } catch { window.location.href = '/bufas-cards/potm'; }
+          })();
+        </script>
         <p class="text-lg sm:text-xl text-orange-300 mb-2">
           Votaciones en tiempo real
         </p>
@@ -68,9 +81,9 @@ const playerInfo: Record<string, { name: string; color: string; image: string }>
       <!-- Podio Section -->
       <div id="podium" class="hidden mb-16">
         <h2 class="text-3xl font-bold text-white text-center mb-8">🥇 Podio Actual</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto place-items-center">
           <!-- Segundo lugar -->
-          <div class="podium-card md:mt-12 order-2 md:order-1" data-position="2">
+          <div class="podium-card md:mt-12 order-2 md:order-1 w-full max-w-xs mx-auto" data-position="2">
             <div class="bg-gradient-to-br from-gray-400 to-gray-600 rounded-2xl p-6 relative overflow-hidden">
               <div class="absolute top-0 right-0 text-6xl opacity-20">🥈</div>
               <div class="relative z-10">
@@ -86,7 +99,7 @@ const playerInfo: Record<string, { name: string; color: string; image: string }>
           </div>
 
           <!-- Primer lugar -->
-          <div class="podium-card order-1 md:order-2" data-position="1">
+          <div class="podium-card order-1 md:order-2 w-full max-w-xs mx-auto" data-position="1">
             <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-8 relative overflow-hidden transform scale-105">
               <div class="absolute top-0 right-0 text-8xl opacity-20">👑</div>
               <div class="relative z-10">
@@ -102,7 +115,7 @@ const playerInfo: Record<string, { name: string; color: string; image: string }>
           </div>
 
           <!-- Tercer lugar -->
-          <div class="podium-card md:mt-16 order-3" data-position="3">
+          <div class="podium-card md:mt-16 order-3 w-full max-w-xs mx-auto" data-position="3">
             <div class="bg-gradient-to-br from-orange-600 to-orange-800 rounded-2xl p-6 relative overflow-hidden">
               <div class="absolute top-0 right-0 text-6xl opacity-20">🥉</div>
               <div class="relative z-10">
@@ -122,7 +135,7 @@ const playerInfo: Record<string, { name: string; color: string; image: string }>
       <!-- Tabla detallada de resultados -->
       <div id="results-table" class="hidden">
         <h2 class="text-3xl font-bold text-white text-center mb-8">📊 Estadísticas Detalladas</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto justify-items-center">
           <!-- Cards de jugadores se insertarán aquí -->
         </div>
       </div>
@@ -185,6 +198,12 @@ const playerInfo: Record<string, { name: string; color: string; image: string }>
 
   .podium-card {
     animation: slideUp 0.8s ease-out backwards;
+  }
+
+  /* Mobile centering fixes */
+  @media (max-width: 640px) {
+    .podium-card { max-width: 360px; margin-left: auto; margin-right: auto; }
+    #results-table .grid > * { width: 100%; max-width: 420px; }
   }
 
   .podium-card[data-position="1"] { animation-delay: 0.2s; }
@@ -346,19 +365,19 @@ const playerInfo: Record<string, { name: string; color: string; image: string }>
       const percentage = (player.totalPoints / maxPoints) * 100;
 
       return `
-        <div class="player-result-card bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-          <div class="flex items-center gap-4 mb-4">
+<div class=\"player-result-card w-full max-w-md mx-auto bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300\">
+<div class=\"flex flex-wrap items-center gap-4 gap-y-2 mb-4\">
             <div class="position-rank flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br ${info.color} flex items-center justify-center">
               <span class="text-xl font-black text-white">${index + 1}</span>
             </div>
-            <img src="${info.image}" alt="${player.playerName}" class="w-20 h-auto rounded-lg shadow-lg">
-            <div class="flex-grow">
-              <h3 class="text-2xl font-bold text-white">${player.playerName}</h3>
+<img src=\"${info.image}\" alt=\"${player.playerName}\" class=\"w-16 sm:w-20 h-auto rounded-lg shadow-lg\">
+<div class=\"flex-grow min-w-[9rem]\">
+<h3 class=\"text-xl sm:text-2xl font-bold text-white\">
               <p class="text-gray-400">${player.totalVotes} votos totales</p>
             </div>
-            <div class="text-right">
-              <div class="text-3xl font-black text-orange-400">${player.totalPoints}</div>
-              <div class="text-sm text-gray-400">puntos</div>
+<div class=\"text-right ml-auto flex-shrink-0\">
+<div class=\"text-2xl sm:text-3xl font-black text-orange-400\">${player.totalPoints}</div>
+<div class=\"text-xs sm:text-sm text-gray-400\">puntos</div>
             </div>
           </div>
 

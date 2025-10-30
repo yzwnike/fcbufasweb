@@ -403,13 +403,16 @@ export async function answerQuizQuestion(
         
         console.log(`User coins updated, affected rows: ${(updateResult as any).affectedRows}`);
 
-        // Registrar transacción de monedas
-        const [transactionResult] = await connection.execute(
-          'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
-          [userId, coinsEarned, 'DAILY_QUIZ', `Respuesta correcta en quiz diario - Pregunta ${question.question_number}`]
-        );
-        
-        console.log(`Coin transaction recorded with ID: ${(transactionResult as any).insertId}`);
+        // Registrar transacción de monedas (tolerante a fallos)
+        try {
+          const [transactionResult] = await connection.execute(
+            'INSERT INTO coin_transactions (user_id, amount, type, description) VALUES (?, ?, ?, ?)',
+            [userId, coinsEarned, 'DAILY_QUIZ', `Respuesta correcta en quiz diario - Pregunta ${question.question_number}`]
+          );
+          console.log(`Coin transaction recorded with ID: ${(transactionResult as any).insertId}`);
+        } catch (txErr) {
+          console.warn('coin_transactions insert failed (daily flow), continuing:', (txErr as any)?.message);
+        }
       } else {
         console.log(`No coins earned for incorrect answer`);
       }

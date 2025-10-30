@@ -375,8 +375,8 @@ valorTotal: 62000000, // Valor actualizado J5
         url: 'https://www.youtube.com/embed/cfpvro5tD7g?si=rjaM5jJdImEtefJ6&amp;clip=UgkxuoAS_mblPPU-wtj4bH3GiLXmVRBAow2b&amp;clipt=EImsAhjj2gI',
       },
     ],
-    goles: 6, // +3 J4 (total)
-    asistencias: 5, // +1 J4 (total)
+    goles: 6, // actualizado J6
+    asistencias: 6, // actualizado J6
     partidos: 4,
     puntos: 46, // 30 + 16 (J4) = 46 puntos
     valor: 32,
@@ -477,7 +477,7 @@ valorTotal: 64000000, // Valor actualizado J5
         url: 'https://www.youtube.com/embed/qdS_XOZ5kyU?si=D8fgVfCSRy_SwZHv&amp;clip=UgkxEmtFin7L3_YLiJW_OyRkmeZtFj53PnkT&amp;clipt=EPWwAhj91wI',
       },
     ],
-    goles: 2, // +1 J3, +1 J6
+    goles: 3, // +1 J3, +1 J6 (actualizado)
     asistencias: 1, // +1 J4
     partidos: 4,
     puntos: 30, // 23 + 7 (J4) = 30 puntos
