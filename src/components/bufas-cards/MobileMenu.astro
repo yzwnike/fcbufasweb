@@ -83,8 +83,11 @@ const icons = {
             {item.href === '/bufas-cards/logros' && (
               <div id="mobile-achievements-badge" class="ml-auto bg-red-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold px-1 hidden">0</div>
             )}
-            {item.href === '/bufas-cards/quiz' && (
-              <div id="mobile-quiz-badge" class="ml-auto bg-orange-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
+{item.href === '/bufas-cards/quiz' && (
+              <>
+<div id="mobile-quiz-badge" class="ml-auto bg-red-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
+                <div id="mobile-quiz-timer" class="ml-auto bg-gray-700 text-white/90 rounded-full min-w-[36px] h-5 px-1 flex items-center justify-center text-[11px] font-semibold hidden"></div>
+              </>
             )}
             {item.href === '/bufas-cards/packs' && (
               <div id="mobile-packs-badge" class="ml-auto bg-blue-500 text-white rounded-full min-w-[20px] h-5 flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
@@ -147,6 +150,50 @@ const icons = {
     }
   };
 
+  // Función global para actualizar indicador del quiz
+  let mobileQuizTimerInterval = null;
+  window.updateMobileQuizBadge = async function() {
+    const token = window.sessionStorage.getItem('nike_fc_token');
+    const badge = document.getElementById('mobile-quiz-badge');
+    const timer = document.getElementById('mobile-quiz-timer');
+    if (mobileQuizTimerInterval) { clearInterval(mobileQuizTimerInterval); mobileQuizTimerInterval = null; }
+    if (!token) { badge && badge.classList.add('hidden'); timer && timer.classList.add('hidden'); return; }
+    function formatRemaining(seconds) {
+      const s = Math.max(0, Math.floor(seconds));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+      return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    }
+    try {
+      const res = await fetch('/api/bufas-cards/quiz/status', { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      const canPlay = !!data.canPlay;
+      const completed = !!data.completed;
+      let remaining = typeof data.secondsRemaining === 'number' ? data.secondsRemaining : null;
+      if (canPlay) {
+        badge && badge.classList.remove('hidden');
+        timer && timer.classList.add('hidden');
+      } else {
+        badge && badge.classList.add('hidden');
+        if (completed && remaining != null && remaining > 0) {
+          const tick = () => {
+            if (!timer) return;
+            timer.textContent = formatRemaining(remaining);
+            timer.classList.remove('hidden');
+            remaining -= 1;
+            if (remaining < 0) { clearInterval(mobileQuizTimerInterval); mobileQuizTimerInterval = null; window.updateMobileQuizBadge(); }
+          };
+          tick();
+          mobileQuizTimerInterval = setInterval(tick, 1000);
+        } else {
+          timer && timer.classList.add('hidden');
+        }
+      }
+    } catch (e) { console.error('Error updating mobile quiz badge:', e); }
+  };
+
   function initMobileMenu() {
     const toggleButton = document.getElementById('mobile-menu-toggle');
     const menu = document.getElementById('mobile-menu');
@@ -158,9 +205,10 @@ const icons = {
       return;
     }
     
-    // Cargar badge de logros si hay token
+    // Cargar badges si hay token
     if (window.sessionStorage.getItem('nike_fc_token')) {
       window.updateMobileAchievementsBadge();
+      window.updateMobileQuizBadge();
     }
 
     let isOpen = false;

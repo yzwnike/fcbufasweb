@@ -82,13 +82,14 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
           
           <!-- Grid único - 2 columnas de 5 en móvil, 5+5 en escritorio -->
           <div class="grid grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3 mb-2 max-w-5xl mx-auto">
-            <a href="/bufas-cards/quiz" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
+<a href="/bufas-cards/quiz" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg p-2 lg:p-3 transition-all duration-300 hover:scale-105 text-center relative">
               <div class="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center mx-auto mb-1.5">
                 <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
-              <div id="quiz-quick-badge" class="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">!</div>
+<div id="quiz-quick-badge" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hidden">!</div>
+              <div id="quiz-quick-timer" class="absolute -top-1 -right-1 bg-gray-800 text-white rounded-full px-2 h-5 flex items-center justify-center text-[10px] font-semibold hidden">00:00</div>
               <h3 class="font-semibold text-xs lg:text-sm">Quiz Diario</h3>
             </a>
             
@@ -509,42 +510,112 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
     }
   }
   
+let quizCountdownInterval = null;
+
+  function formatRemaining(seconds) {
+    const s = Math.max(0, Math.floor(seconds));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+
+  // Helper: clave de ventana 20:00 similar al de la página del quiz
+  function dashboardCurrentWindowKey(userId) {
+    const now = new Date();
+    const base = new Date(now);
+    if (now.getHours() < 20) base.setDate(base.getDate() - 1);
+    base.setHours(20,0,0,0);
+    return `quiz_window_${userId}_` + base.toISOString();
+  }
+
   async function loadQuizBadge() {
     try {
-      // Verificar si el quiz diario está disponible
       const res = await fetch('/api/bufas-cards/quiz/status', { 
         headers: { Authorization: `Bearer ${authToken}` } 
       });
       const data = await res.json();
-      const canPlay = data.success && data.canPlay;
+      let answered = Number(data.questionsAnswered || 0);
+      let completed = Boolean(data.completed || answered >= 5);
+
+      // Fallback UI: si el servidor no refleja todavía, usamos localStorage del usuario
+      try {
+        if (currentUser && currentUser.id) {
+          const uid = currentUser.id;
+          const keyExpected = dashboardCurrentWindowKey(uid);
+          const keyStored = window.localStorage.getItem(`quiz_window_key_${uid}`);
+          if (keyStored === keyExpected) {
+            const raw = window.localStorage.getItem(`quiz_progress_${uid}`);
+            if (raw) {
+              const p = JSON.parse(raw);
+              if (p && p.completed) {
+                completed = true;
+                answered = 5;
+                // Intentar sincronizar silenciosamente si el backend aún no está completado
+                if (!data.completed) {
+                  fetch('/api/bufas-cards/quiz/mark-complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+                    body: JSON.stringify({ answered: 5, correct: p.correct || 0 })
+                  }).catch(()=>{});
+                }
+              }
+            }
+          }
+        }
+      } catch {}
+
+      const canPlay = !completed;
+      const nextAt = data.nextAvailableAt ? new Date(data.nextAvailableAt) : null;
+      let remaining = typeof data.secondsRemaining === 'number' ? data.secondsRemaining : (nextAt ? Math.floor((nextAt.getTime() - Date.now())/1000) : null);
       
-      // Actualizar badge del desktop navigation
       const desktopBadge = document.getElementById('desktop-quiz-badge');
-      if (desktopBadge) {
-        if (canPlay) {
-          desktopBadge.classList.remove('hidden');
-        } else {
-          desktopBadge.classList.add('hidden');
-        }
-      }
-      
-      // Actualizar badge del mobile menu
+      const desktopTimer = document.getElementById('desktop-quiz-timer');
       const mobileBadge = document.getElementById('mobile-quiz-badge');
-      if (mobileBadge) {
-        if (canPlay) {
-          mobileBadge.classList.remove('hidden');
-        } else {
-          mobileBadge.classList.add('hidden');
-        }
-      }
-      
-      // Actualizar badge de quick actions
+      const mobileTimer = document.getElementById('mobile-quiz-timer');
       const quickBadge = document.getElementById('quiz-quick-badge');
-      if (quickBadge) {
-        if (canPlay) {
-          quickBadge.classList.remove('hidden');
+      const quickTimer = document.getElementById('quiz-quick-timer');
+
+      // Clear previous interval
+      if (quizCountdownInterval) {
+        clearInterval(quizCountdownInterval);
+        quizCountdownInterval = null;
+      }
+
+      if (canPlay) {
+        desktopBadge && desktopBadge.classList.remove('hidden');
+        mobileBadge && mobileBadge.classList.remove('hidden');
+        quickBadge && quickBadge.classList.remove('hidden');
+        desktopTimer && desktopTimer.classList.add('hidden');
+        mobileTimer && mobileTimer.classList.add('hidden');
+        quickTimer && quickTimer.classList.add('hidden');
+      } else {
+        desktopBadge && desktopBadge.classList.add('hidden');
+        mobileBadge && mobileBadge.classList.add('hidden');
+        quickBadge && quickBadge.classList.add('hidden');
+        // Mostrar cuenta atrás SOLO si ya has hecho el quiz (5/5)
+        if (answered >= 5 && remaining != null && remaining > 0) {
+          const updateTimers = () => {
+            const txt = formatRemaining(remaining);
+            if (desktopTimer) { desktopTimer.textContent = txt; desktopTimer.classList.remove('hidden'); }
+            if (mobileTimer) { mobileTimer.textContent = txt; mobileTimer.classList.remove('hidden'); }
+            if (quickTimer) { quickTimer.textContent = txt; quickTimer.classList.remove('hidden'); }
+            remaining -= 1;
+            if (remaining < 0) {
+              clearInterval(quizCountdownInterval);
+              quizCountdownInterval = null;
+              // Refresh badges after countdown ends
+              loadQuizBadge();
+            }
+          };
+          updateTimers();
+          quizCountdownInterval = setInterval(updateTimers, 1000);
         } else {
-          quickBadge.classList.add('hidden');
+          // Ocultar timers si aún no completaste o no hay info
+          desktopTimer && desktopTimer.classList.add('hidden');
+          mobileTimer && mobileTimer.classList.add('hidden');
+          quickTimer && quickTimer.classList.add('hidden');
         }
       }
     } catch (error) {
@@ -745,6 +816,13 @@ import CoinsDisplay from '@/components/bufas-cards/CoinsDisplay.astro';
     console.log('Initializing Bufas Cards app...');
     
     checkAuthState();
+
+    // Actualizar badges de dashboard/nav si hay token
+    if (authToken) {
+      try { loadAchievementsBadge(); } catch {}
+      try { loadQuizBadge(); } catch {}
+      try { loadPacksBadge(); } catch {}
+    }
 
     // Modal controls
     const loginBtn = document.getElementById('login-btn');

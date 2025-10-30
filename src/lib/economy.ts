@@ -59,10 +59,10 @@ export const ECONOMY_CONFIG = {
       type: 'PREMIUM',
       cost: 600,
       odds: {
-        NORMAL: 0.70,    // 70% Normal
+        NORMAL: 0.60,    // 60% Normal
         ESPECIAL: 0.20,  // 20% Especial
-        ELITE: 0.07,     // 7% Elite
-        LEGENDARIA: 0.03 // 3% Legendaria
+        ELITE: 0.13,     // 13% Elite (+6)
+        LEGENDARIA: 0.07 // 7% Legendaria (+4)
       }
     },
     SPECIAL: {

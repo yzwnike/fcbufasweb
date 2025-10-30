@@ -669,10 +669,13 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       document.getElementById('sel-count').textContent = count.toString();
       setTileOK('req-tile-count', count >= min && count <= max);
 
-      const avg = lastValidation?.stats?.avg || 0;
-      const specials = lastValidation?.stats?.specials || 0;
+      // Calcular siempre con la selección actual para feedback inmediato
+      const selected = ids.map(id => userCards.find(u => u.id === id)).filter(Boolean);
+      const sum = selected.reduce((a, uc) => a + (uc.card?.player?.fifa_rating || 0), 0);
+      const avg = count > 0 ? Math.round(sum / count) : 0;
+      const specials = selected.filter(uc => uc.card?.special_type !== 'Regular' && uc.card?.special_type !== 'OLD_GENERATION').length;
       document.getElementById('sel-avg').textContent = avg.toString();
-      document.getElementById('sel-specials').textContent = specials.toString();
+      document.getElementById('sel-specials').textContent = String(specials);
       setTileOK('req-tile-avg', avg >= (currentReq.min_avg_rating||0));
       setTileOK('req-tile-specials', specials >= (currentReq.min_special_cards||0));
       

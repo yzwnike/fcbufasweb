@@ -32,8 +32,11 @@ const isActive = (href: string) => current === href || (href !== '/bufas-cards' 
             {item.href === '/bufas-cards/logros' && (
               <div id="desktop-achievements-badge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-bold px-1 hidden">0</div>
             )}
-            {item.href === '/bufas-cards/quiz' && (
-              <div id="desktop-quiz-badge" class="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
+{item.href === '/bufas-cards/quiz' && (
+              <>
+<div id="desktop-quiz-badge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
+                <div id="desktop-quiz-timer" class="absolute -top-2 -right-2 bg-gray-700 text-white/90 rounded-full min-w-[28px] h-[18px] px-1 flex items-center justify-center text-[10px] font-semibold hidden"></div>
+              </>
             )}
             {item.href === '/bufas-cards/packs' && (
               <div id="desktop-packs-badge" class="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-bold px-1 hidden">!</div>
@@ -44,3 +47,54 @@ const isActive = (href: string) => current === href || (href !== '/bufas-cards' 
     </ul>
   )}
 </nav>
+
+<script>
+  let quizTimerInterval = null;
+  function formatRemaining(seconds) {
+    const s = Math.max(0, Math.floor(seconds));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+  async function updateQuizIndicators() {
+    const token = window.sessionStorage.getItem('nike_fc_token');
+    const badge = document.getElementById('desktop-quiz-badge');
+    const timer = document.getElementById('desktop-quiz-timer');
+    if (quizTimerInterval) { clearInterval(quizTimerInterval); quizTimerInterval = null; }
+    if (!token) { badge && badge.classList.add('hidden'); timer && timer.classList.add('hidden'); return; }
+    try {
+      const res = await fetch('/api/bufas-cards/quiz/status', { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      const canPlay = !!data.canPlay;
+      const completed = !!data.completed;
+      let remaining = typeof data.secondsRemaining === 'number' ? data.secondsRemaining : null;
+      if (canPlay) {
+        badge && badge.classList.remove('hidden');
+        timer && timer.classList.add('hidden');
+      } else {
+        badge && badge.classList.add('hidden');
+        if (completed && remaining != null && remaining > 0) {
+          const tick = () => {
+            if (!timer) return;
+            timer.textContent = formatRemaining(remaining);
+            timer.classList.remove('hidden');
+            remaining -= 1;
+            if (remaining < 0) { clearInterval(quizTimerInterval); quizTimerInterval = null; updateQuizIndicators(); }
+          };
+          tick();
+          quizTimerInterval = setInterval(tick, 1000);
+        } else {
+          timer && timer.classList.add('hidden');
+        }
+      }
+    } catch (e) {
+      console.error('Quiz indicator update failed', e);
+    }
+  }
+  const init = () => updateQuizIndicators();
+  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:after-swap', init);
+</script>

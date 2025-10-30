@@ -675,6 +675,17 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       // Persist local completion until 20:00
       saveLocalProgress(5, correctAnswers, true);
 
+      // Intentar sincronizar progreso en servidor para bloquear hasta las 20:00
+      try {
+        await fetch('/api/bufas-cards/quiz/mark-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify({ answered: 5, correct: correctAnswers })
+        });
+      } catch (e) {
+        console.warn('mark-complete failed (non-blocking):', e);
+      }
+
       // Actualizar perfil del usuario para refrescar las monedas
       try {
         await fetchCurrentUser();

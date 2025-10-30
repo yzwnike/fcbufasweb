@@ -86,18 +86,7 @@ function currentWindowStart(): string {
 export const GET: APIRoute = async ({ request, url }) => {
   try {
     const authHeader = request.headers.get('Authorization');
-    // Ensure progress table exists (idempotent)
-    await executeQuery(`
-      CREATE TABLE IF NOT EXISTS daily_quiz_progress (
-        id BIGSERIAL PRIMARY KEY,
-        user_id BIGINT NOT NULL,
-        window_start timestamptz NOT NULL,
-        answered_count INT NOT NULL DEFAULT 0,
-        correct_count INT NOT NULL DEFAULT 0,
-        created_at timestamptz DEFAULT NOW(),
-        UNIQUE(user_id, window_start)
-      )
-    `);
+    // No ejecutar DDL aquí; la tabla debe existir por migración
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ success: false, error: 'Token requerido' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
@@ -110,21 +99,15 @@ export const GET: APIRoute = async ({ request, url }) => {
     const countParam = url.searchParams.get('count');
     const count = Math.max(1, Math.min(10, Number(countParam) || 5));
 
-    // Load progress for this window (compute window in SQL to avoid TZ mismatches)
-    const prog = await executeQuery<any>(
-      `SELECT COALESCE(SUM(answered_count),0) AS answered_count,
-              COALESCE(SUM(correct_count),0)  AS correct_count
-         FROM daily_quiz_progress 
-        WHERE user_id = ? AND window_start = (
-          CASE WHEN (now()::time >= time '20:00:00')
-               THEN date_trunc('day', now()) + interval '20 hours'
-               ELSE date_trunc('day', now()) - interval '4 hours'
-          END
-        )`,
-      [decoded.userId]
+    // Cargar progreso de esta ventana (calculada en servidor con zona Madrid)
+    const { getQuizWindowBoundsStrings } = await import('@/lib/quiz');
+    const { start } = getQuizWindowBoundsStrings();
+    const progRow = await executeQuery<any>(
+      `SELECT answered_count, correct_count FROM daily_quiz_progress WHERE user_id = ? AND window_start = ? LIMIT 1`,
+      [decoded.userId, start]
     );
-    const answeredSoFar = prog.length ? Number(prog[0].answered_count) : 0;
-    const correctSoFar = prog.length ? Number(prog[0].correct_count) : 0;
+    const answeredSoFar = progRow.length ? Number(progRow[0].answered_count) : 0;
+    const correctSoFar = progRow.length ? Number(progRow[0].correct_count) : 0;
     const remaining = Math.max(0, 5 - answeredSoFar);
     if (remaining <= 0) {
       return new Response(JSON.stringify({ success: true, alreadyCompleted: true, progress: { answered: answeredSoFar, correct: correctSoFar } }), { status: 200, headers: { 'Content-Type': 'application/json' } });

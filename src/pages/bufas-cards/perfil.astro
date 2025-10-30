@@ -36,9 +36,14 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
           </div>
         </div>
         
-        <button id="select-featured-btn" class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors">
-          🎴 Seleccionar Cartas de tu Colección
-        </button>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button id="select-featured-btn" class="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors">
+            🎴 Seleccionar Cartas de tu Colección
+          </button>
+          <button id="clear-featured-btn" class="sm:w-56 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors">
+            🧹 Vaciar cartas destacadas
+          </button>
+        </div>
       </div>
       
       <p class="text-slate-200 mb-4">Puedes cambiar tu nombre de usuario y tu correo editando los campos y pulsando <span class="font-semibold">Guardar</span>. Para cambiar la contraseña, introduce la <span class="font-semibold">actual</span> y la <span class="font-semibold">nueva</span> y pulsa <span class="font-semibold">Cambiar contraseña</span>.</p>
@@ -110,9 +115,12 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
         <!-- Cards will be loaded here -->
       </div>
       
-      <div class="flex gap-3">
+      <div class="flex flex-col sm:flex-row gap-3">
         <button id="save-featured-btn" class="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg">
           ✅ Guardar Selección
+        </button>
+        <button id="clear-selection-btn" class="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg">
+          🧽 Vaciar selección
         </button>
         <button id="cancel-modal-btn" class="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg">
           ❌ Cancelar
@@ -248,6 +256,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
     async function loadFeaturedCards() {
       try {
         const res = await fetch('/api/bufas-cards/profile/featured-cards', {
+          cache: 'no-store',
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -317,6 +326,38 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       selectedCards = currentFeaturedCards.map(c => c.user_card_id);
       renderCardsGrid();
       document.getElementById('select-cards-modal').classList.remove('hidden');
+    }
+    
+    function clearSelection() {
+      selectedCards = [];
+      renderCardsGrid(document.getElementById('card-search')?.value || '');
+    }
+    
+    async function clearFeaturedCards() {
+      if (!confirm('¿Seguro que quieres vaciar tus cartas destacadas?')) return;
+      try {
+        const btn = document.getElementById('clear-featured-btn');
+        if (btn) btn.disabled = true;
+        const res = await fetch('/api/bufas-cards/profile/featured-cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ user_card_ids: [] })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentFeaturedCards = [];
+          renderFeaturedSlots();
+          alert('✅ Cartas destacadas vaciadas');
+        } else {
+          alert(data.error || 'Error al vaciar');
+        }
+      } catch (e) {
+        console.error('Error clearing featured cards:', e);
+        alert('Error al vaciar');
+      } finally {
+        const btn = document.getElementById('clear-featured-btn');
+        if (btn) btn.disabled = false;
+      }
     }
     
     function closeCardSelectionModal() {
@@ -412,6 +453,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       const selectBtn = document.getElementById('select-featured-btn');
       if (selectBtn) selectBtn.addEventListener('click', openCardSelectionModal);
       
+      const clearBtn = document.getElementById('clear-featured-btn');
+      if (clearBtn) clearBtn.addEventListener('click', clearFeaturedCards);
+      
       const closeBtn = document.getElementById('close-modal-btn');
       if (closeBtn) closeBtn.addEventListener('click', closeCardSelectionModal);
       
@@ -421,11 +465,20 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       const saveBtn = document.getElementById('save-featured-btn');
       if (saveBtn) saveBtn.addEventListener('click', saveFeaturedCards);
       
+      const clearSelBtn = document.getElementById('clear-selection-btn');
+      if (clearSelBtn) clearSelBtn.addEventListener('click', clearSelection);
+      
       const searchInput = document.getElementById('card-search');
       if (searchInput) {
         searchInput.addEventListener('input', (e) => {
           renderCardsGrid(e.target.value);
         });
+      }
+      
+      // Permitir abrir el modal haciendo clic en los slots
+      for (let i = 1; i <= 3; i++) {
+        const slot = document.getElementById(`featured-slot-${i}`);
+        if (slot) slot.addEventListener('click', openCardSelectionModal);
       }
     }
 

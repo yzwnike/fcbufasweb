@@ -6,12 +6,37 @@ import { ECONOMY_CONFIG, calculateQuizPayout } from './economy';
 // Configuración del quiz (ahora desde economy.ts)
 export const QUIZ_CONFIG = ECONOMY_CONFIG.QUIZ;
 
-// Fecha efectiva del quiz (reseteo diario a las 20:00 hora del servidor)
+// Utilidades de zona horaria: Europa/Madrid (reseteo 20:00 hora española)
+function getMadridParts(date: Date = new Date()): { year: number; month: number; day: number; hour: number; minute: number; second: number; tzOffsetHours: number } {
+  const parts = new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    timeZoneName: 'short'
+  }).formatToParts(date);
+  const get = (type: string) => Number(parts.find(p => p.type === type)?.value || '0');
+  const tzName = parts.find(p => p.type === 'timeZoneName')?.value || 'GMT+1';
+  const m = tzName.match(/GMT([+\-])(\d+)/);
+  const sign = m?.[1] === '-' ? -1 : 1;
+  const tzOffsetHours = m ? sign * Number(m[2]) : 1;
+  return { year: get('year'), month: get('month'), day: get('day'), hour: get('hour'), minute: get('minute'), second: get('second'), tzOffsetHours };
+}
+
+function madridWindowStart(date: Date = new Date()): Date {
+  const mp = getMadridParts(date);
+  // Si hora Madrid >= 20, ventana empieza hoy 20:00, si no, ayer 20:00
+  const baseUTC = new Date(Date.UTC(mp.year, mp.month - 1, mp.day, 20 - mp.tzOffsetHours, 0, 0));
+  if (mp.hour >= 20) return baseUTC;
+  const yesterdayUTC = new Date(baseUTC.getTime() - 24 * 60 * 60 * 1000);
+  return yesterdayUTC;
+}
+
+// Fecha efectiva del quiz (reseteo diario a las 20:00 hora española)
 export function currentQuizDate(): string {
-  const now = new Date();
-  const d = new Date(now);
-  if (now.getHours() < 20) d.setDate(d.getDate() - 1);
-  return d.toISOString().split('T')[0];
+  const start = madridWindowStart();
+  // La fecha del "día" es la del instante posterior a start (Madrid >=20 -> hoy; <20 -> ayer)
+  // Usamos el día civil de Madrid representado en UTC (ISO yyyy-mm-dd)
+  return start.toISOString().split('T')[0];
 }
 
 // Estadísticas disponibles para preguntas
@@ -587,6 +612,30 @@ export function getStatDisplayName(statName: StatName): string {
   };
 
   return translations[statName] || statName;
+}
+
+// Próximo reseteo del quiz (20:00 Europe/Madrid) -> devuelve instante en UTC
+export function nextQuizResetTime(from: Date = new Date()): Date {
+  const mp = getMadridParts(from);
+  // 20:00 Madrid en UTC para el día civil actual en Madrid
+  const todayResetUTC = new Date(Date.UTC(mp.year, mp.month - 1, mp.day, 20 - mp.tzOffsetHours, 0, 0));
+  const nowUTC = from;
+  if (nowUTC.getTime() < todayResetUTC.getTime()) return todayResetUTC;
+  // Siguiente día 20:00 Madrid
+  return new Date(todayResetUTC.getTime() + 24 * 60 * 60 * 1000);
+}
+
+// Límites de ventana diaria (inicio 20:00 Madrid, fin +24h)
+export function getQuizWindowBounds(): { start: Date; end: Date } {
+  const start = madridWindowStart();
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}
+
+export function getQuizWindowBoundsStrings(): { start: string; end: string } {
+  const { start, end } = getQuizWindowBounds();
+  const fmt = (d: Date) => d.toISOString().slice(0, 19).replace('T', ' ');
+  return { start: fmt(start), end: fmt(end) };
 }
 
 // Helper de debug para verificar distribución de opciones (solo para desarrollo)
