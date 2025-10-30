@@ -712,12 +712,15 @@ const totalPoints = (id: string) => {
     return true;
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function bootstrap() {
     if (!requireAuth()) return;
     initHorizontalScroll();
     initSelectionSystem();
     checkVoteStatus();
-  });
+  }
+  document.addEventListener('DOMContentLoaded', bootstrap);
+  document.addEventListener('astro:page-load', bootstrap);
+  document.addEventListener('astro:after-swap', bootstrap);
 
   function initHorizontalScroll() {
     const container = document.getElementById('scroll-container');
@@ -855,41 +858,35 @@ const totalPoints = (id: string) => {
   }
 
   function initSelectionSystem() {
-    const playerCards = document.querySelectorAll('.player-card');
-    
-    playerCards.forEach(card => {
-      card.addEventListener('click', () => {
-        const playerId = (card as HTMLElement).dataset.playerId!;
-        const playerName = (card as HTMLElement).dataset.playerName!;
-        const playerImage = (card as HTMLElement).dataset.playerImage!;
-        
-        // Si ya está seleccionado, no hacer nada
-        if (selections.find(s => s.playerId === playerId)) {
-          return;
-        }
-        
-        // Encontrar el siguiente slot vacío
-        const emptySlot = findNextEmptySlot();
-        if (!emptySlot) return;
-        
-        const position = parseInt(emptySlot.dataset.position!);
-        
-        // Agregar selección
-        selections.push({ playerId, playerName, playerImage, position });
-        
-        // Actualizar UI
-        updateSlot(emptySlot, playerName, playerImage);
-        markCardAsSelected(card as HTMLElement);
-        
-        // Animar
-        gsap.from(emptySlot.querySelector('.slot-content'), {
-          scale: 0,
-          duration: 0.3,
-          ease: 'back.out(1.7)'
-        });
-        
-        updateSubmitButton();
+    const grid = document.getElementById('players-grid');
+    if (!grid) return;
+    if ((grid as any)._bound) return;
+    (grid as any)._bound = true;
+
+    grid.addEventListener('click', (ev) => {
+      const card = (ev.target as HTMLElement).closest('.player-card') as HTMLElement | null;
+      if (!card) return;
+
+      const playerId = card.dataset.playerId!;
+      const playerName = card.dataset.playerName!;
+      const playerImage = card.dataset.playerImage!;
+
+      if (selections.find(s => s.playerId === playerId)) return;
+
+      const emptySlot = findNextEmptySlot();
+      if (!emptySlot) return;
+      const position = parseInt(emptySlot.dataset.position!);
+
+      selections.push({ playerId, playerName, playerImage, position });
+      updateSlot(emptySlot, playerName, playerImage);
+      markCardAsSelected(card);
+
+      gsap.from(emptySlot.querySelector('.slot-content'), {
+        scale: 0,
+        duration: 0.3,
+        ease: 'back.out(1.7)'
       });
+      updateSubmitButton();
     });
   }
 
