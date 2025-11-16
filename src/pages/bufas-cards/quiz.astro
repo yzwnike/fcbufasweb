@@ -209,6 +209,9 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
 </div>
 
   <script>
+    // Config local del quiz (debe coincidir con ECONOMY_CONFIG.QUIZ.COINS_PER_CORRECT_ANSWER)
+    const COINS_PER_CORRECT_ANSWER = 80;
+
     // State management
     let currentUser = null;
     let authToken = null;
@@ -438,7 +441,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       const local = loadLocalProgress();
       if (local.completed) {
         document.getElementById('today-correct').textContent = String(local.correct);
-        document.getElementById('today-coins').textContent = String(local.correct * 40);
+        document.getElementById('today-coins').textContent = String(local.correct * COINS_PER_CORRECT_ANSWER);
         showSection('already-completed');
         return;
       }
@@ -453,7 +456,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       // Already completed window
       if (result.alreadyCompleted) {
         document.getElementById('today-correct').textContent = (result.progress?.correct || 0).toString();
-        document.getElementById('today-coins').textContent = ((result.progress?.correct || 0) * 40).toString();
+        document.getElementById('today-coins').textContent = ((result.progress?.correct || 0) * COINS_PER_CORRECT_ANSWER).toString();
         showSection('already-completed');
         return;
       }
@@ -492,7 +495,7 @@ import Subheader from '@/components/bufas-cards/Subheader.astro';
       // Set current question index based on progress
       currentQuestionIndex = Math.min(answeredSoFar, questions.length - 1);
       correctAnswers = correctSoFar;
-      coinsEarned = correctSoFar * 40;
+      coinsEarned = correctSoFar * COINS_PER_CORRECT_ANSWER;
       document.getElementById('questions-answered').textContent = answeredSoFar.toString();
       document.getElementById('correct-answers').textContent = correctSoFar.toString();
       document.getElementById('coins-earned').textContent = coinsEarned.toString();

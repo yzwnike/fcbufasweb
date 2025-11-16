@@ -1,6 +1,7 @@
 -- Tabla de votaciones POTM (Player Of The Month)
 CREATE TABLE IF NOT EXISTS potm_votes (
   id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT,
   user_ip VARCHAR(100) NOT NULL,
   first_place VARCHAR(50) NOT NULL,
   second_place VARCHAR(50) NOT NULL,
@@ -9,6 +10,9 @@ CREATE TABLE IF NOT EXISTS potm_votes (
   voted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Índice único para impedir votos duplicados por usuario (siempre)
+CREATE UNIQUE INDEX IF NOT EXISTS potm_votes_user_id_uniq ON potm_votes(user_id);
 
 -- Índices para optimizar consultas
 CREATE INDEX IF NOT EXISTS idx_potm_user_ip ON potm_votes(user_ip);
@@ -32,6 +36,7 @@ CREATE POLICY "Permitir inserción de votos"
 
 -- Comentarios
 COMMENT ON TABLE potm_votes IS 'Votaciones del Player Of The Month';
+COMMENT ON COLUMN potm_votes.user_id IS 'ID del usuario que vota (bloquea votos repetidos)';
 COMMENT ON COLUMN potm_votes.user_ip IS 'IP del usuario que vota (identificador temporal)';
 COMMENT ON COLUMN potm_votes.first_place IS 'Jugador en 1er lugar (4 puntos)';
 COMMENT ON COLUMN potm_votes.second_place IS 'Jugador en 2do lugar (3 puntos)';

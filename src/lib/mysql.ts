@@ -333,3 +333,5 @@ export function isValidSpecialType(type: string): type is Card['special_type'] {
 export function isValidPosition(position: string): boolean {
   return ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST'].includes(position);
 }
+
+console.log('currentPgConfig() at startup:', currentPgConfig());

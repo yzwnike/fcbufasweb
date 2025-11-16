@@ -87,7 +87,7 @@ function extractSpecialType(packType: AchievementPackType): string[] | null {
   return null; // Sin restricción de tipo
 }
 
-// Mapea rareza a special_type
+  // Mapea rareza a special_type
 function mapRarityToSpecialType(rarity: 'NORMAL' | 'ESPECIAL' | 'ELITE' | 'LEGENDARIA', packType?: AchievementPackType): string[] {
   switch (rarity) {
     case 'NORMAL':
@@ -95,7 +95,7 @@ function mapRarityToSpecialType(rarity: 'NORMAL' | 'ESPECIAL' | 'ELITE' | 'LEGEN
     case 'ESPECIAL':
       return ['TEAM_OF_THE_WEEK', 'NOM_POTM'];
     case 'ELITE':
-      // Jorge COMEBACK_HERO solo en sobres EVENTO o ELITE específicos
+      // COMEBACK_HERO (Jorge y Juanete) solo en sobres EVENTO o ELITE específicos
       const isEventoOrElitePack = packType && (packType.includes('EVENTO') || packType === 'ELITE' || packType === 'ELITE_RANDOM');
       if (isEventoOrElitePack) {
         return ['MARKET_MASTER', 'RATING_RELOAD', 'COMEBACK_HERO', 'ASSIST_ENGINE'];
@@ -136,7 +136,7 @@ async function buildCardQuery(
   
   const placeholders = targetTypes.map(() => '?').join(',');
   
-  // Jorge COMEBACK_HERO solo en sobres EVENTO o ELITE específicos
+  // COMEBACK_HERO (Jorge y Juanete) solo en sobres EVENTO o ELITE específicos
   const isEventoOrElitePack = packType.includes('EVENTO') || packType === 'ELITE' || packType === 'ELITE_RANDOM';
   const excludeJorgeCH = !isEventoOrElitePack && !targetTypes.includes('COMEBACK_HERO');
   
@@ -154,7 +154,7 @@ async function buildCardQuery(
     FROM cards c 
     JOIN players p ON c.player_id = p.id 
     WHERE c.special_type IN (${placeholders})
-    ${excludeJorgeCH ? "AND NOT (p.card_asset_basename = 'jorge' AND c.special_type = 'COMEBACK_HERO')" : ''}
+    ${excludeJorgeCH ? "AND NOT (p.card_asset_basename IN ('jorge','juanete') AND c.special_type = 'COMEBACK_HERO')" : ''}
     AND LEAST(99, COALESCE(c.fifa_rating_override, p.fifa_rating + CASE c.special_type
       WHEN 'TEAM_OF_THE_WEEK' THEN 2
          WHEN 'NOM_POTM' THEN 2
